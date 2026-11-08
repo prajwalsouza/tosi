@@ -16,6 +16,13 @@ The video is a recording of the **Play demo** button on Tosi's home page: a narr
 
 Narration: Kokoro (Apache-2.0), generated locally. Music: a short piano piece composed and synthesised for this video; no samples, free to reuse.
 
+## Results for evaluation
+
+The processed **Space IFIC 3074** and **Terrestrial IFIC 3076** are in [results/](results/), one folder each, as PDF, Excel and CSV, with every stage's output behind them. [results/README.md](results/README.md) lists the inputs, the assumptions and how to reproduce them.
+
+- Space 3074: [report.pdf](results/space-3074/report.pdf) · [report.xlsx](results/space-3074/report.xlsx) · [report.csv](results/space-3074/report.csv)
+- Terrestrial 3076: [report.pdf](results/terrestrial-3076/report.pdf) · [report.xlsx](results/terrestrial-3076/report.xlsx) · [report.csv](results/terrestrial-3076/report.csv)
+
 ## What it does
 
 - **Screens both kinds of filing.** Space: does it transmit down, can it rise above Finland's horizon, which ITU limit applies, how much power could arrive in the worst case, and whose stations it could reach. Terrestrial: foreign land mobile stations near enough to matter, their field strength at the border (ITU-R P.1546-6) against the trigger level.
