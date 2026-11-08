@@ -36,9 +36,9 @@ async function askAll() {
   state.answers = {};
   render();
   const all = await fetch("/api/engines").then((r) => r.json());
-  state.engines = all.map(({ id, name }) => ({ id, name }));
+  state.engines = all.map(({ id, name, available }) => ({ id, name, available: available !== false }));
   for (const a of all) state.answers[a.id] = a;
-  if (!state.engines.some((e) => e.id === state.using)) use(state.engines[0]?.id, false);
+  if (!state.engines.some((e) => e.id === state.using && e.available)) use(state.engines.find((e) => e.available)?.id, false);
   render();
 }
 async function askOne(id) {
@@ -48,7 +48,7 @@ async function askOne(id) {
   render();
 }
 function use(id, ask = true) {
-  if (!id) return;
+  if (!id || !state.engines.find((e) => e.id === id)?.available) return;
   state.using = id;
   store.set("tosi.engine", id);
   if (ask) askOne(id); else render();
@@ -113,7 +113,7 @@ function setTheme(id) {
 }
 
 let SAMPLES = null;
-function home() { return flow.homePage(SAMPLES); }
+function home() { return flow.homePage(SAMPLES, state.about?.demo); }
 
 function settings(pageId) {
   const page = SETTINGS.find((p) => p.id === pageId) ?? SETTINGS[0];
@@ -138,15 +138,17 @@ function enginesPage() {
       el("dl", {}, [0, 1, 2, 3].map(() => el("div", {}, el("span", { class: "sk line", style: "width:70px" }), el("span", { class: "sk line", style: "width:90px;margin-top:6px" })))))),
       state.engines.map((e) => {
       const a = state.answers[e.id], inUse = e.id === state.using, i = a?.info;
-      const status = !a ? el("span", { class: "sk line", style: "width:170px;margin-top:6px" }) : a.ok ? `Running · answered in ${a.ms} ms` : "Not running";
+      const status = !a ? el("span", { class: "sk line", style: "width:170px;margin-top:6px" }) : !e.available ? "Unavailable on this deployment" : a.ok ? `Running · answered in ${a.ms} ms` : "Not running";
       const row = el("div", { class: "row" },
         el("div", {},
           el("div", { class: "name" }, el("i", { class: dotClass(a) }), e.name),
           el("div", { class: "state" }, status)),
-        el("button", inUse
+        el("button", !e.available
+          ? { class: "use", disabled: true }
+          : inUse
           ? { class: "use", disabled: true, html: icon("check") }
           : { class: "use", onclick: () => use(e.id), "aria-label": `Use the ${e.name} engine` },
-          el("span", { class: "t" }, inUse ? "In use" : "Use this")));
+          el("span", { class: "t" }, !e.available ? "Unavailable" : inUse ? "In use" : "Use this")));
       if (!a) {
         row.append(el("dl", {}, [0, 1, 2, 3].map(() => el("div", {}, el("span", { class: "sk line", style: "width:70px" }), el("span", { class: "sk line", style: "width:90px;margin-top:6px" })))));
       } else if (a.ok) {
@@ -156,7 +158,7 @@ function enginesPage() {
           el("div", {}, el("dt", {}, "Runtime"), el("dd", {}, i.runtime)),
           el("div", {}, el("dt", {}, "Spec"), el("dd", { class: specOff ? "warn" : "" }, specOff ? `${i.spec}, expected ${spec}` : i.spec)),
           el("div", {}, el("dt", {}, "Stages"), el("dd", {}, i.stages.length ? i.stages.join(", ") : "None yet"))));
-      } else if (a) {
+      } else if (a && e.available) {
         row.append(el("div", { class: "err" }, a.error, a.hint ? el("code", {}, a.hint) : null));
       }
       return row;
@@ -221,13 +223,15 @@ function toast(text) {
   clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 5000);
 }
 let dragDepth = 0;
-addEventListener("dragenter", (e) => { if (![...(e.dataTransfer?.types ?? [])].includes("Files")) return; e.preventDefault(); dragDepth++; document.body.classList.add("over"); });
+addEventListener("dragenter", (e) => { if (state.about?.demo || ![...(e.dataTransfer?.types ?? [])].includes("Files")) return; e.preventDefault(); dragDepth++; document.body.classList.add("over"); });
 addEventListener("dragleave", () => { if (--dragDepth <= 0) { dragDepth = 0; document.body.classList.remove("over"); } });
 addEventListener("dragover", (e) => e.preventDefault());
 addEventListener("drop", (e) => {
   e.preventDefault(); dragDepth = 0; document.body.classList.remove("over");
   const f = e.dataTransfer?.files?.[0];
-  if (f) flow.upload(f);
+  if (!f) return;
+  if (state.about?.demo) toast("Choose an official sample to try the public demo.");
+  else flow.upload(f);
 });
 
 addEventListener("hashchange", render);
@@ -257,7 +261,9 @@ const engineList = askAll();
   if (auto && !existing.length && SAMPLES.length && route() === "/") {
     const ids = [];
     for (const s of SAMPLES) ids.push(await flow.startSample(s.name));
-    location.hash = `#/flow/${ids[0]}`;
+    const first = ids.find(Boolean);
+    if (first) location.hash = `#/flow/${first}`;
+    else render();
   } else if (route() === "/") render();
 })().finally(() => window.tosiLoaded?.());       // the loading screen leaves once the first page is ready
 fetch("/api/about").then((r) => r.json()).then((a) => { state.about = a; render(); });

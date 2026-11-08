@@ -18,7 +18,9 @@ const pct = (d, t) => (t ? Math.min(100, (d / t) * 100) : 0);
 
 /* ---------- runs ---------- */
 export async function startSample(name) {
-  const r = await fetch(`/api/runs?sample=${encodeURIComponent(name)}&engine=${ctx.using()}`, { method: "POST" }).then((x) => x.json());
+  const res = await fetch(`/api/runs?sample=${encodeURIComponent(name)}&engine=${ctx.using()}`, { method: "POST" });
+  const r = await res.json();
+  if (!res.ok) { ctx.toast(r.error || "The sample could not start."); return null; }
   runs.set(r.id, r);
   return r.id;
 }
@@ -102,14 +104,18 @@ async function loadRules() {
 /* ---------- pages ---------- */
 // Where the ITU publishes each kind of issue (BR IFIC for space services and for terrestrial services).
 const ITU = { space: "https://www.itu.int/en/ITU-R/space/brific/Pages/default.aspx", terrestrial: "https://www.itu.int/en/ITU-R/terrestrial/brific/Pages/default.aspx" };
-export function homePage(samples) {
+export function homePage(samples, demo = false) {
   const { el } = ctx;
   // The 3D scene just below the fold. It loads on its own; the page's cleanup stops it.
   const scene = el("section", { class: "home3d", "aria-hidden": "true" });
   let stop3d = null, gone3d = false;
   import("./home3d.js").then((m) => { if (!gone3d) stop3d = m.mount(scene); }).catch(() => scene.remove());
   const home = el("div", { class: "home" },
-    el("div", { class: "drop-hint" },
+    demo ? el("div", { class: "drop-hint" },
+      el("div", { class: "dh-ic", html: icon("satellite-dish") }),
+      el("h1", {}, "Try Tosi with an official ITU sample"),
+      el("p", {}, "Choose a space or terrestrial filing to run the analysis and open its report."))
+    : el("div", { class: "drop-hint" },
       el("div", { class: "dh-ic", html: icon("arrow-up-from-bracket") }),
       // the ITU pages where the issues are published, opened in the browser
       el("h1", {}, el("span", { class: "t" }, "Drop an ", el("a", { class: "ext", href: ITU.space, target: "_blank", rel: "noopener" }, "ITU IFIC file"), " anywhere")),
@@ -119,8 +125,8 @@ export function homePage(samples) {
     samples === null
       ? el("div", { class: "samples" }, [0, 1].map(() => el("div", { class: "sample" }, el("span", { class: "sk title" }), el("span", { class: "sk line", style: "width:120px;margin-top:8px" }))))
       : samples.length ? el("div", { class: "samples" },
-        el("div", { class: "s-h" }, "Or click a sample to try it"),
-        samples.map((s) => el("button", { class: "sample", onclick: async () => ctx.go(`/flow/${await startSample(s.name)}`) },
+        el("div", { class: "s-h" }, demo ? "Official samples" : "Or click a sample to try it"),
+        samples.map((s) => el("button", { class: "sample", onclick: async () => { const id = await startSample(s.name); if (id) ctx.go(`/flow/${id}`); } },
           el("span", { class: "ic", html: icon(/^br/i.test(s.name) ? "tower-broadcast" : "satellite-dish") }),
           el("span", {}, el("b", {}, s.name), el("small", {}, `${/^br/i.test(s.name) ? "Terrestrial" : "Space"} · ${mb(s.bytes)}`))))) : null,
     scene);

@@ -13,6 +13,13 @@ const STEPS = [
   ["check", "Recognise and check", ["recognise", "check"]],
   ["downlink", "Downlink"],
   ["reach", "Reach"],
+  ["limit", "Applicable limits"], ["data", "Data sufficiency"], ["power", "Power"],
+  ["compare", "Compare with limits"], ["stations", "Station overlap"],
+  ["ladder", "Prioritise space filings"], ["report", "Space report"],
+  ["mobile", "Land mobile"], ["range", "Range"], ["tdata", "Terrestrial data"],
+  ["field", "Field strength"], ["threshold", "Compare with thresholds"],
+  ["tstations", "Station exposure"], ["tladder", "Prioritise terrestrial filings"],
+  ["treport", "Terrestrial report"],
 ];
 const fmt = (n) => Number(n).toLocaleString("en-GB");
 const mb = (b) => `${(b / 1e6).toFixed(b < 1e7 ? 1 : 0)} MB`;
@@ -31,7 +38,7 @@ let sample = null;
 
 export function testsPage(el) {
   const box = el("div", { class: "tests" });
-  let data = null, timer = 0;
+  let data = null, timer = 0, showReference = true, error = "";
 
   async function load() {
     data = await fetch("/api/tests").then((r) => r.json()).catch(() => ({ last: null }));
@@ -40,8 +47,13 @@ export function testsPage(el) {
     if (data.running && box.isConnected) timer = setTimeout(load, 1000);
   }
   async function start() {
-    data = await fetch("/api/tests/run", { method: "POST" }).then((r) => r.json());
-    draw(); timer = setTimeout(load, 800);
+    showReference = false;
+    const response = await fetch("/api/tests/run", { method: "POST" });
+    const result = await response.json();
+    error = response.ok ? "" : result.error;
+    if (response.ok) data = result;
+    draw();
+    if (response.ok) timer = setTimeout(load, 800);
   }
 
   function relative(t, best) {
@@ -100,7 +112,8 @@ export function testsPage(el) {
   }
 
   function draw() {
-    const last = data?.last, running = data?.running;
+    const saved = showReference && data?.reference;
+    const last = saved || data?.last, running = data?.running;
     const results = (last?.results ?? []).filter((r) => r.state === "done");
     const files = [...new Set(results.map((r) => r.file.name))];
     if (!sample || !files.includes(sample)) sample = files.sort((a, b) => results.find((r) => r.file.name === b).file.bytes - results.find((r) => r.file.name === a).file.bytes)[0];
@@ -109,11 +122,16 @@ export function testsPage(el) {
       el("div", { class: "bar" },
         el("div", {},
           el("h2", { html: icon("flask-vial") }, el("span", { class: "t" }, "Tests")),
-          el("p", { class: "lede" }, "How long each engine takes on each step, timed on this computer with the sample files.")),
-        el("button", { class: "btn primary", disabled: running ? true : null, onclick: start, html: icon(running ? "stopwatch" : "play") }, running ? "Testing…" : last ? "Run the tests again" : "Run the tests")),
+          el("p", { class: "lede" }, data?.reference ? "Compare saved timings for all three engines or measure Rust on this host." : "How long each engine takes on each step, timed on this computer with the sample files.")),
+        el("button", { class: "btn primary", disabled: running ? true : null, onclick: start, html: icon(running ? "stopwatch" : "play") }, running ? "Testing…" : data?.reference ? "Run Rust tests" : last ? "Run the tests again" : "Run the tests")),
+      data?.reference ? el("div", { class: "seg small", role: "group", "aria-label": "Timing source" },
+        el("button", { class: showReference ? "on" : "", "aria-pressed": String(showReference), onclick: () => { showReference = true; draw(); } }, "Saved comparison"),
+        el("button", { class: !showReference ? "on" : "", "aria-pressed": String(!showReference), onclick: () => { showReference = false; draw(); } }, "Hosted Rust tests")) : null,
+      saved ? el("p", { class: "meta" }, "Recorded on an Apple M4. Covers intake for both samples and the Space 3074 downlink stage.") : null,
       el("div", { class: "heur", html: icon("circle-info") },
         el("p", {}, el("b", {}, "These are heuristics, not promises. "),
-          "The step times below are real: each engine ran each sample three times, here, reporting when every step started and ended, and the middle of the three times is shown. The estimates further down are not measured: they take those times and scale them in proportion to the file's size. Disk speed, other programs, and what is inside a file all change the real time.")),
+          "The step times below are real: each engine ran each sample three times, reporting when every step started and ended, and the middle of the three times is shown. The estimates further down are not measured: they take those times and scale them in proportion to the file's size. Disk speed, other programs, and what is inside a file all change the real time.")),
+      error ? el("p", { class: "meta", role: "status" }, error) : null,
       running ? el("div", { class: "trun" }, el("span", { class: "meta" }, `Running ${running.done + 1} of ${running.total}: ${running.now}`),
         el("div", { class: "tbar wide" }, el("i", { class: "best", style: `width:${(running.done / running.total) * 100}%` }))) : null,
       data === null ? el("div", { class: "ttab-sk" }, [0, 1, 2, 3, 4].map(() => el("span", { class: "sk line", style: "width:100%;height:28px;margin:6px 0" })))
