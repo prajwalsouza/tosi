@@ -12,6 +12,7 @@ const STEPS = [
   ["database", "Read the list of tables"],
   ["check", "Recognise and check", ["recognise", "check"]],
   ["downlink", "Downlink"],
+  ["reach", "Reach"],
 ];
 const fmt = (n) => Number(n).toLocaleString("en-GB");
 const mb = (b) => `${(b / 1e6).toFixed(b < 1e7 ? 1 : 0)} MB`;

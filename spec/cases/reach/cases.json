@@ -1,0 +1,16 @@
+{
+  "about": "Conformance cases for reach. Sample inputs are real files read from the local samples folder (never committed). Geometry cases are single satellites with the outcome every engine must give.",
+  "cases": [
+    { "id": "space-3074", "input": { "sample": "ific3074.zip" },
+      "expect": { "counts": { "notices": 176, "seen": 138, "clear": 38,
+        "how": { "above_horizon": 35, "reaches_north": 93, "beyond_earth": 9, "assumed": 1, "below_horizon": 35, "too_far_south": 3 } } } },
+    { "id": "gso-over-finland", "input": { "geo": { "long_nom": 25, "tol_east": 0, "tol_west": 0 } }, "expect": { "seen": true, "how": "above_horizon", "elevation": 22.68 } },
+    { "id": "gso-west-edge", "input": { "geo": { "long_nom": -52.5, "tol_east": 0, "tol_west": 0 } }, "expect": { "seen": true, "how": "above_horizon" } },
+    { "id": "gso-far-east", "input": { "geo": { "long_nom": 140, "tol_east": 0.1, "tol_west": 0.1 } }, "expect": { "seen": false, "how": "below_horizon" } },
+    { "id": "gso-no-longitude", "input": { "geo": { "long_nom": null } }, "expect": { "seen": true, "how": "assumed" } },
+    { "id": "ngso-polar-leo", "input": { "orbits": [{ "orb_id": 1, "inclin_ang": 97.4, "apog_km": 501 }] }, "expect": { "seen": true, "how": "reaches_north" } },
+    { "id": "ngso-equatorial", "input": { "orbits": [{ "orb_id": 1, "inclin_ang": 0, "apog_km": 1200 }] }, "expect": { "seen": false, "how": "too_far_south" } },
+    { "id": "ngso-moon", "input": { "ref_body": "L", "orbits": [] }, "expect": { "seen": true, "how": "beyond_earth", "body": "L" } },
+    { "id": "ngso-no-orbit", "input": { "ref_body": "T", "orbits": [] }, "expect": { "seen": true, "how": "assumed" } }
+  ]
+}

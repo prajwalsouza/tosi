@@ -1,0 +1,49 @@
+{
+  "about": "Reach: which transmitting satellites can ever be seen from Finland. A satellite that never rises above the horizon anywhere in Finland cannot send it anything, so it is clear. Every choice leans to the worst case: when in doubt, the satellite is treated as seen.",
+  "version": 1,
+  "kinds": ["space"],
+  "earth": {
+    "radius_km": 6378.14,
+    "basis": "ITU Radio Regulations Appendix 8 and Recommendation ITU-R S.1257: equatorial radius of the Earth, spherical Earth"
+  },
+  "geostationary_radius_km": 42164.2,
+  "geostationary_basis": "Recommendation ITU-R S.1257: radius of the geostationary orbit",
+  "finland": {
+    "south": 59.3,
+    "north": 70.1,
+    "west": 19.0,
+    "east": 31.6,
+    "basis": "Administration policy: a box around Finland's land and territorial sea, rounded outwards. South: Bogskär (59.50 N) plus 12 nautical miles of territorial sea. West: Märket (19.13 E). East: the eastern land border (31.59 E). North: Nuorgam (70.09 N). The box holds more than Finland, never less, so no satellite that could be seen is missed."
+  },
+  "horizon_deg": 0,
+  "horizon_basis": "Administration policy: a satellite counts as seen if it is at or above the horizon (0 degrees) at any point in the box.",
+  "satellite_types": {
+    "G": "geostationary",
+    "N": "non_geostationary"
+  },
+  "earth_body": "T",
+  "bodies": {
+    "L": "the Moon",
+    "S": "the Sun",
+    "J": "Jupiter",
+    "M": "Mars",
+    "V": "Venus"
+  },
+  "outcomes": {
+    "seen": {
+      "above_horizon": "It stays fixed in the sky, and from Finland it rises above the horizon.",
+      "reaches_north": "Its orbit carries it far enough north to rise above Finland's horizon.",
+      "beyond_earth": "It travels around {body}, far from Earth. Like {body}, it appears in Finland's sky at times, so it is treated as seen.",
+      "assumed": "Its position or orbit is not filed in full, so it cannot be ruled out. It is treated as seen; the Data step will ask for what is missing."
+    },
+    "clear": {
+      "below_horizon": "It stays fixed in the sky, but too far round the Earth: from everywhere in Finland it is below the horizon.",
+      "too_far_south": "Its orbit never carries it far enough north to rise above Finland's horizon."
+    }
+  },
+  "notes": [
+    "Fixed satellite: the highest it appears in Finland's sky is reached at the south edge of the box, at the longitude in the box nearest the satellite. Its longitude is moved towards Finland by its east or west tolerance, whichever helps.",
+    "Moving satellite: it is seen if, for some orbit it files, the furthest north its path reaches (the orbit's tilt, folded to at most 90 degrees) plus how far it can see over the horizon from its highest point is at least the south edge of the box. Every orbit is tried; one is enough.",
+    "Angles are worked out in double precision and written rounded to two decimals, half away from zero."
+  ]
+}

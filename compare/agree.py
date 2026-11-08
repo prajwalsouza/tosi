@@ -34,6 +34,7 @@ def main():
                 r = json.loads(res.read_text())
                 if r["kind"] == "space" and r["check"]["status"] == "accepted":
                     stages.append(("downlink", ["downlink", "--in", str(folder)]))
+                    stages.append(("reach", ["reach", "--in", str(folder)]))
         (folder / "database.mdb").unlink(missing_ok=True)
     same = True
     for stage in {s for h in hashes.values() for s in h}:

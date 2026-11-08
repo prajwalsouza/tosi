@@ -1,6 +1,7 @@
 // The Flow: a file going through the pipeline, told as a scroll story while it happens.
 // The left column explains each step; the right column shows it, live, from the engine's own progress events.
 import { icon } from "./icons.js";
+import { makeGlobe, gsoSky, ngsoSky, spread, tiltPink, farBlue } from "./reachglobe.js";
 
 let ctx = null;              // { el, store, using(), go(route) } from app.js
 const runs = new Map();      // id -> run as the server reports it, with every event so far
@@ -73,10 +74,11 @@ const st = (m, k) => m.steps[k]?.state ?? "waiting";
 
 // What the rulebook says the later steps read, per kind of filing (spec/rulebook/intake.json, served by the server).
 // Read fresh each time a Flow opens, because the guidebook can change it.
-let KIND_MARKERS = {}, REQUIRED = {}, KIND_LABEL = {}, TABLES = {}, RULE_VERSION = 0, DOWNLINK = null;
+let KIND_MARKERS = {}, REQUIRED = {}, KIND_LABEL = {}, TABLES = {}, RULE_VERSION = 0, DOWNLINK = null, REACH = null, FINLAND = null;
 async function loadRules() {
-  const [r, dl] = await Promise.all([fetch("/api/rulebook/intake").then((x) => x.json()).catch(() => null), fetch("/api/rulebook/downlink").then((x) => x.json()).catch(() => null)]);
-  DOWNLINK = dl;
+  const get = (n) => fetch(`/api/rulebook/${n}`).then((x) => x.json()).catch(() => null);
+  const [r, dl, rc, fi] = await Promise.all([get("intake"), get("downlink"), get("reach"), FINLAND ? FINLAND : fetch("/finland.json").then((x) => x.json()).catch(() => null)]);
+  DOWNLINK = dl; REACH = rc; FINLAND = fi;
   if (!r) return;
   RULE_VERSION = r.version ?? 0; TABLES = {};
   for (const [k, v] of Object.entries(r.kinds)) {
@@ -109,9 +111,10 @@ const BUILT = [
   { id: "tables", label: "Tables", icon: "database" },
   { id: "relevant", label: "Relevant tables", icon: "list-check" },
   { id: "downlink", label: "Downlink", icon: "satellite", space: true },
+  { id: "reach", label: "Reach", icon: "satellite-dish", space: true },
 ];
 const NEXT = {
-  space: ["Reach", "Limit", "Data", "Power", "Compare", "Stations", "Ladder", "Report"],
+  space: ["Limit", "Data", "Power", "Compare", "Stations", "Ladder", "Report"],
   terrestrial: ["Land mobile", "Range", "Data", "Field strength", "Threshold", "Stations", "Coordinated", "Ladder", "Report"],
 };
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
@@ -230,6 +233,102 @@ export function flowPage(id) {
     dl.from = src ? { x: src.x + src.w / 2, y: src.y + src.h / 2 } : { x: W / 2, y: H / 2 };
   }
 
+  // Reach: the filings that went on regroup. Those Finland can see stay; the clear ones step aside, grey, by why.
+  const RSHORT = { below_horizon: "Below Finland's horizon", too_far_south: "Never far enough north" };
+  let rc = null;
+  function buildReach() {
+    const d = current.reach;
+    if (!d?.notices || rc || !dl) return;
+    const by = new Map(d.notices.map((n) => [n.ntc_id, n]));
+    for (const x of dl.dots) x.r = by.get(x.n.ntc_id) ?? null;
+    const clearKeys = Object.keys(REACH?.outcomes?.clear ?? RSHORT).filter((k) => d.counts.how[k]);
+    const labels = clearKeys.map((k) => { const e = el("div", { class: "nleft" }, el("b", {}, RSHORT[k] ?? k), el("span", {}, fmt(d.counts.how[k]))); stage.append(e); return { k, e }; });
+    const h = d.counts.how, parts = [[h.above_horizon, "fixed in the sky"], [h.reaches_north, "moving"], [h.beyond_earth, "beyond Earth"], [h.assumed, "orbit not filed"]].filter(([v]) => v);
+    const seenLabel = el("div", { class: "nleft kept" }, el("b", {}, "Can be seen from Finland"), el("span", {}, fmt(d.counts.seen)));
+    const sub = el("div", { class: "nsub" }, parts.map(([v, t]) => `${fmt(v)} ${t}`).join(" · "));
+    stage.append(seenLabel, sub);
+    // Two views of the same result: the sky above Finland (the default) and the grid. A toggle switches, smoothly.
+    const globe = FINLAND ? makeGlobe(el, FINLAND) : null;
+    if (globe) { stage.insertBefore(globe.svg, dl.dots[0]?.e ?? null); stage.append(globe.note, globe.legend); }
+    const SKY = '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.3"/><ellipse cx="8" cy="8" rx="2.8" ry="6.3"/><path d="M1.9 8h12.2"/></svg>';
+    const GRID = '<svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor">' + [3, 8, 13].flatMap((y) => [3, 8, 13].map((x) => `<circle cx="${x}" cy="${y}" r="1.6"/>`)).join("") + "</svg>";
+    const bSky = el("button", { "aria-label": "Show in the sky above Finland", title: "In the sky", html: SKY, onclick: () => setView("globe") });
+    const bGrid = el("button", { "aria-label": "Show as a grid", title: "As a grid", html: GRID, onclick: () => setView("grid") });
+    const toggle = el("div", { class: "rview", role: "group", "aria-label": "View" }, bSky, bGrid);
+    stage.append(toggle);
+    rc = { labels, seenLabel, sub, globe, toggle, bSky, bGrid };
+    if (!globe) view = "grid";
+    viewT = view === "globe" ? 1 : 0;
+    // Drag the picture to turn it around Finland or tilt it; double-click to go back to the starting view.
+    if (globe) {
+      let drag = null;
+      const at = (ev) => { const b = stage.getBoundingClientRect(); return { x: ev.clientX - b.left, y: ev.clientY - b.top }; };
+      stage.addEventListener("pointerdown", (ev) => {
+        const p = at(ev);
+        if (phase !== 4 || view !== "globe" || ev.button !== 0 || ev.target.closest(".ndot, .rview") || !globe.over(p.x, p.y)) return;
+        drag = { ...p, id: ev.pointerId, moved: false };
+        stage.setPointerCapture(ev.pointerId); stage.classList.add("turning");
+      });
+      stage.addEventListener("pointermove", (ev) => {
+        if (!drag || ev.pointerId !== drag.id) return;
+        const p = at(ev), dx = p.x - drag.x, dy = p.y - drag.y;
+        if (!drag.moved && Math.hypot(dx, dy) < 3) return;
+        drag.moved = true; drag.x = p.x; drag.y = p.y;
+        globe.turn(-dx * 0.4, -dy * 0.3); placeInSky(); frame();
+      });
+      const end = (ev) => { if (!drag || ev.pointerId !== drag.id) return; drag = null; stage.classList.remove("turning"); };
+      stage.addEventListener("pointerup", end); stage.addEventListener("pointercancel", end);
+      stage.addEventListener("dblclick", (ev) => { const p = at(ev); if (phase === 4 && view === "globe" && globe.over(p.x, p.y) && !ev.target.closest(".ndot, .rview")) { globe.reset(); placeInSky(); frame(); } });
+    }
+    layoutReach();
+  }
+  let view = (() => { try { return localStorage.getItem("tosi.reachView") || "globe"; } catch { return "globe"; } })(), viewT = 1, viewRaf = 0, dark = true;
+  function setView(v) {
+    if (v === "globe" && !rc?.globe) return;
+    view = v;
+    try { localStorage.setItem("tosi.reachView", v); } catch {}
+    cancelAnimationFrame(viewRaf);
+    const from = viewT, to = v === "globe" ? 1 : 0, t0 = performance.now();
+    const step = (now) => { const k = clamp((now - t0) / 700); viewT = from + (to - from) * ease(k); frame(); if (k < 1) viewRaf = requestAnimationFrame(step); };
+    viewRaf = requestAnimationFrame(step);
+  }
+  function layoutReach() {
+    if (!rc || !geo) return;
+    const { W, H } = geo, top = Math.max(H * 0.3, 200), bottom = H * 0.9;
+    const seen = dl.dots.filter((x) => x.r?.seen), clear = dl.dots.filter((x) => x.r && !x.r.seen);
+    const bw = W * 0.56, bx = W * 0.06, cols = Math.max(8, Math.ceil(Math.sqrt(seen.length * bw / (bottom - top)))), step = Math.min(bw / cols, 22);
+    seen.forEach((x, i) => { x.rt = { x: bx + (i % cols) * step, y: top + 54 + Math.floor(i / cols) * step }; });
+    rc.seenLabel.style.left = `${bx}px`; rc.seenLabel.style.top = `${top}px`;
+    rc.sub.style.left = `${bx}px`; rc.sub.style.top = `${top + 24}px`;
+    const rx = W * 0.7, rcols = 8;
+    let y = top;
+    for (const L of rc.labels) {
+      L.e.style.left = `${rx}px`; L.e.style.top = `${y}px`;
+      const mine = clear.filter((x) => x.r.how === L.k);
+      mine.forEach((x, i) => { x.rt = { x: rx + (i % rcols) * step, y: y + 34 + Math.floor(i / rcols) * step }; });
+      y += 34 + Math.ceil(mine.length / rcols) * step + 22;
+    }
+    // In the sky: each satellite Finland can see, where you would look to find it.
+    rc.toggle.style.left = `${W * 0.64 - 70}px`; rc.toggle.style.top = `${top - 14}px`;
+    if (!rc.globe) return;
+    rc.globe.layout({ x0: W * 0.05, x1: W * 0.64, y0: top + 104, y1: H * 0.93 });
+    placeInSky();
+    const bg = getComputedStyle(document.body).backgroundColor.match(/\d+/g)?.map(Number) ?? [0, 0, 0];
+    dark = (bg[0] * 0.3 + bg[1] * 0.59 + bg[2] * 0.11) < 128;
+    rc.globe.legend.classList.toggle("dark", dark);
+  }
+  function placeInSky() {
+    if (!rc?.globe) return;
+    for (const x of dl.dots.filter((d) => d.r?.seen)) {
+      const r = x.r, f = FILINGS?.[r.ntc_id];
+      const at = r.how === "above_horizon" ? (() => { const q = gsoSky(r.longitude); return { az: q.az, el: Math.max(2, q.el) }; })()
+        : r.how === "beyond_earth" ? { az: 180 + (spread(r.ntc_id) - 0.5) * 140, el: 12 + 30 * spread(r.ntc_id, 2) }
+        : r.how === "assumed" && r.type === "G" ? { az: 180 + (spread(r.ntc_id) - 0.5) * 90, el: 10 }
+        : ngsoSky(r.ntc_id, f?.tilt ?? null, f?.apogee ?? null);
+      x.gt = rc.globe.place(at.az, at.el);
+    }
+  }
+
   // Two arrangements: every table on a grid, and the relevant ones lifted into a list. Scrolling moves between them.
   let geo = null;
   function layout() {
@@ -250,6 +349,7 @@ export function flowPage(id) {
       inf.e.style.left = `${rx + rw + 18}px`; inf.e.style.top = `${top + i * rh}px`; inf.e.style.height = `${rh - 8}px`;
     });
     layoutDownlink();
+    layoutReach();
   }
 
   function progress() {
@@ -257,12 +357,13 @@ export function flowPage(id) {
     return clamp(-r.top / Math.max(1, r.height - innerHeight));
   }
 
-  // With Downlink there is a fourth scene: the first three take the first three quarters of the scroll.
-  const SPAN = () => hasDownlink() ? 0.75 : 1;
+  // An accepted space filing has two more scenes, Downlink and Reach: the first three take the first 60% of the scroll.
+  const SPAN = () => hasDownlink() ? 0.6 : 1;
   function frame() {
-    scrolly.style.height = hasDownlink() ? "440vh" : "";
+    scrolly.style.height = hasDownlink() ? "540vh" : "";
     const P = progress(), p = P / SPAN(), W = geo?.W ?? stage.clientWidth, H = geo?.H ?? stage.clientHeight;
-    const tD = hasDownlink() ? ease(clamp((P - 0.78) / 0.16)) : 0;
+    const tD = hasDownlink() ? ease(clamp((P - 0.62) / 0.14)) : 0;
+    const tR = hasDownlink() ? ease(clamp((P - 0.8) / 0.14)) : 0;
     const tB = ease(clamp((p - 0.2) / 0.22)), tC = ease(clamp((p - 0.58) / 0.22));
     // the file: centre stage, then up into the corner as its tables come out
     card.style.transform = `translate(${lerp(W / 2 - 110, W * 0.04, tB)}px, ${lerp(H / 2 - 110, H * 0.02, tB)}px) scale(${lerp(1, 0.62, tB)})`;
@@ -276,7 +377,8 @@ export function flowPage(id) {
         if (x.rel && x.l) b = { x: lerp(b.x, x.l.x, tC), y: lerp(b.y, x.l.y, tC), w: lerp(b.w, x.l.w, tC), h: lerp(b.h, x.l.h, tC) };
         const s = x.e.style;
         s.transform = `translate(${b.x}px, ${b.y}px)`; s.width = `${b.w}px`; s.height = `${b.h}px`;
-        s.opacity = String((x.absent ? tC : x.rel ? d : d * (1 - tC)) * (1 - (x.t.name === "notice" ? clamp(tD * 1.4 - 0.4) : tD)));
+        const op = (x.absent ? tC : x.rel ? d : d * (1 - tC)) * (1 - (x.t.name === "notice" ? clamp(tD * 1.4 - 0.4) : tD));
+        s.opacity = String(op); s.pointerEvents = op > 0.3 ? "" : "none";   // a faded tile must not catch the pointer
         x.e.classList.toggle("lit", x.rel && tC > 0.5);
         x.e.classList.toggle("named", b.w > 64 && b.h > 16);
       });
@@ -286,13 +388,31 @@ export function flowPage(id) {
       const n = dl.dots.length;
       dl.dots.forEach((x, i) => {
         const d = clamp(tD * 1.6 - (i / n) * 0.6);       // the dots leave the notice table one after another
-        const b = x.to ? { x: lerp(dl.from.x, x.to.x, d), y: lerp(dl.from.y, x.to.y, d) } : dl.from;
-        x.e.style.transform = `translate(${b.x}px, ${b.y}px)`; x.e.style.opacity = String(clamp(d * 3));
+        let b = x.to ? { x: lerp(dl.from.x, x.to.x, d), y: lerp(dl.from.y, x.to.y, d) } : dl.from;
+        if (rc && x.rt) {
+          const t = x.gt ? { x: lerp(x.rt.x, x.gt.x, ease(viewT)), y: lerp(x.rt.y, x.gt.y, ease(viewT)) } : x.rt;
+          b = { x: lerp(b.x, t.x, tR), y: lerp(b.y, t.y, tR) };
+        }
+        // In the sky, a moving satellite is pink: paler for a gentle orbit tilt, deeper for a steep one.
+        const sky = rc && x.gt && tR > 0.5 && viewT > 0.5;
+        x.e.style.background = !sky ? "" : x.r.how === "beyond_earth" ? farBlue(dark) : x.r.type === "N" ? tiltPink(FILINGS?.[x.n.ntc_id]?.tilt, dark) : "";
+        x.e.style.transform = `translate(${b.x}px, ${b.y}px)`;
+        // in the sky, a satellite on the far side of the dome is fainter, so the dome reads as round
+        const op = clamp(d * 3) * (rc && !x.n.kept ? 1 - tR : 1) * (rc && x.gt?.far ? 1 - 0.45 * tR * viewT : 1);
+        x.e.style.opacity = String(op); x.e.style.pointerEvents = op > 0.3 ? "" : "none";
+        x.e.classList.toggle("kept", x.n.kept && !(rc && tR > 0.5 && x.r && !x.r.seen));
       });
-      const lo = String(clamp((tD - 0.75) / 0.25));
-      dl.labels.forEach((L) => { L.e.style.opacity = lo; }); dl.keptLabel.style.opacity = lo;
+      const lo = clamp((tD - 0.75) / 0.25) * (rc ? 1 - clamp(tR * 3) : 1);
+      dl.labels.forEach((L) => { L.e.style.opacity = String(lo); }); dl.keptLabel.style.opacity = String(lo);
     }
-    const ph = hasDownlink() && P >= 0.8 ? 3 : p < 0.33 ? 0 : p < 0.7 ? 1 : 2;
+    if (rc) {
+      const ro = clamp((tR - 0.75) / 0.25);
+      rc.labels.forEach((L) => { L.e.style.opacity = String(ro); }); rc.seenLabel.style.opacity = String(ro); rc.sub.style.opacity = String(ro);
+      rc.globe?.show(clamp((tR - 0.35) / 0.65) * viewT);
+      rc.toggle.style.opacity = String(ro); rc.toggle.style.pointerEvents = ro > 0.3 ? "" : "none";
+      rc.bSky.classList.toggle("on", view === "globe"); rc.bGrid.classList.toggle("on", view === "grid");
+    }
+    const ph = hasDownlink() && P >= 0.82 ? 4 : hasDownlink() && P >= 0.64 ? 3 : p < 0.33 ? 0 : p < 0.7 ? 1 : 2;
     if (ph !== phase) { phase = ph; say(); light(); }
   }
 
@@ -305,6 +425,8 @@ export function flowPage(id) {
     ];
     const dd = current.downlink;
     lines.push(dd ? `<b>${fmt(dd.counts.kept)} of ${fmt(dd.counts.notices)} filings</b> send signals down · ${fmt(dd.counts.groups_kept)} transmitting groups go on` : "Finding the filings that send signals down…");
+    const rr = current.reach;
+    lines.push(rr ? `<b>${fmt(rr.counts.seen)} of ${fmt(rr.counts.notices)} filings</b> can be seen from Finland · ${fmt(rr.counts.clear)} are clear` : "Working out which satellites Finland can see…");
     const html = lines[Math.max(0, phase)];
     if (msg.dataset.html === html) return;              // only animate when the message really changes
     msg.dataset.html = html;
@@ -325,7 +447,7 @@ export function flowPage(id) {
   }
   function jumpTo(i) {
     const r = scrolly.getBoundingClientRect(), span = r.height - innerHeight;
-    scrollTo({ top: scrollY + r.top + span * (i === 3 ? 0.97 : [0.08, 0.48, 0.94][i] * SPAN()), behavior: "smooth" });
+    scrollTo({ top: scrollY + r.top + span * (i === 4 ? 0.97 : i === 3 ? 0.78 : [0.08, 0.48, 0.94][i] * SPAN()), behavior: "smooth" });
   }
 
   // A result made under an older rulebook: say so, and offer to run it again under the current one.
@@ -373,13 +495,38 @@ export function flowPage(id) {
       t ? el("div", { class: "tt-c" }, (all ? t.columns : t.columns.slice(0, 8)).join(", ") + (!all && t.columns.length > 8 ? `, … ${t.columns.length - 8} more` : "")) : null,
     ];
   }
-  const TYPE = { G: "Geostationary satellite", N: "Non-geostationary satellite" };
+  const TYPE = { G: "Satellite fixed in the sky", N: "Satellite moving across the sky", S: "Station on the ground" };
+  // What each filing is, read once per run from the server (display only).
+  let FILINGS = null, filingsFor = null;
+  function loadFilings() {
+    if (!current.downlink || filingsFor === current.id) return;
+    filingsFor = current.id;
+    fetch(`/api/runs/${current.id}/filings`).then((x) => x.ok ? x.json() : null).then((f) => { FILINGS = f; layoutReach(); frame(); }).catch(() => {});
+  }
   function describeNotice(id) {
     const n = current.downlink?.notices.find((x) => String(x.ntc_id) === id);
     if (!n) return [];
-    return [el("div", { class: "tt-h" }, el("b", {}, `Filing ${n.ntc_id}`)),
-      el("div", { class: "tt-s" }, `${TYPE[n.type] ?? `Station type ${n.type}`} · ${fmt(n.transmit)} transmitting, ${fmt(n.receive)} receiving groups`),
-      el("div", { class: n.kept ? "tt-r" : "tt-a" }, n.kept ? "Goes on: it sends signals down." : DOWNLINK?.reasons?.[n.reason] ?? n.reason)];
+    const f = FILINGS?.[id];
+    const who = f ? ["Filed by", f.country, f.with.length ? `with ${f.with.join(", ")}` : null, f.org ? `for ${f.org}` : null].filter(Boolean).join(" ") : null;
+    const kv = f ? [["Where", f.where], ["Sends", f.sends], ["Listens", f.listens], ["Filing", f.stage], ["Received", f.received]].filter(([, v]) => v) : [];
+    return [el("div", { class: "tt-h" }, el("b", {}, f?.name ?? `Filing ${n.ntc_id}`), el("code", {}, String(n.ntc_id))),
+      el("div", { class: "tt-s" }, [who, f?.where ? null : TYPE[n.type] ?? `Station type ${n.type}`].filter(Boolean).join(" · ")),
+      kv.length ? el("dl", { class: "tt-kv" }, ...kv.flatMap(([k, v]) => [el("dt", {}, k), el("dd", {}, v)])) : null,
+      el("div", { class: "tt-s" }, `${fmt(n.transmit)} transmitting, ${fmt(n.receive)} receiving groups`),
+      f?.note ? el("div", { class: "tt-n" }, `“${f.note.length > 160 ? f.note.slice(0, 157) + "…" : f.note}”`) : null,
+      el("div", { class: n.kept ? "tt-r" : "tt-a" }, n.kept ? "Goes on: it sends signals down." : DOWNLINK?.reasons?.[n.reason] ?? n.reason),
+      ...describeReach(n.ntc_id)].filter(Boolean);
+  }
+  // Reach, once it has run: whether Finland can see it, why, and the number behind it.
+  function describeReach(ntc) {
+    const r = phase >= 4 ? current.reach?.notices.find((x) => x.ntc_id === ntc) : null;
+    if (!r) return [];
+    const words = (REACH?.outcomes?.[r.seen ? "seen" : "clear"]?.[r.how] ?? r.how).replaceAll("{body}", REACH?.bodies?.[r.body] ?? r.body ?? "");
+    const deg = (v) => `${v.toLocaleString("en-GB", { maximumFractionDigits: 2 })}°`;
+    const south = deg(REACH?.finland?.south ?? 59.3);
+    const num = r.elevation != null ? `Highest in Finland's sky: ${deg(Math.abs(r.elevation))} ${r.elevation >= 0 ? "above" : "below"} the horizon`
+      : r.north != null ? (r.north >= 90 ? "Can see the ground all the way to the North Pole" : `Can see the ground as far north as ${deg(r.north)} N; Finland starts at ${south} N`) : null;
+    return [el("div", { class: r.seen ? "tt-r" : "tt-a" }, words), num ? el("div", { class: "tt-s" }, num) : null];
   }
   stage.addEventListener("pointermove", (ev) => {
     const nd = ev.target.closest(".ndot");
@@ -419,6 +566,7 @@ export function flowPage(id) {
   // is being read, the relevant tables once the check is done.
   function phaseReached(d) {
     const ev = d.events || [];
+    if (d.reach) return 4;
     if (d.downlink) return 3;
     if (d.result || ev.some((x) => x.step === "check" && x.state === "done")) return 2;
     if (ev.some((x) => x.step === "database" && (x.state === "progress" || x.state === "done"))) return 1;
@@ -429,6 +577,8 @@ export function flowPage(id) {
     drawCard(); drawAgree();
     if (!built) build();
     if (!dl) buildDownlink();
+    if (!rc) buildReach();
+    loadFilings();
     say(); light(); frame();
     if (follow) {
       // Step through each phase in turn, each kept on screen long enough to be seen, however fast the engine is.

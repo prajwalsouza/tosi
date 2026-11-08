@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tosi/reach/1",
+  "title": "Reach result",
+  "description": "Which transmitting satellites can ever be seen from Finland. See spec/stages/reach/README.md.",
+  "type": "object",
+  "required": ["schema", "rulebook", "file", "counts", "notices", "groups"],
+  "additionalProperties": false,
+  "$defs": {
+    "count": { "type": "integer", "minimum": 0 },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "angle": { "type": ["number", "null"], "description": "Degrees, rounded to two decimals; null when it does not apply" }
+  },
+  "properties": {
+    "schema": { "const": "reach/1" },
+    "rulebook": { "type": "object", "required": ["version", "sha256"], "additionalProperties": false,
+      "properties": { "version": { "$ref": "#/$defs/count" }, "sha256": { "$ref": "#/$defs/sha256" } } },
+    "file": { "description": "SHA-256 of the IFIC file this came from, as intake recorded it", "$ref": "#/$defs/sha256" },
+    "counts": { "type": "object", "required": ["notices", "seen", "clear", "how", "groups", "groups_kept"], "additionalProperties": false,
+      "properties": {
+        "notices": { "description": "Filings Downlink kept, all checked here", "$ref": "#/$defs/count" },
+        "seen": { "$ref": "#/$defs/count" }, "clear": { "$ref": "#/$defs/count" },
+        "how": { "type": "object", "description": "Filings by outcome, seen outcomes first, in rulebook order", "additionalProperties": { "$ref": "#/$defs/count" } },
+        "groups": { "description": "Transmitting groups Downlink kept", "$ref": "#/$defs/count" },
+        "groups_kept": { "$ref": "#/$defs/count" } } },
+    "notices": { "type": "array", "description": "Every filing Downlink kept, in ascending ntc_id order",
+      "items": { "type": "object", "required": ["ntc_id", "type", "seen", "how", "longitude", "elevation", "north", "orbit", "body"], "additionalProperties": false,
+        "properties": {
+          "ntc_id": { "type": "integer" }, "type": { "type": "string" }, "seen": { "type": "boolean" },
+          "how": { "type": "string", "description": "Key into the rulebook's outcomes" },
+          "longitude": { "$ref": "#/$defs/angle", "description": "Fixed satellite: its filed longitude, east positive" },
+          "elevation": { "$ref": "#/$defs/angle", "description": "Fixed satellite: the highest it appears in Finland's sky" },
+          "north": { "$ref": "#/$defs/angle", "description": "Moving satellite: its orbit's folded tilt plus how far it sees over the horizon, over its best orbit. 90 or more means it sees over the North Pole." },
+          "orbit": { "type": ["integer", "null"], "description": "Moving satellite: orb_id of that orbit (the lowest, on a tie)" },
+          "body": { "type": ["string", "null"], "description": "Satellite around another body: the rulebook's code for it" } } } },
+    "groups": { "type": "array", "description": "grp_id of every transmitting group of a filing that can be seen, ascending", "items": { "type": "integer" } }
+  }
+}

@@ -3,6 +3,7 @@ use std::{env, fs, path::{Path, PathBuf}, process::exit};
 
 mod downlink;
 mod intake;
+mod reach;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -15,7 +16,7 @@ fn info() -> Result<String, String> {
     let runtime = format!("Rust {} ({}-{})", option_env!("TOSI_RUSTC").unwrap_or("compiled"), env::consts::ARCH, env::consts::OS);
     Ok(serde_json::json!({
         "schema": "engine-info/1", "engine": "rust", "language": "Rust", "version": VERSION,
-        "runtime": runtime, "spec": spec_version()?, "stages": ["intake", "downlink"]
+        "runtime": runtime, "spec": spec_version()?, "stages": ["intake", "downlink", "reach"]
     }).to_string())
 }
 
@@ -32,6 +33,7 @@ fn main() {
     let result = match args.get(1).map(String::as_str) {
         Some("info") => info(),
         Some("downlink") => downlink::run(&arg(&args, "--in")),
+        Some("reach") => reach::run(&arg(&args, "--in")),
         Some("intake") => {
             let file = arg(&args, "--file");
             let name = if args.iter().any(|a| a == "--name") { arg(&args, "--name") } else {
@@ -40,7 +42,7 @@ fn main() {
             intake::run(&file, &name, &arg(&args, "--out"))
         }
         other => {
-            eprintln!("{}", serde_json::json!({ "error": "unknown command", "command": other, "known": ["info", "intake", "downlink"] }));
+            eprintln!("{}", serde_json::json!({ "error": "unknown command", "command": other, "known": ["info", "intake", "downlink", "reach"] }));
             exit(2);
         }
     };

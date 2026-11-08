@@ -38,6 +38,7 @@ export function makeLibrary(root: string, dir = "library") {
       relevant: kind ? Object.entries(kind.tables).filter(([, t]: any) => t.read).map(([n, t]: any) => ({ table: n, alias: t.alias ?? null, rows: (present.get(n) as any)?.rows ?? null, present: present.has(n) })) : [],
       stages: run.stages ?? {},
       downlink: run.downlink ? { counts: run.downlink.counts, rulebook: run.downlink.rulebook } : null,
+      reach: run.reach ? { counts: run.reach.counts, rulebook: run.reach.rulebook } : null,
       result: r ?? null,
     };
     writeFileSync(join(base, `${run.id}.json`), JSON.stringify(record, null, 2) + "\n");

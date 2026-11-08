@@ -1,0 +1,38 @@
+{
+  "about": "Names for the codes a filing uses for the administration (country) and the intergovernmental organisation that filed it, and for the stage of the filing. Shown to people; no rule reads this file.",
+  "source": "ITU Radiocommunication Bureau: symbols for administrations and geographical areas, Preface to the BR International Frequency Information Circular (BR IFIC). Filing stages: ITU Radio Regulations, Articles 9 and 11, and Resolution 49.",
+  "administrations": {
+    "AFG": "Afghanistan", "AFS": "South Africa", "AGL": "Angola", "ALB": "Albania", "ALG": "Algeria", "AND": "Andorra", "ARG": "Argentina", "ARM": "Armenia",
+    "ARS": "Saudi Arabia", "AUS": "Australia", "AUT": "Austria", "AZE": "Azerbaijan", "B": "Brazil", "BAH": "Bahamas", "BEL": "Belgium", "BGD": "Bangladesh",
+    "BHR": "Bahrain", "BIH": "Bosnia and Herzegovina", "BLR": "Belarus", "BOL": "Bolivia", "BOT": "Botswana", "BUL": "Bulgaria", "CAN": "Canada", "CHL": "Chile",
+    "CHN": "China", "CLM": "Colombia", "CME": "Cameroon", "CTI": "Côte d'Ivoire", "CTR": "Costa Rica", "CUB": "Cuba", "CYP": "Cyprus", "CZE": "Czech Republic",
+    "D": "Germany", "DNK": "Denmark", "E": "Spain", "EGY": "Egypt", "EQA": "Ecuador", "EST": "Estonia", "ETH": "Ethiopia", "F": "France", "FIN": "Finland",
+    "G": "United Kingdom", "GEO": "Georgia", "GHA": "Ghana", "GRC": "Greece", "HNG": "Hungary", "HOL": "Netherlands", "HRV": "Croatia", "I": "Italy",
+    "IND": "India", "INS": "Indonesia", "IRL": "Ireland", "IRN": "Iran", "IRQ": "Iraq", "ISL": "Iceland", "ISR": "Israel", "J": "Japan", "JOR": "Jordan",
+    "KAZ": "Kazakhstan", "KEN": "Kenya", "KGZ": "Kyrgyzstan", "KOR": "Korea (Republic of)", "KWT": "Kuwait", "LAO": "Lao P.D.R.", "LBN": "Lebanon", "LBY": "Libya",
+    "LIE": "Liechtenstein", "LTU": "Lithuania", "LUX": "Luxembourg", "LVA": "Latvia", "MCO": "Monaco", "MDA": "Moldova", "MEX": "Mexico", "MKD": "North Macedonia",
+    "MLA": "Malaysia", "MLT": "Malta", "MNE": "Montenegro", "MNG": "Mongolia", "MRC": "Morocco", "NGR": "Niger", "NIG": "Nigeria", "NOR": "Norway", "NPL": "Nepal",
+    "NZL": "New Zealand", "OMA": "Oman", "PAK": "Pakistan", "PER": "Peru", "PHL": "Philippines", "PNG": "Papua New Guinea", "POL": "Poland", "POR": "Portugal",
+    "PRK": "Korea (Democratic People's Republic of)", "QAT": "Qatar", "ROU": "Romania", "RUS": "Russian Federation", "S": "Sweden", "SDN": "Sudan", "SNG": "Singapore",
+    "SRB": "Serbia", "SRL": "Sri Lanka", "SUI": "Switzerland", "SVK": "Slovakia", "SVN": "Slovenia", "SYR": "Syria", "THA": "Thailand", "TJK": "Tajikistan",
+    "TKM": "Turkmenistan", "TON": "Tonga", "TUN": "Tunisia", "TUR": "Türkiye", "TZA": "Tanzania", "UAE": "United Arab Emirates", "UGA": "Uganda", "UKR": "Ukraine",
+    "URG": "Uruguay", "USA": "United States", "UZB": "Uzbekistan", "VEN": "Venezuela", "VTN": "Viet Nam", "YEM": "Yemen", "ZMB": "Zambia", "ZWE": "Zimbabwe"
+  },
+  "organisations": {
+    "ARB": "Arabsat",
+    "ESA": "European Space Agency",
+    "EUM": "EUMETSAT",
+    "EUT": "EUTELSAT",
+    "IK": "Intersputnik",
+    "INM": "Inmarsat",
+    "ITSO": "ITSO"
+  },
+  "stages": {
+    "9.1/IA": "Advance publication: the first public notice of a planned satellite network",
+    "9.1": "Advance publication: the first public notice of a planned satellite network",
+    "9.6": "Request for coordination: asks the countries that could be affected to agree",
+    "9.7": "Request for coordination: asks the countries that could be affected to agree",
+    "11.2": "Notification: asks for the network to be recorded in the international Master Register",
+    "RS49": "Resolution 49: launch and spacecraft details, showing the network is real"
+  }
+}

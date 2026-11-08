@@ -96,3 +96,21 @@ New decisions are added at the end. A changed decision gets a new entry that nam
 **Decision:** Settings has a Tests page. It runs every engine three times on each sample file, through the same stages and queue as a real run (but not kept as a run or in the Library), and keeps each step's middle time in `bench/results.json` on this computer. It then estimates how long a file of any size would take by scaling each step's time in proportion to file size, from the largest sample; starting the engine is not scaled.
 **Why:** people need a rough idea of the wait for large files and of which engine to pick. A straight-line estimate from real timings is honest about what it is; the page says so at the top.
 **Consequence:** results depend on the computer and its disk, so they are never committed. The same size card (`ui/public/metric.js`) is used for the file size limit on the Algorithm page, a parameter shown as a draft that cannot be saved while the algorithm is read-only.
+
+## D-017 Reach is the third stage, and it leans to the worst case
+
+**Decision:** after Downlink, a space filing goes through Reach (`spec/rulebook/reach.json`): can the satellite ever be seen from Finland? A fixed satellite is seen if it rises above 0° somewhere in a box around Finland's land and territorial sea (59.3–70.1° N, 19.0–31.6° E), moved towards Finland by its filed tolerance. A moving satellite is seen if, for any orbit, its folded tilt plus how far it sees over the horizon from apogee reaches the box's south edge. A satellite around another body (the Moon, the Sun, Jupiter) is seen. A filing without a usable position is assumed seen and left for the Data step. A satellite never seen is clear (guidebook M-9).
+**Why:** Traficom ruled that the worst case always applies. Each choice can only add satellites, never drop one that could be seen. A box and two closed-form tests need no map file, so the three engines can agree byte for byte.
+**Consequence:** angles are rounded to two decimals as `floor(x · 100 + 0.5) / 100` and written in shortest form, which every engine must match. The box edges are estimates from the outermost points plus 12 nautical miles; they should be checked against the official territorial-sea limits. Intake does not yet require `geo`, `non_geo` or `orbit`; a missing table counts as nothing filed, so its filings are assumed seen. The Flow gains a fifth scene; the MCP server gains `tosi_get_stage`.
+
+## D-018 What a filing is, for people, comes from the server, not the engines
+
+**Decision:** hovering a filing in the Flow shows its name, the administration that filed it (with any partners and organisation), where it flies, what it sends and listens on, the kind of filing and when the ITU received it. The server reads these from the run's database (`ui/filings.ts`) with names from `spec/reference/administrations.json`.
+**Why:** this is description, not a result. Keeping it out of stage outputs keeps those outputs small and the three engines' agreement about decisions only.
+**Consequence:** no rule may read `spec/reference/`. A live position cannot be shown: filings give orbits but no epoch.
+
+## D-019 Reach is drawn as the sky above Finland, by default
+
+**Decision:** the Reach scene opens on a 2.5D picture (`ui/public/reachglobe.js`): Finland on the curve of the globe with the sky above it as a dome. Each satellite Finland can see sits where you would look for it, seen from the middle of Finland. Fixed satellites are purple and placed truthfully. Moving satellites are pink, deeper for a steeper orbit, and placed at their highest pass. Satellites around other bodies are a soft blue. The clear ones go grey to the side, as in the grid. A toggle switches to the grid and back, and the dots move smoothly between the two. The picture can be turned and tilted by dragging, and a double-click resets it.
+**Why:** a picture of the sky shows what Reach means: what Finland can see and what is hidden below its horizon.
+**Consequence:** it is not to scale and says so. The filing gives no time, so where a moving satellite sits is illustrative. The Reach result decides, not the picture. It is plain projection maths in SVG with no 3D library, and Finland's outline (`ui/public/finland.json`, Natural Earth, public domain) is for display only.

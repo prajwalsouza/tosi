@@ -42,6 +42,8 @@ async function summary(id: string) {
       rulebook_version: r.rulebook.version, rulebook_is_current: r.rulebook.version === rules.version,
       relevant_tables: kind ? Object.entries(kind.tables).filter(([, t]: any) => t.read).map(([n, t]: any) => ({ table: n, name: t.alias ?? null, rows: (present.get(n) as any)?.rows ?? null, present: present.has(n) })) : [],
     } : null,
+    downlink: d.downlink ? { filings: d.downlink.counts.notices, kept: d.downlink.counts.kept, left: d.downlink.counts.left, rulebook_version: d.downlink.rulebook.version } : null,
+    reach: d.reach ? { filings: d.reach.counts.notices, seen_from_finland: d.reach.counts.seen, clear: d.reach.counts.clear, by_outcome: d.reach.counts.how, rulebook_version: d.reach.rulebook.version } : null,
   };
 }
 
@@ -67,6 +69,14 @@ server.registerTool("tosi_get_run", { title: "Read a file's result", description
     if (!tables) return s;
     const d = await api(`/api/runs/${id}`);
     return { ...s, all_tables: d.result?.database?.tables.map((t: any) => ({ table: t.name, rows: t.rows, columns: t.columns })) ?? [] };
+  }));
+
+server.registerTool("tosi_get_stage", { title: "Read a stage, filing by filing", description: "One space stage's decision for every filing: downlink (does it send signals down?) or reach (can it be seen from Finland?), with the reason or outcome and, for reach, the angles behind it. Includes the plain wording of every reason or outcome.",
+  inputSchema: { id: z.string().describe("Run id from tosi_list_runs"), stage: z.enum(["downlink", "reach"]).describe("Which stage") }, annotations: { readOnlyHint: true } },
+  tool(async ({ id, stage }: { id: string; stage: "downlink" | "reach" }) => {
+    const [d, rules] = await Promise.all([api(`/api/runs/${id}`), api(`/api/rulebook/${stage}`)]);
+    if (!d[stage]) return `No ${stage} result for this file: it runs only on an accepted space filing, after the stages before it.`;
+    return { counts: d[stage].counts, rulebook: d[stage].rulebook, wording: rules.reasons ?? rules.outcomes, filings: d[stage].notices };
   }));
 
 const engineArg = z.enum(["ts", "rust", "python"]).optional().describe("Engine to use: ts, rust or python. Defaults to rust.");

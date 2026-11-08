@@ -8,6 +8,7 @@ import { makeRulebook } from "./rulebook.ts";
 import { makeTests } from "./tests.ts";
 import { makeProposals } from "./proposals.ts";
 import { makeLibrary } from "./library.ts";
+import { makeFilings } from "./filings.ts";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join, extname } from "node:path";
@@ -27,6 +28,7 @@ const runs = makeRuns(root, engines, runsDir, (run) => { try { library.add(run, 
 const tests = makeTests(root, engines, samples, (p, e) => runs.bench(p, e));
 const rulebook = makeRulebook(root);
 const proposals = makeProposals(root, rulebook.apply);
+const filings = makeFilings(root);
 runs.clear();
 const MAX_UPLOAD = 2_000_000_000;
 // The algorithm is read-only unless this machine's settings say otherwise. Editing comes back with drafts and Save.
@@ -127,6 +129,14 @@ createServer(async (req, res) => {
       catch { send(res, 400, JSON.stringify({ ok: false, error: "Not a valid change" })); }
     });
     return;
+  }
+  // What each filing is (name, country, orbit, frequencies), for people. Display only; no result depends on it.
+  const fl = url.pathname.match(/^\/api\/runs\/([0-9a-f]+)\/filings$/);
+  if (fl) {
+    const r = runs.get(fl[1]);
+    if (!r) return send(res, 404, JSON.stringify({ error: "No such run" }));
+    try { const f = await filings.get(runsDir, r.id, r.engine); return f ? send(res, 200, JSON.stringify(f)) : send(res, 404, JSON.stringify({ error: "The database is not kept for this run" })); }
+    catch (e) { return send(res, 500, JSON.stringify({ error: String(e) })); }
   }
   const ag = url.pathname.match(/^\/api\/runs\/([0-9a-f]+)\/agree$/);
   if (ag && req.method === "POST") { const r = runs.get(ag[1]); req.resume(); return r ? send(res, 200, JSON.stringify(view(runs.agree(r)))) : send(res, 404, JSON.stringify({ error: "No such run" })); }

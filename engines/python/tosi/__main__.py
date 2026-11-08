@@ -17,7 +17,7 @@ def info() -> dict:
         "version": __version__,
         "runtime": f"Python {platform.python_version()}",
         "spec": (ROOT / "spec" / "VERSION").read_text().strip(),
-        "stages": ["intake", "downlink"],
+        "stages": ["intake", "downlink", "reach"],
     }
 
 
@@ -40,7 +40,12 @@ def downlink():
     return run(arg("--in"))
 
 
-COMMANDS = {"info": info, "intake": intake, "downlink": downlink}
+def reach():
+    from .reach import run
+    return run(arg("--in"))
+
+
+COMMANDS = {"info": info, "intake": intake, "downlink": downlink, "reach": reach}
 
 
 def main() -> None:

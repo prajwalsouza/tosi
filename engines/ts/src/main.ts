@@ -24,7 +24,7 @@ function info(): EngineInfo {
     version: VERSION,
     runtime: `Node ${process.versions.node}`,
     spec: readFileSync(join(root, "spec", "VERSION"), "utf8").trim(),
-    stages: ["intake", "downlink"],
+    stages: ["intake", "downlink", "reach"],
   };
 }
 
@@ -40,6 +40,7 @@ function arg(name: string): string {
 const commands: Record<string, () => unknown> = {
   info,
   downlink: async () => { const { downlink } = await import("./downlink.ts"); return downlink(arg("--in")); },
+  reach: async () => { const { reach } = await import("./reach.ts"); return reach(arg("--in")); },
   intake: async () => { const { intake } = await import("./intake.ts"); const f = arg("--file"); return intake(f, process.argv.includes("--name") ? arg("--name") : basename(f), arg("--out")); },
 };
 const command = process.argv[2];

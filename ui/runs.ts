@@ -17,6 +17,7 @@ export type Run = {
   events: unknown[];
   result: unknown | null;
   downlink: unknown | null;                       // stage 2, for accepted space filings (without its group list)
+  reach: unknown | null;                          // stage 3, likewise
   stages: Record<string, { ms: number }>;
   engines: Record<string, EngineRun>;
   started: number;
@@ -57,16 +58,16 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string, onDon
     });
   }
 
-  // Every stage that applies, in order, in one engine: intake, then downlink for an accepted space filing.
+  // Every stage that applies, in order, in one engine: intake, then downlink and reach for an accepted space filing.
   // The engine's fingerprint covers every stage's result, so an agreement check compares them all.
-  async function stages(e: Engine, run: Run, onEvent?: (ev: unknown) => void): Promise<{ r: EngineRun; result?: any; downlink?: any; times: Record<string, { ms: number }> }> {
+  async function stages(e: Engine, run: Run, onEvent?: (ev: unknown) => void): Promise<{ r: EngineRun; result?: any; downlink?: any; reach?: any; times: Record<string, { ms: number }> }> {
     const started = Date.now(), folder = join(runsDir, run.id, e.id), times: Record<string, { ms: number }> = {};
     const a = await exec(e, run, onEvent);
     times.intake = { ms: a.ms ?? 0 };
     if (a.state !== "done") return { r: a, times };
     const result = JSON.parse(readFileSync(join(folder, "intake.json"), "utf8"));
     const h = createHash("sha256").update(readFileSync(join(folder, "intake.json")));
-    let downlink;
+    let downlink, reach;
     if (result.kind === "space" && result.check.status === "accepted") {
       const b = await exec(e, run, onEvent, "downlink");
       times.downlink = { ms: b.ms ?? 0 };
@@ -74,8 +75,14 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string, onDon
       h.update(readFileSync(join(folder, "downlink.json")));
       const { groups, ...rest } = JSON.parse(readFileSync(join(folder, "downlink.json"), "utf8"));
       downlink = rest;
+      const c = await exec(e, run, onEvent, "reach");
+      times.reach = { ms: c.ms ?? 0 };
+      if (c.state !== "done") return { r: c, result, downlink, times };
+      h.update(readFileSync(join(folder, "reach.json")));
+      const { groups: g2, ...rest2 } = JSON.parse(readFileSync(join(folder, "reach.json"), "utf8"));
+      reach = rest2;
     }
-    return { r: { state: "done", ms: Date.now() - started, sha256: h.digest("hex") }, result, downlink, times };
+    return { r: { state: "done", ms: Date.now() - started, sha256: h.digest("hex") }, result, downlink, reach, times };
   }
 
   // A run uses one engine: the one chosen. The others stay idle unless an agreement check is asked for.
@@ -87,6 +94,7 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string, onDon
     run.stages = out.times;
     if (out.result) run.result = out.result;
     if (out.downlink) run.downlink = out.downlink;
+    if (out.reach) run.reach = out.reach;
     run.state = out.r.state === "done" ? "done" : "failed";
     onDone?.(run);
   }
@@ -113,7 +121,7 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string, onDon
       const id = randomBytes(5).toString("hex");
       const run: Run = {
         id, file: { name: name || basename(path), bytes: statSync(path).size, source, path },
-        engine, stage: "intake", state: "running", events: [], result: null, downlink: null, stages: {},
+        engine, stage: "intake", state: "running", events: [], result: null, downlink: null, reach: null, stages: {},
         engines: Object.fromEntries(engines.map((e) => [e.id, { state: "idle" }])), started: Date.now(),
       };
       runs.set(id, run);
@@ -131,11 +139,11 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string, onDon
       const id = "test-" + randomBytes(4).toString("hex");
       const run: Run = {
         id, file: { name: basename(path), bytes: statSync(path).size, source: "sample", path },
-        engine: e.id, stage: "intake", state: "running", events: [], result: null, downlink: null, stages: {}, engines: {}, started: Date.now(),
+        engine: e.id, stage: "intake", state: "running", events: [], result: null, downlink: null, reach: null, stages: {}, engines: {}, started: Date.now(),
       };
       const events: any[] = [];
       let stage = "intake";
-      const out = await queue(() => stages(e, run, (ev: any) => { if (ev.step === "downlink" && ev.state === "start") stage = "downlink"; events.push({ ...ev, stage }); }));
+      const out = await queue(() => stages(e, run, (ev: any) => { if ((ev.step === "downlink" || ev.step === "reach") && ev.state === "start") stage = ev.step; events.push({ ...ev, stage }); }));
       rmSync(join(runsDir, id), { recursive: true, force: true });
       return { state: out.r.state, ms: out.r.ms, error: out.r.error, events, times: out.times, kind: out.result?.kind, accepted: out.result?.check?.status === "accepted" };
     },
@@ -150,5 +158,5 @@ export function summary(r: Run) {
 // What the page sees: everything except the server's own file paths.
 export function view(r: Run, since = 0) {
   // A dropped file is kept until the server stops, so it can be processed again.
-  return { ...summary(r), stage: r.stage, events: r.events.slice(since), eventCount: r.events.length, result: r.result, downlink: r.downlink, stages: r.stages, engines: r.engines };
+  return { ...summary(r), stage: r.stage, events: r.events.slice(since), eventCount: r.events.length, result: r.result, downlink: r.downlink, reach: r.reach, stages: r.stages, engines: r.engines };
 }
