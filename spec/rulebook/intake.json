@@ -1,6 +1,6 @@
 {
   "about": "What intake reads. Each kind of filing is recognised when all its marker tables are present. Each table entry says whether the rules read it ('read'), which of its columns they need, and a plain name and description for people. Edit through the guidebook, which records every change in changes.jsonl.",
-  "version": 1,
+  "version": 2,
   "kinds": {
     "space": {
       "label": "Space filing",
@@ -125,11 +125,11 @@
     }
   },
   "reasons": {
-    "not_zip": "This is not a zip file.",
-    "no_database": "The zip holds no database (.mdb).",
-    "unreadable": "The database could not be read.",
-    "unknown_kind": "The tables match neither a space nor a terrestrial filing.",
-    "missing": "Missing: {missing}."
+    "not_zip": "Its name may say zip, but its contents are not a zip archive, so it cannot be an ITU IFIC file.",
+    "no_database": "The zip opens, but there is no ITU database (.mdb file) inside it, so it is not an ITU IFIC file.",
+    "unreadable": "The zip holds a database (.mdb file), but it could not be read. It may be damaged or of an unexpected kind.",
+    "unknown_kind": "The database opens, but its tables match neither a space nor a terrestrial ITU filing.",
+    "missing": "It is an ITU filing, but some tables or columns the rules need are missing: {missing}."
   },
   "notes": [
     "The first .mdb entry in stored order is the database.",

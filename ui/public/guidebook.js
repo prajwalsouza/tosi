@@ -192,6 +192,7 @@ export function algorithmPage(focus) {
       if (h.field === "read") return `${h.to.read ? "Started" : "Stopped"} reading ${n}`;
       if (h.field === "columns") { const a = h.from?.columns ?? [], b = h.to?.columns ?? []; const plus = b.filter((x) => !a.includes(x)), minus = a.filter((x) => !b.includes(x)); return `${n}: ${[plus.length ? `now requires ${plus.join(", ")}` : "", minus.length ? `no longer requires ${minus.join(", ")}` : ""].filter(Boolean).join("; ")}`; }
       if (h.field === "alias") return `Named ${h.table} "${h.to?.alias ?? ""}"`;
+      if (h.field === "reasons") return "Reworded the reasons for turning a file away";
       return `Described ${n}`;
     };
     return o.line("history", el("span", { class: "kl", html: icon("clock-rotate-left") }, "History"), el("span", { class: "meta" }, `${history.length} changes`), () =>

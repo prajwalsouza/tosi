@@ -20,7 +20,7 @@ export type Run = {
   started: number;
 };
 
-export function makeRuns(root: string, engines: Engine[], runsDir: string) {
+export function makeRuns(root: string, engines: Engine[], runsDir: string, onDone?: (run: Run) => void) {
   const runs = new Map<string, Run>();
   // One engine at a time, across all runs, so the times shown are the engine's own and not shared with others.
   let chain: Promise<unknown> = Promise.resolve();
@@ -60,9 +60,10 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string) {
     run.engines[first.id] = { state: "waiting" };
     const r = await queue(() => { run.engines[first.id] = { state: "running", started: Date.now() }; return exec(first, run, (ev) => run.events.push(ev)); });
     run.engines[first.id] = r;
-    if (r.state !== "done") { run.state = "failed"; return; }
+    if (r.state !== "done") { run.state = "failed"; onDone?.(run); return; }
     run.result = JSON.parse(readFileSync(join(runsDir, run.id, first.id, "intake.json"), "utf8"));
     run.state = "done";
+    onDone?.(run);
   }
 
   // On request: run the same file through the other engines, one at a time, and keep their result fingerprints.

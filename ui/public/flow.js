@@ -128,20 +128,13 @@ export function flowPage(id) {
   const run = runs.get(id) ?? list[list.length - 1];
   if (!run) return el("div", { class: "empty-state" }, "Nothing has been loaded yet. Drop an ITU file anywhere.");
 
-  // One tab per file: the latest run of each (a file run again replaces its earlier tab), plus the run being shown.
-  const latest = new Map();
-  for (const r of list) latest.set(r.file.name, r);
-  const shown = [...latest.values()].map((r) => (r.file.name === run.file.name ? run : r));
-  const tabs = el("div", { class: "runs", role: "tablist", "aria-label": "Files" }, shown.map((r) => el("a", { href: `#/flow/${r.id}`, class: r.id === run.id ? "on" : "", role: "tab" },
-    el("span", { class: "ic", html: icon(r.result?.kind === "space" ? "satellite-dish" : r.result?.kind === "terrestrial" ? "tower-broadcast" : "file-zipper") }),
-    el("span", { class: "label" }, r.file.name))));
   const agree = el("div", { class: "agree" });
   const diagram = el("nav", { class: "diagram", "aria-label": "Modules" });
   const stage = el("div", { class: "stage" });
   const msg = el("div", { class: "msg", "aria-live": "polite" });
   const scrolly = el("div", { class: "scrolly" }, el("div", { class: "sticky" }, stage, msg));
   const page = el("div", { class: "flow" },
-    el("header", { class: "flow-h" }, el("h1", {}, el("span", { class: "t" }, "Flow")), tabs, agree),
+    el("header", { class: "flow-h" }, el("h1", {}, el("span", { class: "t" }, "Flow")), agree),
     el("div", { class: "flow-body" }, el("div", { class: "diagram-col" }, diagram), scrolly));
 
   let current = run, built = null, phase = -1;

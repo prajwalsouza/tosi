@@ -1,5 +1,5 @@
 /* Theme tokens: what each theme decides.
-   Colour roles: --accent (purple) marks what matters right now: the selection, the picked tables, the mark.
+   Colour roles: --accent (pastel purple) marks what matters right now: the selection, the picked tables, the mark.
    --bad (red) and --warn (amber) are kept for concerns only, so a highlight is never mistaken for a problem.
    Colours, surfaces, shadows, borders, skeleton colours.
    A theme is chosen with data-theme on <html> (or on any element, for previews).
@@ -14,7 +14,7 @@
   --ink2: #a7a6a1;
   --ink3: #6c6b67;
   --line: #2b2b2b;
-  --accent: #a993f0;
+  --accent: #b9abe8;
   --ok: #8fbfa6;
   --bad: #ef6f6c;
   --warn: #e0b25c;
@@ -39,7 +39,7 @@
   --ink2: #9f9f9c;
   --ink3: #5a5a58;
   --line: #1c1c1c;
-  --accent: #b39dfa;
+  --accent: #c3b6f0;
   --ok: #7fb89a;
   --bad: #ff6b66;
   --warn: #e8b85e;
@@ -64,7 +64,7 @@
   --ink2: #5d5f66;
   --ink3: #9a9ca3;
   --line: #e7e4dc;
-  --accent: #7457d4;
+  --accent: #9b89d8;
   --ok: #7fae98;
   --bad: #d9534f;
   --warn: #c99634;
@@ -90,7 +90,7 @@
   --ink2: #4a463f;
   --ink3: #8b857a;
   --line: #1d1b18;
-  --accent: #6a4bd0;
+  --accent: #8f7bd6;
   --ok: #3f9d6e;
   --bad: #e5484d;
   --warn: #c48a20;
@@ -116,7 +116,7 @@
   --ink2: #636a76;
   --ink3: #9aa1ac;
   --line: rgba(44, 49, 59, .08);
-  --accent: #7a5fd0;
+  --accent: #9c8bd8;
   --ok: #4f9f7d;
   --bad: #e05d5d;
   --warn: #c4922f;
@@ -144,7 +144,7 @@
   --ink2: #6f5e53;
   --ink3: #a99788;
   --line: #ecdbc9;
-  --accent: #8463c9;
+  --accent: #a690d4;
   --ok: #86b38f;
   --bad: #d4614f;
   --warn: #c58a2b;
@@ -171,7 +171,7 @@
   --ink2: #c8b4a2;
   --ink3: #8c7a6c;
   --line: #3c322c;
-  --accent: #bba2ea;
+  --accent: #c9b9ec;
   --ok: #9cc6a2;
   --bad: #ef8a80;
   --warn: #e2b46a;

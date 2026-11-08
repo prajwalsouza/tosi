@@ -49,3 +49,9 @@ The shape every part of Tosi follows. These rules grow as each part is built.
 - **A client of the local server, nothing more.** It holds no state and computes nothing; every tool calls the same API the interface uses.
 - **Read tools are marked read-only.** Tools that start work return a run id; `tosi_wait_run` follows it.
 - **No tool changes a rule or a result.** Changes are proposals with a reason, decided by a person.
+
+## The library
+
+- **Every processed file gets a record** in `library/` (this machine only, never committed): the file and its fingerprint, the engine and its time, the rulebook version and fingerprint that decided it, and what was found. Dropped files are kept once per fingerprint in `library/files/`, so they can be processed again.
+- **The Library page** lists the records with filters at the top (kind of filing, outcome, search). A record opens to say, in plain words, what was found. Accepted files offer "See it in the Flow" and "Process again" as clear buttons; files that were turned away offer neither.
+- **The Flow shows the process only.** There are no file tabs in it; files are found in the Library.

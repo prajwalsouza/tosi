@@ -2,6 +2,7 @@
 import { icon } from "./icons.js";
 import * as flow from "./flow.js";
 import * as guidebook from "./guidebook.js";
+import * as library from "./library.js";
 
 const $ = (id) => document.getElementById(id);
 const store = {
@@ -55,6 +56,7 @@ const dotClass = (a) => (!a ? "sk dot" : "dot " + (a.ok ? "ok" : "bad"));
 const NAV = [
   { route: "/", label: "Home", icon: "house" },
   { route: "/flow", label: "Flow", icon: "route" },
+  { route: "/library", label: "Library", icon: "folder-open" },
   { route: "/algorithm", label: "Algorithm", icon: "sitemap" },
   { route: "/guidebook", label: "Guidebook", icon: "book" },
 ];
@@ -196,11 +198,11 @@ function render() {
   // The Flow manages its own live updates; only rebuild it when the route changes.
   if (parts[0] === "flow" && page?.route === r) return;
   page?.cleanup?.();
-  page = parts[0] === "settings" ? settings(parts[1]) : parts[0] === "flow" ? flow.flowPage(parts[1]) : parts[0] === "guidebook" ? guidebook.guidebookPage(parts[1]) : parts[0] === "algorithm" ? guidebook.algorithmPage(parts[1]) : home();
+  page = parts[0] === "settings" ? settings(parts[1]) : parts[0] === "flow" ? flow.flowPage(parts[1]) : parts[0] === "guidebook" ? guidebook.guidebookPage(parts[1]) : parts[0] === "algorithm" ? guidebook.algorithmPage(parts[1]) : parts[0] === "library" ? library.libraryPage() : home();
   page.route = r;
   $("main").replaceChildren(...[].concat(page));
   if (parts[0] === "flow") scrollTo(0, 0);
-  document.title = { settings: "Settings · Tosi", flow: "Flow · Tosi", guidebook: "Guidebook · Tosi", algorithm: "Algorithm · Tosi" }[parts[0]] ?? "Tosi";
+  document.title = { settings: "Settings · Tosi", flow: "Flow · Tosi", guidebook: "Guidebook · Tosi", algorithm: "Algorithm · Tosi", library: "Library · Tosi" }[parts[0]] ?? "Tosi";
 }
 
 /* ---------- drop a file anywhere ---------- */
@@ -234,6 +236,7 @@ document.querySelector(".brand").addEventListener("click", (e) => { if (document
 setShut(store.get("tosi.side", "open") === "shut");
 $("drop").querySelector(".ic").innerHTML = icon("arrow-up-from-bracket");
 guidebook.init({ el, toast });
+library.init({ el, toast, using: () => state.using || "ts", go: (r) => { location.hash = `#${r}`; } });
 flow.init({ el, store, using: () => state.using || "ts", go: (r) => { location.hash = `#${r}`; }, busy, toast });
 render();
 // Samples: shown on Home, and loaded automatically the first time this session opens with nothing loaded.

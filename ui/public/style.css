@@ -213,7 +213,7 @@ body.busy #busy { display: flex }
 .tile.rel { z-index: 2 }
 .tile.lit { background: var(--accent); border-radius: 8px }
 .tile span { display: none; align-items: baseline; gap: 8px }
-.tile.lit span { color: #fff; font-size: 13px }
+.tile.lit span { color: #241d38; font-size: 13px }
 .tile.lit .al { font-weight: var(--fw-bold) } .tile.lit .nm { font: 11px var(--font-mono); opacity: .8 }
 .tile.named:not(.lit) .al { display: none } .tile.named:not(.lit) .nm { font: inherit }
 .tile { cursor: pointer }
@@ -321,3 +321,35 @@ body.busy #busy { display: flex }
 .chat-in { display: flex; align-items: flex-end; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4) var(--sp-4) }
 .chat-in textarea { flex: 1; resize: none; font: inherit; font-size: var(--fs-sm); color: var(--ink); background: var(--surface); border: var(--control-border); border-radius: var(--r-md); padding: 8px 10px }
 .send { width: 34px; height: 34px; display: grid; place-items: center; color: var(--ink3) } .send:hover { color: var(--accent) }
+
+/* ---------- library ---------- */
+.lib { max-width: 1100px }
+.lib-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5); margin: var(--sp-4) 0 var(--sp-5) }
+.seg.small button { padding: 4px 10px; font-size: var(--fs-sm) }
+.seg button .n { margin-left: 6px; color: var(--ink3); font-variant-numeric: tabular-nums }
+.lib-q { margin-left: auto; width: 220px; padding: 6px 11px; border-radius: var(--r-md); border: var(--control-border); background: var(--surface); color: var(--ink); font: inherit; font-size: var(--fs-sm) }
+.lib-row { display: grid; grid-template-columns: 16px 20px minmax(180px, 1.6fr) 1fr 1fr .7fr .9fr; align-items: center; gap: var(--sp-3); width: 100%; min-height: 48px; text-align: left; border-bottom: 1px solid var(--line); color: var(--ink2) }
+.lib-row:hover b { color: var(--accent) }
+.lib-row .ic { color: var(--ink3) } .lib-item.open .lib-row .ic { color: var(--accent) }
+.lr-name { display: flex; flex-direction: column } .lr-name b { color: var(--ink); font-weight: var(--fw-medium); transition: color var(--dur) } .lr-name .meta { margin: 0; font-size: var(--fs-xs) }
+.lr-out { font-size: var(--fs-sm); color: var(--ink2) } .lr-out.bad { color: var(--bad) }
+.lr-meta { font-size: var(--fs-sm); color: var(--ink3); font-variant-numeric: tabular-nums }
+.stale-t { color: var(--warn) }
+.rec { padding: var(--sp-3) 0 var(--sp-5) 52px; border-bottom: 1px solid var(--line) }
+.rec-say { margin: 0 0 var(--sp-3); color: var(--ink); max-width: 70ch }
+.rec-tables { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-bottom: var(--sp-4) }
+.rt { display: inline-flex; align-items: baseline; gap: 6px; font-size: var(--fs-sm) } .rt b { font-weight: var(--fw-medium); color: var(--accent) } .rt code { font: var(--fs-xs) var(--font-mono); color: var(--ink3) } .rt .meta { margin: 0 }
+.rt.miss b { color: var(--bad) }
+.rec-facts { display: grid; grid-template-columns: 130px 1fr; gap: 4px 16px; margin: 0 0 var(--sp-4); font-size: var(--fs-sm) } .rec-facts dt { color: var(--ink3) } .rec-facts dd { margin: 0; color: var(--ink2) } .rec-facts code { font: var(--fs-xs) var(--font-mono) }
+.rec-act { display: flex; flex-wrap: wrap; gap: var(--sp-3) }
+@media (max-width: 900px) { .lib-row { grid-template-columns: 16px 20px 1fr auto } .lib-row .lr-meta { display: none } }
+
+/* ---------- calls to action: clear buttons, icon and words ---------- */
+.btn { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: var(--r-md); font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  color: var(--ink); border: 1.5px solid color-mix(in srgb, var(--accent) 55%, transparent); background: transparent; box-shadow: var(--raised-shadow); transition: background var(--dur), border-color var(--dur), transform .1s }
+.btn svg { width: 13px; height: 13px; color: var(--accent) }
+.btn:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent) }
+.btn:active { transform: translateY(1px) }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #241d38 }
+.btn.primary svg { color: #241d38 }
+.btn.primary:hover { background: color-mix(in srgb, var(--accent) 85%, #fff) }

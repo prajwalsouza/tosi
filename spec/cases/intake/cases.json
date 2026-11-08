@@ -1,14 +1,81 @@
 {
   "about": "Conformance cases for intake. Generated inputs are built by compare/make-cases; sample inputs are real files read from the local samples folder (never committed). An expected field omitted here is not checked.",
   "cases": [
-    { "id": "not-a-zip", "input": { "generate": "text", "name": "notes.txt" },
-      "expect": { "archive": null, "database": null, "kind": "unknown", "check": { "status": "refused", "missing": [], "reason": "This is not a zip file." } } },
-    { "id": "zip-without-database", "input": { "generate": "zip-without-mdb", "name": "empty.zip" },
-      "expect": { "database": null, "kind": "unknown", "check": { "status": "refused", "missing": [], "reason": "The zip holds no database (.mdb)." } } },
-    { "id": "space-3074", "input": { "sample": "ific3074.zip" },
-      "expect": { "file": { "bytes": 60837631, "sha256": "c8adf75044bca9d6a2be4213d051805f1b0a88d716fb184bcb1cd812216da721" },
-        "database": { "bytes": 286654464, "rows": 5174625 }, "kind": "space", "check": { "status": "accepted", "missing": [], "reason": null } } },
-    { "id": "terrestrial-3076", "input": { "sample": "brific3076.zip" },
-      "expect": { "file": { "bytes": 2406450 }, "database": { "bytes": 25145344, "rows": 197355 }, "kind": "terrestrial", "check": { "status": "accepted", "missing": [], "reason": null } } }
+    {
+      "id": "not-a-zip",
+      "input": {
+        "generate": "text",
+        "name": "notes.txt"
+      },
+      "expect": {
+        "archive": null,
+        "database": null,
+        "kind": "unknown",
+        "check": {
+          "status": "refused",
+          "missing": [],
+          "reason": "Its name may say zip, but its contents are not a zip archive, so it cannot be an ITU IFIC file."
+        }
+      }
+    },
+    {
+      "id": "zip-without-database",
+      "input": {
+        "generate": "zip-without-mdb",
+        "name": "empty.zip"
+      },
+      "expect": {
+        "database": null,
+        "kind": "unknown",
+        "check": {
+          "status": "refused",
+          "missing": [],
+          "reason": "The zip opens, but there is no ITU database (.mdb file) inside it, so it is not an ITU IFIC file."
+        }
+      }
+    },
+    {
+      "id": "space-3074",
+      "input": {
+        "sample": "ific3074.zip"
+      },
+      "expect": {
+        "file": {
+          "bytes": 60837631,
+          "sha256": "c8adf75044bca9d6a2be4213d051805f1b0a88d716fb184bcb1cd812216da721"
+        },
+        "database": {
+          "bytes": 286654464,
+          "rows": 5174625
+        },
+        "kind": "space",
+        "check": {
+          "status": "accepted",
+          "missing": [],
+          "reason": null
+        }
+      }
+    },
+    {
+      "id": "terrestrial-3076",
+      "input": {
+        "sample": "brific3076.zip"
+      },
+      "expect": {
+        "file": {
+          "bytes": 2406450
+        },
+        "database": {
+          "bytes": 25145344,
+          "rows": 197355
+        },
+        "kind": "terrestrial",
+        "check": {
+          "status": "accepted",
+          "missing": [],
+          "reason": null
+        }
+      }
+    }
   ]
 }

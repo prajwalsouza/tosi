@@ -6,6 +6,7 @@ import { randomBytes } from "node:crypto";
 import { makeRuns, view } from "./runs.ts";
 import { makeRulebook } from "./rulebook.ts";
 import { makeProposals } from "./proposals.ts";
+import { makeLibrary } from "./library.ts";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join, extname } from "node:path";
@@ -20,7 +21,8 @@ const engines: Engine[] = JSON.parse(readFileSync(join(root, "engines", "engines
 const local = existsSync(join(root, "dev", "local.json")) ? JSON.parse(readFileSync(join(root, "dev", "local.json"), "utf8")) : {};
 const samples: string[] = (local.samples ?? []).filter((p: string) => existsSync(p));
 const runsDir = join(root, local.runs ?? "runs");
-const runs = makeRuns(root, engines, runsDir);
+const library = makeLibrary(root, local.library ?? "library");
+const runs = makeRuns(root, engines, runsDir, (run) => { try { library.add(run, JSON.parse(readFileSync(join(root, "spec", "rulebook", "intake.json"), "utf8"))); } catch (e) { console.error("library:", e); } });
 const rulebook = makeRulebook(root);
 const proposals = makeProposals(root, rulebook.apply);
 runs.clear();
@@ -100,6 +102,17 @@ createServer(async (req, res) => {
   // The assistant: a chat model that can only propose. Not connected yet; the interface says so.
   if (url.pathname === "/api/assistant" && req.method === "POST") {
     return readBody(() => send(res, 200, JSON.stringify({ connected: false, reply: "No model is connected yet. You can already drive Tosi from an assistant through its MCP server (see mcp/README.md); anything it wants to change appears below as a proposal for you to accept or decline.", proposals: [] })));
+  }
+  // The library: every file processed, with its record.
+  if (url.pathname === "/api/library") return send(res, 200, JSON.stringify(library.list()));
+  const lb = url.pathname.match(/^\/api\/library\/([0-9a-f]+)(\/again)?$/);
+  if (lb) {
+    const rec = library.get(lb[1]);
+    if (!rec) { req.resume(); return send(res, 404, JSON.stringify({ error: "No such record" })); }
+    if (!lb[2]) { const { path, ...rest } = rec; return send(res, 200, JSON.stringify(rest)); }
+    req.resume();
+    if (req.method !== "POST" || !rec.path || !existsSync(rec.path)) return send(res, 400, JSON.stringify({ error: "The original file is no longer available." }));
+    return send(res, 200, JSON.stringify(view(runs.start(rec.path, rec.file.name, rec.file.source, url.searchParams.get("engine") ?? rec.engine, true))));
   }
   if (url.pathname === "/api/guidebook") return send(res, 200, readFileSync(join(root, "spec", "guidebook", "guidebook.json"), "utf8"));
   if (url.pathname === "/api/rulebook/intake/changes") return send(res, 200, JSON.stringify(rulebook.changes()));
