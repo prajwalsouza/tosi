@@ -2,7 +2,7 @@
 // It holds no stage logic: it asks an engine and passes on what the engine printed.
 import { createServer } from "node:http";
 import { readFileSync, existsSync, statSync, mkdirSync, createWriteStream, writeFileSync, rmSync } from "node:fs";
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { makeRuns, view } from "./runs.ts";
 import { makeRulebook } from "./rulebook.ts";
 import { makeTests } from "./tests.ts";
@@ -17,11 +17,6 @@ import { crc32, deflateRawSync, gunzipSync } from "node:zlib";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = Number(process.env.PORT ?? 5170);
 const hosted = process.env.TOSI_HOSTED === "1";
-const demoPassword = process.env.TOSI_DEMO_PASSWORD;
-const credentialsHash = demoPassword
-  ? createHash("sha256").update(`tosi:${demoPassword}`).digest()
-  : null;
-if (hosted && !credentialsHash) throw new Error("Set TOSI_DEMO_PASSWORD in the hosting environment");
 if (hosted) {
   const stations = process.env.TOSI_STATIONS_GZIP_BASE64;
   if (!stations) throw new Error("Set TOSI_STATIONS_GZIP_BASE64 in the hosting environment");
@@ -30,7 +25,6 @@ if (hosted) {
   const folder = join(root, "state", "reference");
   mkdirSync(folder, { recursive: true });
   writeFileSync(join(folder, "stations.json"), bytes, { mode: 0o600 });
-  delete process.env.TOSI_DEMO_PASSWORD;
   delete process.env.TOSI_STATIONS_GZIP_BASE64;
 }
 
@@ -55,7 +49,13 @@ const referenceBenchmarks = hosted
 const rulebook = makeRulebook(root);
 const proposals = makeProposals(root, rulebook.apply);
 const filings = makeFilings(root);
-const MAX_UPLOAD = hosted ? 64 * 1024 * 1024 : 2_000_000_000;
+const MAX_UPLOAD = 2_000_000_000;
+const DEMO_POST_WINDOW_MS = 60_000;
+const DEMO_POST_LIMIT = 20;
+const DEMO_BENCH_COOLDOWN_MS = 5 * 60_000;
+let demoPostWindowStarted = 0;
+let demoPosts = 0;
+let demoBenchmarkStarted = 0;
 // The algorithm is read-only unless this machine's settings say otherwise. Editing comes back with drafts and Save.
 const EDITING = !hosted && local.editing === true;
 const LOCKED = JSON.stringify({ ok: false, error: "The algorithm is read-only. Editing will return with drafts and a Save button." });
@@ -165,28 +165,47 @@ if (process.argv.includes("--check")) {
 
 if (!hosted) runs.clear();
 
-createServer(async (req, res) => {
+const getEngineInfo = () => Promise.all(configuredEngines.map((engine) => ask(engine, "info")));
+let hostedEngineInfo: ReturnType<typeof getEngineInfo> | undefined;
+const engineInfo = () => hosted ? (hostedEngineInfo ??= getEngineInfo()) : getEngineInfo();
+
+createServer(hosted ? { headersTimeout: 10_000, requestTimeout: 15_000, maxHeaderSize: 8192 } : {}, async (req, res) => {
   const url = new URL(req.url ?? "/", "http://localhost");
   if (url.pathname === "/healthz") return send(res, 200, "ok", "text/plain");
-  if (hosted && credentialsHash) {
-    const authorization = req.headers.authorization ?? "";
-    const supplied = createHash("sha256").update(Buffer.from(authorization.slice(6), "base64")).digest();
-    if (!authorization.startsWith("Basic ") || !timingSafeEqual(supplied, credentialsHash)) {
-      res.setHeader("WWW-Authenticate", 'Basic realm="Tosi demo", charset="UTF-8"');
-      req.resume();
-      return send(res, 401, JSON.stringify({ error: "Sign in to the Tosi demo" }));
-    }
-    if (req.method === "POST" && req.headers["sec-fetch-site"] === "cross-site") {
-      req.resume();
+  if (hosted && req.method === "POST") {
+    req.resume();
+    const sampleRun = url.pathname === "/api/runs" && url.searchParams.has("sample") && !url.searchParams.has("path");
+    const benchmark = url.pathname === "/api/tests/run";
+    if (req.headers["sec-fetch-site"] === "cross-site") {
       return send(res, 403, JSON.stringify({ error: "Cross-site requests are disabled" }));
     }
+    if (!sampleRun && !benchmark) {
+      return send(res, 403, JSON.stringify({ error: "The public demo accepts only the supplied samples and the Rust benchmark." }));
+    }
+    const now = Date.now();
+    if (now - demoPostWindowStarted >= DEMO_POST_WINDOW_MS) {
+      demoPostWindowStarted = now;
+      demoPosts = 0;
+    }
+    const retryAfter = benchmark && tests.view().running ? 30
+      : benchmark && now - demoBenchmarkStarted < DEMO_BENCH_COOLDOWN_MS
+        ? Math.ceil((demoBenchmarkStarted + DEMO_BENCH_COOLDOWN_MS - now) / 1000)
+        : demoPosts >= DEMO_POST_LIMIT
+          ? Math.ceil((demoPostWindowStarted + DEMO_POST_WINDOW_MS - now) / 1000)
+          : 0;
+    if (retryAfter) {
+      res.setHeader("Retry-After", String(retryAfter));
+      return send(res, 429, JSON.stringify({ error: `The demo is busy. Try again in ${retryAfter} seconds.` }));
+    }
+    demoPosts++;
+    if (benchmark) demoBenchmarkStarted = now;
   }
   if (url.pathname === "/api/engines") {
-    return send(res, 200, JSON.stringify(await Promise.all(configuredEngines.map((e) => ask(e, "info")))));
+    return send(res, 200, JSON.stringify(await engineInfo()));
   }
   if (url.pathname === "/api/about") {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-    return send(res, 200, JSON.stringify({ tosi: pkg.version, editing: EDITING, spec: readFileSync(join(root, "spec", "VERSION"), "utf8").trim(), server: `Node ${process.versions.node}`, engines: configuredEngines.map((e) => ({ id: e.id, name: e.name, available: engines.includes(e) })) }));
+    return send(res, 200, JSON.stringify({ tosi: pkg.version, demo: hosted, editing: EDITING, spec: readFileSync(join(root, "spec", "VERSION"), "utf8").trim(), server: `Node ${process.versions.node}`, engines: configuredEngines.map((e) => ({ id: e.id, name: e.name, available: engines.includes(e) })) }));
   }
   // Proposals: how anything but a person changes the rulebook. A person accepts or declines.
   const readBody = (cb: (v: any) => void) => { let b = ""; req.on("data", (d) => { b += d; if (b.length > 50000) req.destroy(); }); req.on("end", () => { try { cb(JSON.parse(b || "{}")); } catch { send(res, 400, JSON.stringify({ error: "Not valid JSON" })); } }); };
@@ -353,7 +372,9 @@ createServer(async (req, res) => {
   const m = url.pathname.match(/^\/api\/engines\/([a-z]+)\/info$/);
   if (m) {
     const e = configuredEngines.find((x) => x.id === m[1]);
-    return e ? send(res, 200, JSON.stringify(await ask(e, "info"))) : send(res, 404, JSON.stringify({ error: "No such engine" }));
+    if (!e) return send(res, 404, JSON.stringify({ error: "No such engine" }));
+    const info = hosted ? (await engineInfo()).find((answer) => answer.id === e.id) : await ask(e, "info");
+    return send(res, 200, JSON.stringify(info));
   }
   const file = join(root, "ui", "public", url.pathname === "/" ? "index.html" : url.pathname);
   if (!file.startsWith(join(root, "ui", "public")) || !existsSync(file)) return send(res, 404, "Not found", "text/plain");

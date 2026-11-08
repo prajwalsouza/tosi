@@ -223,13 +223,15 @@ function toast(text) {
   clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 5000);
 }
 let dragDepth = 0;
-addEventListener("dragenter", (e) => { if (![...(e.dataTransfer?.types ?? [])].includes("Files")) return; e.preventDefault(); dragDepth++; document.body.classList.add("over"); });
+addEventListener("dragenter", (e) => { if (state.about?.demo || ![...(e.dataTransfer?.types ?? [])].includes("Files")) return; e.preventDefault(); dragDepth++; document.body.classList.add("over"); });
 addEventListener("dragleave", () => { if (--dragDepth <= 0) { dragDepth = 0; document.body.classList.remove("over"); } });
 addEventListener("dragover", (e) => e.preventDefault());
 addEventListener("drop", (e) => {
   e.preventDefault(); dragDepth = 0; document.body.classList.remove("over");
   const f = e.dataTransfer?.files?.[0];
-  if (f) flow.upload(f);
+  if (!f) return;
+  if (state.about?.demo) toast("Choose an official sample to try the public demo.");
+  else flow.upload(f);
 });
 
 addEventListener("hashchange", render);
@@ -259,7 +261,9 @@ const engineList = askAll();
   if (auto && !existing.length && SAMPLES.length && route() === "/") {
     const ids = [];
     for (const s of SAMPLES) ids.push(await flow.startSample(s.name));
-    location.hash = `#/flow/${ids[0]}`;
+    const first = ids.find(Boolean);
+    if (first) location.hash = `#/flow/${first}`;
+    else render();
   } else if (route() === "/") render();
 })().finally(() => window.tosiLoaded?.());       // the loading screen leaves once the first page is ready
 fetch("/api/about").then((r) => r.json()).then((a) => { state.about = a; render(); });

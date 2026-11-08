@@ -18,7 +18,9 @@ const pct = (d, t) => (t ? Math.min(100, (d / t) * 100) : 0);
 
 /* ---------- runs ---------- */
 export async function startSample(name) {
-  const r = await fetch(`/api/runs?sample=${encodeURIComponent(name)}&engine=${ctx.using()}`, { method: "POST" }).then((x) => x.json());
+  const res = await fetch(`/api/runs?sample=${encodeURIComponent(name)}&engine=${ctx.using()}`, { method: "POST" });
+  const r = await res.json();
+  if (!res.ok) { ctx.toast(r.error || "The sample could not start."); return null; }
   runs.set(r.id, r);
   return r.id;
 }
@@ -120,7 +122,7 @@ export function homePage(samples) {
       ? el("div", { class: "samples" }, [0, 1].map(() => el("div", { class: "sample" }, el("span", { class: "sk title" }), el("span", { class: "sk line", style: "width:120px;margin-top:8px" }))))
       : samples.length ? el("div", { class: "samples" },
         el("div", { class: "s-h" }, "Or click a sample to try it"),
-        samples.map((s) => el("button", { class: "sample", onclick: async () => ctx.go(`/flow/${await startSample(s.name)}`) },
+        samples.map((s) => el("button", { class: "sample", onclick: async () => { const id = await startSample(s.name); if (id) ctx.go(`/flow/${id}`); } },
           el("span", { class: "ic", html: icon(/^br/i.test(s.name) ? "tower-broadcast" : "satellite-dish") }),
           el("span", {}, el("b", {}, s.name), el("small", {}, `${/^br/i.test(s.name) ? "Terrestrial" : "Space"} · ${mb(s.bytes)}`))))) : null,
     scene);

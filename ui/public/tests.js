@@ -38,7 +38,7 @@ let sample = null;
 
 export function testsPage(el) {
   const box = el("div", { class: "tests" });
-  let data = null, timer = 0, showReference = true;
+  let data = null, timer = 0, showReference = true, error = "";
 
   async function load() {
     data = await fetch("/api/tests").then((r) => r.json()).catch(() => ({ last: null }));
@@ -48,8 +48,12 @@ export function testsPage(el) {
   }
   async function start() {
     showReference = false;
-    data = await fetch("/api/tests/run", { method: "POST" }).then((r) => r.json());
-    draw(); timer = setTimeout(load, 800);
+    const response = await fetch("/api/tests/run", { method: "POST" });
+    const result = await response.json();
+    error = response.ok ? "" : result.error;
+    if (response.ok) data = result;
+    draw();
+    if (response.ok) timer = setTimeout(load, 800);
   }
 
   function relative(t, best) {
@@ -127,6 +131,7 @@ export function testsPage(el) {
       el("div", { class: "heur", html: icon("circle-info") },
         el("p", {}, el("b", {}, "These are heuristics, not promises. "),
           "The step times below are real: each engine ran each sample three times, reporting when every step started and ended, and the middle of the three times is shown. The estimates further down are not measured: they take those times and scale them in proportion to the file's size. Disk speed, other programs, and what is inside a file all change the real time.")),
+      error ? el("p", { class: "meta", role: "status" }, error) : null,
       running ? el("div", { class: "trun" }, el("span", { class: "meta" }, `Running ${running.done + 1} of ${running.total}: ${running.now}`),
         el("div", { class: "tbar wide" }, el("i", { class: "best", style: `width:${(running.done / running.total) * 100}%` }))) : null,
       data === null ? el("div", { class: "ttab-sk" }, [0, 1, 2, 3, 4].map(() => el("span", { class: "sk line", style: "width:100%;height:28px;margin:6px 0" })))
