@@ -31,8 +31,8 @@ export const SCENES = [
   {
     id: "issue", chapter: "The moment", mode: "dark", title: "Every two weeks, | a new file.",
     beats: [
-      { say: (D) => `Every two weeks the ITU publishes every new claim on radio spectrum. Issue 3074: <b>${fmt(D.sp.result.database.rows)} rows</b>.` },
-      { say: (D) => `Inside, <b>${fmt(c(D, "sp", "downlink").notices)} satellite filings</b>, each a claim on spectrum Finland may use.` },
+      { say: "Every two weeks, the ITU publishes every new claim on radio spectrum." },
+      { say: (D) => `Issue 3074 holds <b>${fmt(c(D, "sp", "downlink").notices)} satellite filings</b>.` },
       { say: (D) => { const l = c(D, "sp", "ladder").levels; return `<span class="crit">${fmt(l.crit)} need attention</span>. <span class="warn">${fmt(l.warn)} are worth a look</span>. The rest can wait.`; } },
     ],
     build(g, A, D) {
@@ -82,7 +82,7 @@ export const SCENES = [
   {
     id: "proof", chapter: "Why trust it", mode: "dark", title: "You can't send another country | a probability.",
     beats: [
-      { say: "Every result comes from a filed record, a published table or a formula. <b>No AI decides a result.</b>" },
+      { say: "Every result comes from a filed record, a published table or a formula. <b>No AI decides.</b>" },
       { say: (D) => `Same file, same answer, every time. This one's fingerprint begins <b>${esc(D.sp.result.file.sha256.slice(0, 8))}</b>.` },
     ],
     build(g, A, D) {
@@ -114,7 +114,7 @@ export const SCENES = [
   {
     id: "drop", chapter: "A file arrives", mode: "app",
     beats: [
-      { say: "Drop the issue's zip into Tosi, or pick a sample. It all runs on this computer.", spot: ".home .samples",
+      { say: "Drop in the zip, or pick a sample. It runs on this computer.", spot: ".home .samples",
         act: async (X, D) => { await X.go("#/", ".home .samples"); scrollTo(0, 0); await X.tap(X.text(".home .sample", "ific3074")); await X.go(`#/flow/${D.spRun.id}`, ".diagram button.node"); } },
     ],
   },
@@ -141,7 +141,7 @@ export const SCENES = [
       { say: "Each filing lands on a concern ladder. Out comes a short notification.", spot: ".rp-outline",
         act: async (X, D) => { await X.go(`#/flow/${D.spRun.id}`, ".diagram button.node"); await X.flowTo("Report"); await X.wait(".rp-outline"); } },
       { say: (D) => { const it = firstItem(D); if (!it) return "Open any case to see why it was flagged."; const h = it.how_much ?? {};
-          return `<b>${esc(it.name)}</b>, ${esc(it.country)}: <span class="crit">${num(h.excess)} dB over</span> the limit at ${band(h)}, where Finnish stations work.`; },
+          return `<b>${esc(it.name)}</b>, ${esc(it.country)}: <span class="crit">${num(h.excess, 0)} dB over</span> the limit, where Finnish stations work.`; },
         spot: () => document.querySelector(".rp-outline .rp-node.x-case") ?? document.querySelector(".rp-outline"),
         act: async (X) => {
           // open the first level, its first rung, then its first case
@@ -156,8 +156,6 @@ export const SCENES = [
           }
           document.querySelector(".x-case")?.scrollIntoView({ block: "center", behavior: "smooth" });
         } },
-      { say: "The same cases as a table, or as CSV and Excel.", spot: ".rp-head",
-        act: async (X) => { await X.press(X.text(".rp-views button", "Table")); await X.to(X.text(".rp-head a, .rp-head button", "Excel")); } },
     ],
     leave() { document.querySelector(".x-case")?.classList.remove("x-case"); },
   },
@@ -167,7 +165,7 @@ export const SCENES = [
     id: "glass", chapter: "Why trust it", mode: "dark", title: "A glass box, | not a black box.",
     beats: [
       { say: "Every line opens down: to its rung, and the guidebook rule behind it." },
-      { say: (D) => { const h = firstItem(D)?.how_much ?? {}; return `To the step that applied it (<b>${num(h.pfd)}</b> where <b>${num(h.limit)}</b> is allowed), and the ITU record itself.`; } },
+      { say: (D) => { const h = firstItem(D)?.how_much ?? {}; return `To the step that applied it, and the ITU record itself.`; } },
     ],
     build(g, A, D) {
       const it = firstItem(D) ?? { name: "A filing", country: "", why: {}, how_much: {} };
@@ -200,7 +198,7 @@ export const SCENES = [
     id: "engines", chapter: "Three engines", mode: "dark", title: "Three engines. | One answer.",
     beats: [
       { say: (D) => { const e = engineSha(D), same = e.length === 3 && e.every(([, x]) => x.state === "done") && new Set(e.map(([, x]) => x.sha256)).size === 1;
-          return `Every step is written in TypeScript, Rust and Python. ${same ? "On issue 3076 all three write <b>byte-identical</b> results." : "They must write byte-identical results."}`; }, len: 6 },
+          return `TypeScript, Rust and Python each run every step${same ? ", and write <b>byte-identical</b> results." : ". They must agree byte for byte."}`; }, len: 6 },
     ],
     build(g, A, D) {
       const ids = ["ts", "rust", "python"], ys = [300, 450, 600];
@@ -233,7 +231,8 @@ export const SCENES = [
         const e = D.te?.engines ?? {};
         for (const ch of chips) {
           const x = e[ch.id];
-          ch.tx.textContent = x?.state === "done" && x.sha256 ? `${x.sha256.slice(0, 10)}…` : x?.state === "failed" ? "failed" : "checking";
+          const off = D.about?.demo && D.about.engines?.find((q) => q.id === ch.id)?.available === false;
+          ch.tx.textContent = x?.state === "done" && x.sha256 ? `${x.sha256.slice(0, 10)}…` : off ? "runs locally" : x?.state === "failed" ? "failed" : "checking";
           ch.tx.style.fill = x?.state === "done" ? "var(--x-ink)" : "var(--x-ink3)";
         }
         const all = ids.map((id) => e[id]);
@@ -246,7 +245,7 @@ export const SCENES = [
   {
     id: "ground", chapter: "On the ground", mode: "app",
     beats: [
-      { say: (D) => `The same engine, on the ground: of <b>${fmt(c(D, "te", "mobile").notices)}</b> terrestrial filings, <b>${fmt(c(D, "te", "range").kept)}</b> are near enough to matter.`, spot: ".sticky",
+      { say: (D) => `On the ground: of <b>${fmt(c(D, "te", "mobile").notices)}</b> terrestrial filings, <b>${fmt(c(D, "te", "range").kept)}</b> are near enough to matter.`, spot: ".sticky",
         act: async (X, D) => { await X.go(`#/flow/${D.teRun.id}`, ".diagram button.node"); await X.flowTo("Range"); } },
       { say: (D) => { const h = c(D, "te", "threshold").how ?? {}; return `At Finland's border, <span class="crit">${plural(h.over ?? 0, "is", "are")} over</span> the trigger level.`; }, spot: ".sticky",
         act: async (X) => X.flowTo("Threshold") },
@@ -257,7 +256,7 @@ export const SCENES = [
   {
     id: "rules", chapter: "Rules you can change", mode: "app",
     beats: [
-      { say: (D) => `Every number lives in a versioned rulebook with its source, like this <b>${fmt(D.rb.threshold?.near_db ?? 3)} dB</b> near-miss margin.`,
+      { say: (D) => `Every number lives in a versioned rulebook, with its source.`,
         spot: () => document.querySelector("#p-threshold-near_db") ?? document.querySelector("#a-terrestrial-t5"),
         act: async (X) => { await X.go("#/algorithm/t5", "#a-terrestrial-t5"); const p = await X.wait("#p-threshold-near_db", 4000); if (p) { p.scrollIntoView({ block: "center", behavior: "smooth" }); await new Promise((r) => setTimeout(r, 800)); await X.to(p); } } },
     ],
@@ -267,7 +266,7 @@ export const SCENES = [
   {
     id: "ai", chapter: "AI proposes, people decide", mode: "app", title: "AI writes rules, | never results.",
     beats: [
-      { say: "An assistant reaches every step through Tosi's MCP server. It can only propose. This is a real, recorded Codex run.", spot: ".dm-panel", len: 7,
+      { say: "Through MCP, an assistant can only propose. Here, a real recorded Codex run.", spot: ".dm-panel", len: 7,
         act: async (X) => {
           await X.go("#/algorithm", ".gb-h");
           if (document.querySelector(".dm-panel")?.hidden !== false) await X.press("#ask");
@@ -283,7 +282,7 @@ export const SCENES = [
   {
     id: "next", chapter: "What's next", mode: "dark",
     beats: [
-      { say: "All of this runs today. Next: an audit track that looks for what the rules miss. It proposes; it never decides.", len: 7 },
+      { say: "Next: an audit track that finds what the rules miss. It proposes, never decides.", len: 7 },
     ],
     build(g, A) {
       const built = ["Space and terrestrial screening", "Three engines, byte for byte", "The concern ladder and notification", "A guidebook and versioned rulebook", "An MCP server that only proposes"];
@@ -303,7 +302,7 @@ export const SCENES = [
     id: "close", chapter: "Close", mode: "dark",
     beats: [
       { say: "Finland's spectrum, defended with evidence, not guesses." },
-      { say: "That was Tosi. It's all live: press Esc and look around.", len: 4 },
+      { say: "That was Tosi. It's all live: press Esc and look around.", video: "That was Tosi.", len: 4 },
     ],
     build(g, A) {
       const a = G(g);

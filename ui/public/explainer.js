@@ -7,7 +7,7 @@ import { makeA, S, G } from "./explainer/kit.js";
 import { loadData } from "./explainer/data.js";
 import { SCENES } from "./explainer/script.js";
 
-const TITLE = 2.2;                                            // seconds a scene's title stands alone
+let TITLE = 2.2;                                            // seconds a scene's title stands alone
 const beatLen = (text) => Math.max(3.4, String(text).replace(/<[^>]+>/g, "").length / 17 + 0.9);
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -38,8 +38,13 @@ new MutationObserver(injectButton).observe(document.documentElement, { childList
 addEventListener("hashchange", injectButton);
 
 /* ---------- the film ---------- */
-export function open() {
+// For recording the film as a video: open({ lens: { sceneId: [seconds per beat] } }) fits each beat to its narration,
+// and every beat's start is logged in window.__xpBeats (wall-clock ms) so the narration can be laid under it.
+window.tosiDemo = { open: (o) => open(o), texts: () => window.__xpTimeline?.map((s) => ({ id: s.id, beats: s.beats.map((b) => b.text) })) ?? null };
+
+export function open(opts = {}) {
   if (P) return;
+  if (opts.title) TITLE = opts.title;
   const saved = { hash: location.hash || "#/", y: scrollY };
   const root = h("div", { class: "xp", role: "dialog", "aria-label": "Tosi demo", "aria-modal": "true" });
   const veil = h("div", { class: "xp-veil" });
@@ -79,14 +84,15 @@ export function open() {
     let at = 0;
     timeline = SCENES.map((sc, i) => {
       const lead = sc.title ? TITLE : 0.6;
-      const beats = sc.beats.map((b) => ({ ...b, text: typeof b.say === "function" ? b.say(D) : b.say }));
-      const bd = beats.map((b) => b.len ?? beatLen(b.text)), bs = [];
+      const beats = sc.beats.map((b) => ({ ...b, text: opts.video && b.video ? b.video : typeof b.say === "function" ? b.say(D) : b.say }));
+      const bd = beats.map((b, j) => opts.lens?.[sc.id]?.[j] ?? b.len ?? beatLen(b.text)), bs = [];
       let x = lead; for (const d of bd) { bs.push(x); x += d; }
       const s = { ...sc, i, start: at, lead, beats, bs, bd, dur: x + 0.3 };
       at += s.dur;
       return s;
     });
     timeline.total = at;
+    window.__xpTimeline = timeline; window.__xpBeats = [];
     // The bar's segments, one per scene, a gap where a chapter starts; they arrive one after another.
     seek.replaceChildren(...timeline.map((s, i) => {
       const seg = h("div", { class: "xp-seg" + (i && s.chapter !== timeline[i - 1].chapter ? " ch" : ""), style: `flex:${s.dur.toFixed(2)};transition-delay:${(i * 60) + 200}ms` }, h("i"));
@@ -116,13 +122,14 @@ export function open() {
   }
   async function enterBeat(s, bi) {
     const b = s.beats[bi];
+    window.__xpBeats?.push({ scene: s.id, beat: bi, at: Date.now(), t });
     spotSel = b?.spot ?? null;
     setNote(b?.note ? (typeof b.note === "function" ? b.note(D) : b.note) : "");
     setCaption(b?.text ?? "");
     if (b && voice) speak(b.text);
     if (b?.act) {
       const my = ++hold;
-      try { await Promise.race([b.act(X, D).catch((e) => console.error("demo beat", s.id, bi, e)), sleep(1200)]); } catch (e) { console.error("demo beat", s.id, bi, e); }
+      try { await Promise.race([b.act(X, D).catch((e) => console.error("demo beat", s.id, bi, e)), sleep(opts.hold ?? 1200)]); } catch (e) { console.error("demo beat", s.id, bi, e); }
       if (hold === my) hold = 0;
     }
   }

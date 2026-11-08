@@ -16,6 +16,7 @@ export function loadData(onChange) {
     get("/api/rulebook/intake/changes").then((c) => { D.changes = Array.isArray(c) ? c : []; }),
     get("/api/engines").then((e) => { D.engines = Array.isArray(e) ? e.map(({ id, name }) => ({ id, name })) : []; }),
     get("/finland.json").then((f) => { D.finland = f; }),
+    get("/api/about").then((a) => { D.about = a; }),
   ]).then(changed);
 
   // one run per sample: reuse a finished one, else one still working, else start one
@@ -47,7 +48,9 @@ export function loadData(onChange) {
   // The terrestrial sample is small, so its byte-for-byte check across the three engines is asked for when it is not done yet.
   // The film's engine scene shows what that check finds, as it finds it.
   async function agreement(v) {
-    if (!v) return;
+    // The hosted demo runs one engine and accepts no agreement checks: the film says so instead of waiting.
+    await statics;
+    if (!v || D.about?.demo) return;
     const pending = () => Object.values(D.te?.engines ?? {}).some((e) => e.state !== "done");
     if (pending() && !Object.values(v.engines ?? {}).some((e) => e.state === "running" || e.state === "waiting")) {
       await fetch(`/api/runs/${v.id}/agree`, { method: "POST" }).catch(() => {});
