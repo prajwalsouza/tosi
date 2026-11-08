@@ -54,6 +54,16 @@
 .xp-cap .sk { display: inline-block; width: 320px; height: 14px; border-radius: 7px; background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.14), rgba(255,255,255,.06)); background-size: 200% 100%; animation: xsh 1.4s linear infinite }
 @keyframes xsh { to { background-position: -200% 0 } }
 
+/* While the samples are still being processed */
+.xp-wait { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); width: min(520px, calc(100% - 32px)); text-align: center; color: var(--x-ink2); font-size: 15px; line-height: 1.5; pointer-events: none }
+.xp-wait p { margin: 0 0 12px; color: var(--x-ink); font-size: clamp(17px, 1.6vw, 21px) }
+.xp-wait p .sk { display: block; width: 46px; height: 4px; margin: 0 auto 18px; border-radius: 2px; background: linear-gradient(90deg, rgba(185,166,246,.15), var(--x-acc), rgba(185,166,246,.15)); background-size: 200% 100%; animation: xsh 1.4s linear infinite }
+.xp-wait ul { list-style: none; margin: 0 0 14px; padding: 0 }
+.xp-wait li span { color: var(--x-ink3) }
+.xp-wait li.ok { color: var(--x-ok) }
+.xp-wait small { color: var(--x-ink3); font-size: 13px }
+.xp-wait .err { color: var(--x-crit) }
+
 /* Over the app, the caption floats on a soft fade from the bottom */
 .xp-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 230px; background: linear-gradient(to top, rgba(6,6,8,.94) 0%, rgba(6,6,8,.8) 45%, rgba(6,6,8,0) 100%);
   opacity: 0; transition: opacity .8s var(--x-ease); pointer-events: none }

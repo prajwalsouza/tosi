@@ -66,7 +66,7 @@ export function open(opts = {}) {
   document.body.append(root);
   document.documentElement.classList.add("xp-on");
 
-  const D = loadData(() => { if (!timeline && ready()) build(); });
+  const D = loadData(() => { if (timeline) return; if (ready()) build(); else waiting(); });
   let timeline = null, t = 0, playing = false, hold = 0, voice = store.get("tosi.demo.voice") === "1", speaking = false;
   let cur = { si: -2, bi: -2 }, A = null, stageRoot = null, spotSel = null, spotBox = null, lastFrame = performance.now(), idle = 0;
   const par = { x: 0, y: 0, tx: 0, ty: 0 };
@@ -75,8 +75,24 @@ export function open(opts = {}) {
 
   // The darkness comes first; the bar rises with the first beat.
   requestAnimationFrame(() => { veil.style.opacity = "1"; root.classList.add("dark"); });
-  cap.innerHTML = `<span class="in"><i class="sk"></i></span>`;
   setTimeout(() => root.classList.add("up"), 900);
+
+  // Until both samples are processed, the dark says what is happening instead of staying blank.
+  // On a fresh server the engine runs both issues first, which can take about a minute.
+  const wait = h("div", { class: "xp-wait", role: "status", "aria-live": "polite" });
+  root.insertBefore(wait, bar);
+  const waitStart = Date.now();
+  const tick = setInterval(() => (timeline ? (clearInterval(tick), wait.remove()) : waiting()), 1000);
+  function waiting() {
+    if (timeline) return;
+    const line = (label, run, v) => v ? `<li class="ok">${label}: processed</li>`
+      : `<li>${label}: ${run ? `processing${run.stage ? ` <span>(${run.stage})</span>` : ""}` : "starting"}</li>`;
+    const s = Math.round((Date.now() - waitStart) / 1000);
+    wait.innerHTML = D.error ? `<p class="err">${D.error}</p>`
+      : `<p><i class="sk"></i>Processing the sample ITU files for the demo</p><ul>${line("Space IFIC 3074", D.spRun, D.sp)}${line("Terrestrial IFIC 3076", D.teRun, D.te)}</ul>`
+        + `<small>${s}s · the first play on a fresh server can take about a minute</small>`;
+  }
+  waiting();
 
   function ready() { return D.sp && D.te && D.gb; }
   function build() {
@@ -331,6 +347,7 @@ export function open(opts = {}) {
   function close() {
     if (!P) return;
     P = null;
+    clearInterval(tick);
     pause();
     D.stop?.();
     removeEventListener("keydown", onKey, true); removeEventListener("pointermove", onMove); removeEventListener("pointerdown", onDown, true); removeEventListener("wheel", onWheel);
