@@ -285,22 +285,22 @@ body.busy #busy { display: flex }
 .rule { margin: 4px 0 8px 18px; color: var(--ink); max-width: 72ch; line-height: 1.55 }
 .kv { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 4px 0 4px 18px; color: var(--ink2); font-size: var(--fs-sm); max-width: 80ch }
 .kv > span:first-child { flex: none; width: 76px; color: var(--ink3); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .04em }
-.eref, .sref { color: #6f93bf } .eref:hover, .sref:hover { color: var(--ink) }
+.eref, .sref { color: var(--link) } .eref:hover, .sref:hover { color: var(--ink) }
 .eref { font-family: var(--font-mono); font-size: var(--fs-xs) }
 .sref.planned { color: var(--ink3) }
-.rref { font-size: var(--fs-xs) } .rref.crit { color: var(--bad) } .rref.warn { color: #d9b36a }
+.rref { font-size: var(--fs-xs) } .rref.crit { color: var(--bad) } .rref.warn { color: var(--warn) }
 .rung { gap: var(--sp-3) } .rung .rn { width: 18px; color: var(--ink3); font-size: var(--fs-xs); text-align: right } .rung b { font-weight: var(--fw-medium) }
-.lv { width: 8px; height: 8px; border-radius: 50%; background: var(--ink3); flex: none } .lv.crit { background: var(--bad) } .lv.warn { background: #d9b36a }
+.lv { width: 8px; height: 8px; border-radius: 50%; background: var(--ink3); flex: none } .lv.crit { background: var(--bad) } .lv.warn { background: var(--warn) }
 .st-l { display: inline-flex; align-items: center; gap: var(--sp-3) } .st-l b { font-weight: var(--fw-medium); min-width: 92px } .st-t { color: var(--ink3) }
 .st-l .pip { width: 7px; height: 7px; border-radius: 50%; border: 1.3px solid var(--ink3) } .st-l .pip.built { background: var(--accent); border-color: var(--accent) }
-.tref { font: var(--fs-xs) var(--font-mono); color: var(--ink2) } .tref.missing { color: #d9b36a }
+.tref { font: var(--fs-xs) var(--font-mono); color: var(--ink2) } .tref.missing { color: var(--warn) }
 .reads { margin: 6px 0 0 0 }
 .row-end { display: inline-flex; align-items: center; gap: var(--sp-4); margin-left: auto; padding-left: var(--sp-4) }
 .ol-row .row-end .meta { margin-left: 0 }
 .need .sref:first-child { margin-left: 4px } .need.none { color: var(--ink3); font-style: italic }
 .act { font-size: var(--fs-sm); color: var(--ink3); white-space: nowrap; transition: color var(--dur) } .act:hover { color: var(--bad) } .act.on:hover { color: var(--accent) }
 .rd { display: inline-flex; align-items: center; gap: 6px; color: var(--ink3); font-size: var(--fs-sm) } .rd svg { width: 11px; height: 11px }
-.sl.warn { color: #d9b36a }
+.sl.warn { color: var(--warn) }
 .tl.new code { color: var(--ink2) }
 .locked { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-5); color: var(--ink3); font-size: var(--fs-sm) } .locked svg { width: 12px; height: 12px }
 .col.ro { cursor: default } .col.ro:hover { color: var(--ink3) } .col.ro.on:hover { color: var(--accent) }

@@ -5,37 +5,37 @@
     {
       "id": "P",
       "title": "Principles",
-      "about": "How Tosi works, whatever the filing."
+      "about": "How Tosi works, whatever kind of filing it is looking at."
     },
     {
       "id": "C",
       "title": "Concerns",
-      "about": "What makes a filing a concern for the country."
+      "about": "What makes a filing something Finland should worry about."
     },
     {
       "id": "M",
       "title": "Methods",
-      "about": "How each value is worked out."
+      "about": "How each number is worked out."
     },
     {
       "id": "D",
       "title": "Data handling",
-      "about": "How doubtful or missing data is treated."
+      "about": "What happens when data is doubtful or missing."
     },
     {
       "id": "L",
       "title": "Known limits",
-      "about": "What Tosi does not yet cover, said plainly."
+      "about": "What Tosi does not cover yet, said plainly."
     }
   ],
   "entries": [
     {
       "id": "P-1",
       "section": "P",
-      "title": "No generated facts",
-      "rule": "Every value comes from a filed record, a published table or a stated formula. No language model or learned model takes part in any result.",
-      "why": "A concern raised with another country has to survive its engineers checking it. A model can produce a fluent number nobody can trace. A formula can be checked line by line.",
-      "effect": "Every line in a brief expands back to a table row, a limit or a formula.",
+      "title": "Nothing is made up",
+      "rule": "Every number Tosi shows comes from one of three places: something written in the filing itself, a value in a published table, or a calculation whose formula is written down. No language model, and no system that learns from examples, is involved in producing any result.",
+      "why": "When Finland raises a concern with another country, that country's engineers will check every number. If a number came from a model that guesses, nobody could explain where it came from, and the concern would fall apart. A number that comes from a stated formula can be checked step by step by anyone.",
+      "effect": "Anything Tosi reports can be opened up to show where it came from: the row in the filing, the limit in the published table, or the formula that was used.",
       "basis": [
         "Administration policy"
       ],
@@ -47,10 +47,10 @@
     {
       "id": "P-2",
       "section": "P",
-      "title": "Same input, same result",
-      "rule": "Rerunning the same files gives the same findings, and every result records the fingerprints of its inputs.",
-      "why": "If two runs disagree, nobody knows which to trust. Fingerprints also prove which file a result came from, long after the fact.",
-      "effect": "Reruns are compared byte by byte, and each result records the hashes of its inputs.",
+      "title": "The same file always gives the same answer",
+      "rule": "If the same file is processed twice, with the same rules, Tosi gives exactly the same result both times. Every result also records a fingerprint of the file it came from, a short code computed from the file's contents.",
+      "why": "If two runs of the same file could disagree, nobody would know which one to trust. The fingerprint also proves, long afterwards, exactly which file a result was based on. Change a single letter in the file and the fingerprint changes completely.",
+      "effect": "Results can be compared exactly, down to the last character, and each one says which file and which version of the rules produced it.",
       "basis": [
         "Administration policy"
       ],
@@ -62,10 +62,10 @@
     {
       "id": "P-3",
       "section": "P",
-      "title": "People decide",
-      "rule": "The system proposes and shows its evidence. An expert decides, and nothing is sent automatically.",
-      "why": "Coordination is a judgement between administrations. Software can find and measure, but it can't carry that responsibility.",
-      "effect": "Letters are always drafts, and the system stops at the expert.",
+      "title": "People make the decisions",
+      "rule": "Tosi finds possible problems, measures them and shows the evidence. A person with the right expertise decides what to do about each one. Tosi never contacts anyone or sends anything on its own.",
+      "why": "Deciding whether to object to another country's filing is a judgement between administrations, and someone has to be responsible for it. Software can search, calculate and explain, but it cannot carry that responsibility.",
+      "effect": "Any letter Tosi prepares is a draft. The process always stops at a person, who reads the evidence and decides.",
       "basis": [
         "Administration policy"
       ],
@@ -77,10 +77,10 @@
     {
       "id": "P-4",
       "section": "P",
-      "title": "Secondary review stays outside results",
-      "rule": "AI review may run separately to look for anything missed. Its output is a list of suggestions for people. It cannot create, change or rank a finding.",
-      "why": "Rules only catch what someone thought to write down, so a separate review can find gaps. That review can also be wrong, so it must never touch a result directly.",
-      "effect": "A suggestion goes on a review list. It only matters once a person accepts it as a new or changed rule.",
+      "title": "Extra checks by AI stay separate",
+      "rule": "An AI system may be used, separately, to look over the results and suggest things that might have been missed. What it produces is only a list of suggestions for people to read. It cannot create a finding, change one, or change the order in which findings are ranked.",
+      "why": "Rules only catch what someone thought to write down, so a second look can find gaps. But that second look can also be wrong, so it must never be able to change a result directly.",
+      "effect": "A suggestion goes onto a list for review. It only has an effect if a person accepts it and it becomes a new or changed rule, through the normal review.",
       "basis": [
         "Administration policy"
       ],
@@ -92,10 +92,10 @@
     {
       "id": "P-5",
       "section": "P",
-      "title": "Rules change by review",
-      "rule": "A rule changes only as a proposal that is tested on past issues, approved by a person and given a new guidebook version. Nothing rewrites live rules on its own.",
-      "why": "Regulations and data change, so rules must change too. But a rule that changes silently would make old and new results impossible to compare.",
-      "effect": "Each change is tested on past issues first, so its effect on real findings is visible before anyone approves it.",
+      "title": "Rules change only after review",
+      "rule": "A rule can only change through a proposal. The proposal is tested on past files, approved by a person, and saved as a new version of the guidebook. Nothing can quietly rewrite the rules while Tosi is in use.",
+      "why": "Regulations, data and priorities change over time, so the rules must be able to change too. But if a rule changed without anyone noticing, old and new results could no longer be compared, and nobody could say why a result had changed.",
+      "effect": "Before anyone approves a change, its effect on real past results is shown, so the decision is made knowing exactly what it will change.",
       "basis": [
         "Administration policy"
       ],
@@ -108,9 +108,9 @@
       "id": "C-1",
       "section": "C",
       "title": "What counts as a concern",
-      "rule": "An exceedance of the applicable limit is a concern. So is a result close to the limit, or a high level close to a protected frequency.",
-      "why": "A limit is pass or fail, but interference isn't. A filing just under a limit is one small modification from breaching it, and a strong signal just outside a Finnish band can still reach a receiver. So the net is wider than the hard limit.",
-      "effect": "Cases are placed on the concern ladder, with clear exceedances at the top and near misses below them.",
+      "rule": "A filing is a concern if the signal it would put over Finland is above the allowed limit. It is also a concern if the signal is just under the limit, or if a strong signal falls very close to a frequency that Finland uses and protects.",
+      "why": "A limit gives a yes-or-no answer, but real interference doesn't work like that. A filing just under the limit is one small change away from breaking it. And a strong signal just outside a Finnish frequency can still leak into a nearby receiver. So Tosi looks a little wider than the strict limit.",
+      "effect": "Every filing is placed on the concern ladder. Clear breaches of the limit go at the top; near misses are placed below them.",
       "basis": [
         "ITU Radio Regulations, Article 21",
         "Administration policy"
@@ -123,10 +123,10 @@
     {
       "id": "C-2",
       "section": "C",
-      "title": "Near-limit margin",
-      "rule": "A result within 3 dB of the limit is treated as near the limit.",
-      "why": "3 dB is a factor of two in power. Filings get modified, and every calculation carries some uncertainty, so a result this close shouldn't be treated as safely clear.",
-      "effect": "This value is a choice, not a regulation, so it can be changed in one place and its effect tested.",
+      "title": "How close counts as close",
+      "rule": "A result within 3 decibels of the limit is treated as close to the limit. (A difference of 3 decibels means roughly double or half the power.)",
+      "why": "Filings are often modified after they are first published, and every calculation carries a little uncertainty. A result that is only a factor of two away from the limit should not be treated as safely clear.",
+      "effect": "This 3-decibel margin is a choice made by the administration, not an international rule. It is kept in one place, so it can be changed and its effect tested.",
       "basis": [
         "Administration policy"
       ],
@@ -138,10 +138,10 @@
     {
       "id": "C-3",
       "section": "C",
-      "title": "High-gain receivers in line with a source",
-      "rule": "The trigger is lowered by 6 dB for a directional station of at least 20 dBi whose beam includes a geostationary source.",
-      "why": "A high-gain antenna collects far more energy from where it points. A satellite sitting in that beam can cause harm even when its PFD is within the limit. Geostationary satellites stay in one place, so this can be worked out exactly.",
-      "effect": "The angle from each directional station to the satellite is compared with the antenna's beamwidth. Moving satellites aren't tested, because they don't stay in any beam.",
+      "title": "Powerful antennas pointing at a satellite",
+      "rule": "If a Finnish station has a strongly focused antenna (a gain of at least 20 dBi, meaning it collects about a hundred times more signal from the direction it points) and that direction includes a satellite that stays fixed in the sky, the level at which Tosi raises a concern is lowered by 6 decibels.",
+      "why": "A focused antenna gathers far more energy from wherever it points. A satellite that sits inside that direction can cause harm even when its signal is below the general limit. Because a fixed-position satellite never moves, Tosi can work out exactly whether an antenna is pointing at it.",
+      "effect": "For each such station, Tosi works out the angle between where the antenna points and where the satellite is, and compares it with how wide the antenna's beam is. Satellites that move across the sky are not tested this way, because they don't stay in any antenna's beam.",
       "basis": [
         "Administration policy"
       ],
@@ -152,10 +152,10 @@
     {
       "id": "C-4",
       "section": "C",
-      "title": "What is protected",
-      "rule": "Receive frequencies are protected. Transmit frequencies are protected too, because every transmission is received somewhere in Finland. Broadcasting is protected across its coverage area.",
-      "why": "Finnish use isn't only where a receiver is listed. Radio listeners, television viewers and the far end of a radio link are all receivers, even when the register lists just the transmitter.",
-      "effect": "A station is matched on both its receive and transmit frequencies.",
+      "title": "What Tosi protects",
+      "rule": "Frequencies that Finnish stations receive on are protected. Frequencies they transmit on are protected too, because whatever is transmitted is received by someone in Finland. Broadcasting is protected across the whole area it covers, not just at the transmitter.",
+      "why": "Finland's use of the radio spectrum isn't only where a receiver happens to be listed. Radio listeners, television viewers and the far end of a radio link are all receivers, even when the register only lists the transmitter.",
+      "effect": "A Finnish station is matched against a filing using both its receive and its transmit frequencies.",
       "basis": [
         "Administration policy"
       ],
@@ -167,10 +167,10 @@
     {
       "id": "M-1",
       "section": "M",
-      "title": "Worst case for satellites",
-      "rule": "PFD is calculated with peak antenna gain toward Finland, whatever the filed beam. The result is a ceiling, not a prediction.",
-      "why": "Public filings don't reliably say where a beam points, and satellites can change their pointing. Assuming the peak lands on Finland can raise a false alarm, but it won't hide a real problem.",
-      "effect": "A filing that passes here passes anywhere. One that fails may still be fine, so an expert looks at it.",
+      "title": "Assume the worst for satellites",
+      "rule": "Tosi works out how much power from a satellite would arrive on each square metre of ground in Finland (called power flux density). It assumes the satellite's antenna is aimed straight at Finland at full strength, whatever the filing says about where it points. The result is an upper bound, not a forecast.",
+      "why": "Public filings don't reliably say where a satellite's beams point, and satellites can change where they point. Assuming the worst can sometimes raise a false alarm, but it will never hide a real problem.",
+      "effect": "If a filing passes this test, it passes everywhere. If it fails, it may still be fine in practice, so a person takes a closer look.",
       "basis": [
         "Administration policy"
       ],
@@ -181,10 +181,10 @@
     {
       "id": "M-2",
       "section": "M",
-      "title": "PFD limits",
-      "rule": "Limits, bands and arrival-angle masks are those of the Radio Regulations, as held in the ITU BR PFD tables.",
-      "why": "These limits are agreed internationally, and taking them from ITU's own tables avoids copying errors. They vary with arrival angle because ground antennas look at the horizon, so low-angle signals do more harm.",
-      "effect": "The limit is evaluated at the angle that gives the smallest margin.",
+      "title": "Which limits apply to satellites",
+      "rule": "The limits on how much satellite power may arrive on the ground, which frequency bands they cover, and how they depend on the angle the signal arrives from, are taken from the international Radio Regulations, using the tables the ITU publishes.",
+      "why": "These limits are agreed between countries, and using the ITU's own tables avoids copying mistakes. They depend on the angle of arrival because ground antennas mostly look towards the horizon, so signals arriving at a low angle do more harm.",
+      "effect": "Tosi checks the limit at every arrival angle and keeps the one where the satellite comes closest to breaking it.",
       "basis": [
         "ITU Radio Regulations, Article 21",
         "ITU BR PFD Technical Annexes"
@@ -196,10 +196,10 @@
     {
       "id": "M-3",
       "section": "M",
-      "title": "Power in the reference bandwidth",
-      "rule": "Filed power is converted to the limit's reference bandwidth by the rule in the technical annex.",
-      "why": "Limits are stated per 4 kHz or per 1 MHz, but filings give total power or a density. Without conversion the two numbers aren't comparable.",
-      "effect": "The filed power is converted first, then compared.",
+      "title": "Comparing power on the same footing",
+      "rule": "Before comparing with a limit, the power stated in the filing is converted to the same slice of frequency the limit is written for, using the method in the ITU's technical annex.",
+      "why": "Limits are written for a fixed slice of frequency, such as 4 kilohertz or 1 megahertz, while filings may give total power or power spread over a different width. Without converting, the two numbers can't be compared fairly.",
+      "effect": "The filed power is converted first, and only then compared with the limit.",
       "basis": [
         "ITU BR PFD Technical Annexes",
         "Recommendation ITU-R SF.675"
@@ -211,10 +211,10 @@
     {
       "id": "M-4",
       "section": "M",
-      "title": "Land-mobile scope",
-      "rule": "Terrestrial screening covers base stations (FB) and land mobile stations (ML).",
-      "why": "The coordination threshold was written for land-mobile systems. Applying it to other services would give numbers that look exact but mean little.",
-      "effect": "Fixed and other services are left out of this screening, and the reason is recorded.",
+      "title": "Which ground stations are checked",
+      "rule": "The check on stations on the ground covers land mobile radio only: base stations (class FB) and mobile stations (class ML), as listed in the ITU's terrestrial preface.",
+      "why": "The European threshold used to decide when neighbours need to coordinate was written for land mobile radio. Applying it to other kinds of service would produce numbers that look precise but don't mean much.",
+      "effect": "Other kinds of station, such as fixed links, are left out of this check, and the reason is recorded.",
       "basis": [
         "BR IFIC Preface"
       ],
@@ -225,10 +225,10 @@
     {
       "id": "M-5",
       "section": "M",
-      "title": "Propagation",
-      "rule": "Field strength uses P.1546-6 at 10% time and 50% locations with a 10 m receiving height, without a terrain profile.",
-      "why": "Near the ground, radio doesn't follow a simple distance law. P.1546 is the agreed statistical model. The 10% time figure captures the occasional strong conditions that actually cause interference.",
-      "effect": "The model is run for each border point, using the filed power and height.",
+      "title": "How a signal travels over land and sea",
+      "rule": "The strength of a signal from a foreign station is worked out with the ITU's standard method for this (Recommendation P.1546-6). It is calculated for the signal level reached 10% of the time, at half of all locations, for a receiving antenna 10 metres above the ground, without using a detailed map of the terrain.",
+      "why": "Close to the ground, radio signals don't simply weaken with distance in a fixed way; they depend on the path, the land and the weather. P.1546 is the internationally agreed way to estimate this. Using the level reached 10% of the time captures the occasional strong conditions that actually cause interference.",
+      "effect": "The calculation is run for each border point, using the power and antenna height stated in the filing.",
       "basis": [
         "Recommendation ITU-R P.1546-6"
       ],
@@ -239,10 +239,10 @@
     {
       "id": "M-6",
       "section": "M",
-      "title": "Coordination threshold",
-      "rule": "The trigger field strength is the T/R 25-08 value for the band, with its bandwidth correction.",
-      "why": "This is the European trigger level. Below it, neighbours don't need to coordinate. The correction allows for wider channels, which pick up more power.",
-      "effect": "The calculated field is compared with the threshold for that band.",
+      "title": "When neighbours need to talk",
+      "rule": "A foreign station is a concern if the signal it would put at the Finnish border is above the European trigger level for its frequency band (from recommendation T/R 25-08), adjusted for how wide its channel is.",
+      "why": "This trigger level is what European countries have agreed: below it, neighbours don't need to coordinate. Wider channels pick up more power, so the level is adjusted for them.",
+      "effect": "The calculated signal at the border is compared with the trigger level for that band.",
       "basis": [
         "ECC/CEPT Recommendation T/R 25-08, Annex 1, A1.2.3"
       ],
@@ -253,10 +253,10 @@
     {
       "id": "M-7",
       "section": "M",
-      "title": "Above 470 MHz",
-      "rule": "Above 470 MHz, the T/R 25-08 value for above 400 MHz is applied.",
-      "why": "The recommendation stops at 470 MHz, yet many land-mobile filings are higher. Extending the last value gives a consistent test instead of no test.",
-      "effect": "Results above 470 MHz are labelled, so a reviewer knows the rule was extended.",
+      "title": "Frequencies above 470 MHz",
+      "rule": "Above 470 MHz, the trigger level the recommendation gives for frequencies above 400 MHz is used.",
+      "why": "The recommendation's table stops at 470 MHz, but many land mobile filings use higher frequencies. Carrying the last value forward gives a consistent test instead of no test at all.",
+      "effect": "Results above 470 MHz are labelled, so a reader knows the rule was extended beyond the table.",
       "basis": [
         "ECC/CEPT Recommendation T/R 25-08, Annex 1, A1.2.3",
         "Administration policy"
@@ -268,10 +268,10 @@
     {
       "id": "M-8",
       "section": "M",
-      "title": "Where field strength is assessed",
-      "rule": "Field strength is assessed at several points on the land borders and the outer limit of the territorial sea, and the highest value is kept. Listed stations sharing the channel are assessed at their own location.",
-      "why": "The strongest field isn't always at the nearest point, because a path over sea carries further than one over land. Listed stations matter too, since that is where harm would be felt.",
-      "effect": "Five spaced points are tested per station, and the highest value is kept.",
+      "title": "Where the signal is measured",
+      "rule": "The signal from a foreign station is worked out at several points along Finland's land border and the outer edge of its territorial sea, and the highest value is kept. Finnish stations that use the same channel are also checked at their own location.",
+      "why": "The strongest signal is not always at the closest point: a path over water carries much further than one over land. And the listed Finnish stations are where any harm would actually be felt.",
+      "effect": "Five spaced points are tested for each foreign station, and the highest value is the one reported.",
       "basis": [
         "ECC/CEPT Recommendation T/R 25-08, Annex 1, A1.2.3",
         "Administration policy"
@@ -283,10 +283,10 @@
     {
       "id": "M-9",
       "section": "M",
-      "title": "When no value can be calculated",
-      "rule": "A satellite that cannot see Finland is clear. A band with no applicable limit is recorded as such. Only missing data counts as cannot calculate.",
-      "why": "These are three different facts and shouldn't look alike. A satellite that can't see Finland can't interfere. No limit means the rule doesn't apply. Missing data means we don't know, and a person should look.",
-      "effect": "Each outcome has its own place on the ladder.",
+      "title": "When nothing can be calculated",
+      "rule": "Three different outcomes are kept apart. A satellite that can never be seen from Finland is clear. A frequency band that has no applicable limit is recorded as having none. Only a filing that is missing the information needed is recorded as 'cannot calculate'.",
+      "why": "These mean very different things and must not look the same. A satellite Finland can't see cannot interfere. No limit means the rule doesn't apply. Missing information means we simply don't know, and a person should look.",
+      "effect": "Each of the three outcomes has its own place on the concern ladder.",
       "basis": [
         "Administration policy"
       ],
@@ -297,10 +297,10 @@
     {
       "id": "D-1",
       "section": "D",
-      "title": "Conflicting bandwidths",
-      "rule": "When channel and transmission bandwidth disagree, the smaller is used.",
-      "why": "A mismatch is usually a data error. One fixed rule keeps results consistent and stops a typing error from creating false overlaps.",
-      "effect": "The mismatch is flagged, and the smaller value is used.",
+      "title": "When two widths disagree",
+      "rule": "When a station's channel width and transmission width disagree, the smaller of the two is used.",
+      "why": "A disagreement like this is usually a typing error in the data. Always using the same rule keeps results consistent, and stops one mistake from creating overlaps that aren't really there.",
+      "effect": "The disagreement is flagged, and the smaller value is used.",
       "basis": [
         "Administration policy"
       ],
@@ -312,10 +312,10 @@
     {
       "id": "D-2",
       "section": "D",
-      "title": "Missing licence class",
-      "rule": "A blank class is recorded as other (MUUT). Radio parameters decide the result, not the class.",
-      "why": "A blank class shouldn't remove a station from protection. What matters is what it transmits and receives.",
-      "effect": "The station stays in the analysis, recorded as other.",
+      "title": "When a licence class is missing",
+      "rule": "A Finnish station with no licence class is recorded as 'other' (MUUT in the register). What the station transmits and receives decides the result, not its class.",
+      "why": "A missing label shouldn't remove a station from protection. What matters is how it uses the radio spectrum.",
+      "effect": "The station stays in the check, recorded as 'other'.",
       "basis": [
         "Administration policy"
       ],
@@ -327,10 +327,10 @@
     {
       "id": "D-3",
       "section": "D",
-      "title": "Implausible values",
-      "rule": "Antenna gains above 60 dBi are not used. Stations outside the national outline are kept and flagged.",
-      "why": "One impossible value shouldn't drive a result. Dropping the value is safer than guessing a replacement.",
-      "effect": "The station stays in the analysis, and only the bad value is ignored.",
+      "title": "Values that can't be right",
+      "rule": "Antenna gains above 60 dBi are not used, because no real antenna is that powerful. Stations whose position falls outside Finland's outline are kept, and flagged.",
+      "why": "One impossible value shouldn't decide a result. Leaving it out is safer than guessing what it should have been.",
+      "effect": "The station stays in the check; only the impossible value is ignored.",
       "basis": [
         "Administration policy"
       ],
@@ -342,10 +342,10 @@
     {
       "id": "L-1",
       "section": "L",
-      "title": "Territorial-sea limit",
-      "rule": "The limit is approximated as a 12 nautical mile offset of the coastline, cut at the median line. It is not the official boundary.",
-      "why": "The official boundary follows baselines that aren't in our data. In places it is narrower than our offset, so results near the sea limit are approximate.",
-      "effect": "A case that depends on this limit should be checked against the official boundary.",
+      "title": "The edge of the territorial sea is approximate",
+      "rule": "The outer edge of Finland's territorial sea is approximated as a line 12 nautical miles out from the coast, stopping halfway to neighbouring countries. It is not the official boundary.",
+      "why": "The official boundary is measured from base lines that aren't in Tosi's data. In some places it is narrower than this approximation, so results near the sea edge are approximate.",
+      "effect": "Any case that depends on this edge should be checked against the official boundary before acting on it.",
       "basis": [
         "Administration policy"
       ],
@@ -356,10 +356,10 @@
     {
       "id": "L-2",
       "section": "L",
-      "title": "Plan appendices",
-      "rule": "Appendices 30, 30A and 30B are not assessed, because their plans are published outside the IFIC file.",
-      "why": "These plans have their own rules and are published separately, so a clean result here doesn't cover them.",
-      "effect": "Filings under these appendices need separate checking for now.",
+      "title": "Some satellite plans are not checked",
+      "rule": "Filings made under the special satellite broadcasting plans (Appendices 30, 30A and 30B of the Radio Regulations) are not checked, because those plans are published outside the file Tosi reads.",
+      "why": "These plans have their own rules and their own publications. A clean result from Tosi says nothing about them.",
+      "effect": "Filings under these appendices need to be checked separately, for now.",
       "basis": [
         "ITU Radio Regulations"
       ],
@@ -370,10 +370,10 @@
     {
       "id": "L-3",
       "section": "L",
-      "title": "Footnote country lists",
-      "rule": "Limits that apply only to countries listed in a footnote are not applied.",
-      "why": "Some limits apply only to countries named in a footnote, and those lists aren't fully structured yet.",
-      "effect": "If Finland is named in such a footnote, the limit won't be applied automatically.",
+      "title": "Limits that apply to named countries only",
+      "rule": "Some limits apply only to countries named in a footnote of the Radio Regulations. Those limits are not applied.",
+      "why": "The lists of countries in those footnotes aren't yet available in a structured form Tosi can read reliably.",
+      "effect": "If Finland is named in such a footnote, that limit will not be applied automatically; a person needs to check it.",
       "basis": [
         "ITU Radio Regulations"
       ],
@@ -384,10 +384,10 @@
     {
       "id": "L-4",
       "section": "L",
-      "title": "Regulation text",
-      "rule": "Rules are cited by reference. The clause text itself is not shown.",
-      "why": "A rule is cited by its number, but its wording isn't shown yet.",
-      "effect": "A reader who needs the exact words has to open the Radio Regulations.",
+      "title": "The wording of regulations isn't shown",
+      "rule": "Rules are referred to by their number, such as Article 21. The wording of the regulation itself is not shown in Tosi.",
+      "why": "The text of the regulations isn't included yet.",
+      "effect": "Anyone who needs the exact words has to open the Radio Regulations themselves.",
       "basis": [
         "ITU Radio Regulations"
       ],
@@ -400,55 +400,55 @@
   "ladder": [
     {
       "rung": "Exceeds at a listed station",
-      "means": "Over the limit at worst case, in a band a listed station uses",
+      "means": "Above the limit, assuming the worst, on a frequency a listed Finnish station uses",
       "level": "crit",
       "cites": "C-1"
     },
     {
       "rung": "Raised by a Finnish antenna",
-      "means": "A high-gain station points at the source",
+      "means": "A powerful Finnish antenna points straight at the satellite",
       "level": "crit",
       "cites": "C-3"
     },
     {
       "rung": "ITU names Finland",
-      "means": "ITU's own tables list Finland as affected",
+      "means": "The ITU's own records already list Finland as affected",
       "level": "crit",
       "cites": "C-1"
     },
     {
       "rung": "Near limit at a listed station",
-      "means": "Within the margin, in a listed station's band",
+      "means": "Just under the limit, on a frequency a listed Finnish station uses",
       "level": "warn",
       "cites": "C-2"
     },
     {
       "rung": "Near frequency",
-      "means": "Near the limit, close to a listed frequency",
+      "means": "Just under the limit, very close to a frequency Finland uses",
       "level": "warn",
       "cites": "C-1"
     },
     {
       "rung": "Exceeds, no listed station",
-      "means": "Over the limit, but no listed station in the band",
+      "means": "Above the limit, but no listed Finnish station uses that frequency",
       "level": "warn",
       "cites": "C-1"
     },
     {
       "rung": "Cannot calculate",
-      "means": "Filed data is missing",
+      "means": "Information needed for the calculation is missing from the filing",
       "level": "none",
       "cites": "M-9"
     },
     {
       "rung": "No applicable limit",
-      "means": "No limit applies to this band and class",
+      "means": "No limit applies to this frequency band and kind of station",
       "level": "none",
       "cites": "M-9"
     },
     {
       "rung": "Clear",
-      "means": "Below every trigger, or not visible",
+      "means": "Below every trigger, or never visible from Finland",
       "level": "none",
       "cites": "M-9"
     }
@@ -464,7 +464,7 @@
       "short": "File",
       "title": "A file arrives",
       "lines": [
-        "Fingerprinted before anything else"
+        "Its fingerprint is taken before anything else"
       ],
       "cites": [
         "P-2"
@@ -480,9 +480,9 @@
       ],
       "kind": "step",
       "short": "Tables",
-      "title": "Read the table catalogue",
+      "title": "What tables does it contain?",
       "lines": [
-        "Every table, its rows and columns"
+        "Every table, with how many rows and which columns it has"
       ],
       "cites": [],
       "reads": [],
@@ -496,9 +496,9 @@
       ],
       "kind": "ask",
       "short": "Relevant tables",
-      "title": "Pick the tables the rules read",
+      "title": "Pick out the tables the rules need",
       "lines": [
-        "Refuse the file if any is missing"
+        "If any of them is missing, the file is turned away"
       ],
       "cites": [
         "P-5"
@@ -513,9 +513,9 @@
       ],
       "kind": "step",
       "short": "Downlink",
-      "title": "Keep satellite downlinks",
+      "title": "Does it transmit from space?",
       "lines": [
-        "Only emitting beams matter"
+        "Only satellites that send signals down to the ground matter here"
       ],
       "cites": [],
       "reads": [
@@ -531,10 +531,10 @@
       ],
       "kind": "ask",
       "short": "Reach",
-      "title": "Can it reach Finland?",
+      "title": "Can it be seen from Finland?",
       "lines": [
-        "GSO above the horizon, or an",
-        "orbit reaching Finland's latitude"
+        "A fixed satellite must rise above Finland's horizon;",
+        "a moving one must pass far enough north"
       ],
       "cites": [
         "M-9"
@@ -554,10 +554,10 @@
       ],
       "kind": "ask",
       "short": "Limit",
-      "title": "Does a limit apply?",
+      "title": "Is there a limit for it?",
       "lines": [
-        "For this band, station class",
-        "and date of filing"
+        "Depends on the frequency band, the kind of station",
+        "and when it was filed"
       ],
       "cites": [
         "M-2",
@@ -578,10 +578,10 @@
       ],
       "kind": "ask",
       "short": "Data",
-      "title": "Is the data complete?",
+      "title": "Is all the information there?",
       "lines": [
-        "Power, gain and orbit",
-        "are all filed"
+        "Power, antenna strength and orbit",
+        "must all be filed"
       ],
       "cites": [
         "M-9"
@@ -600,10 +600,10 @@
       ],
       "kind": "step",
       "short": "Power",
-      "title": "Calculate worst-case PFD",
+      "title": "How much power could arrive?",
       "lines": [
-        "Peak gain toward Finland, power",
-        "in the reference bandwidth"
+        "Assuming the antenna points straight at Finland,",
+        "per square metre of ground"
       ],
       "cites": [
         "M-1",
@@ -623,9 +623,9 @@
       ],
       "kind": "step",
       "short": "Compare",
-      "title": "Compare with the limit",
+      "title": "Is it over the limit?",
       "lines": [
-        "At every arrival angle"
+        "Checked at every angle the signal could arrive from"
       ],
       "cites": [
         "M-2",
@@ -643,10 +643,10 @@
       ],
       "kind": "step",
       "short": "Stations",
-      "title": "Match protected stations",
+      "title": "Which Finnish stations could it affect?",
       "lines": [
-        "In a band at or near the limit,",
-        "and the station can see it"
+        "Stations on frequencies at or near the limit,",
+        "that could see the satellite"
       ],
       "cites": [
         "C-4",
@@ -667,9 +667,9 @@
       ],
       "kind": "step",
       "short": "Antennas",
-      "title": "Check antennas in line",
+      "title": "Is a powerful antenna pointing at it?",
       "lines": [
-        "High-gain stations only"
+        "Only strongly focused antennas are checked"
       ],
       "cites": [
         "C-3"
@@ -687,10 +687,10 @@
       ],
       "kind": "ask",
       "short": "Land mobile",
-      "title": "Foreign land mobile?",
+      "title": "Is it a foreign mobile radio station?",
       "lines": [
-        "Base or mobile station",
-        "from another country"
+        "A base station or mobile station",
+        "filed by another country"
       ],
       "cites": [
         "M-4"
@@ -708,10 +708,10 @@
       ],
       "kind": "ask",
       "short": "Range",
-      "title": "Within model range?",
+      "title": "Is it close enough to matter?",
       "lines": [
-        "Up to 1,000 km from Finland,",
-        "30 to 4,000 MHz"
+        "Within 1,000 km of Finland,",
+        "between 30 and 4,000 MHz"
       ],
       "cites": [
         "M-5"
@@ -730,9 +730,9 @@
       ],
       "kind": "ask",
       "short": "Data",
-      "title": "Is the data complete?",
+      "title": "Is all the information there?",
       "lines": [
-        "Power and antenna height"
+        "Power and antenna height must be filed"
       ],
       "cites": [],
       "reads": [
@@ -749,10 +749,10 @@
       ],
       "kind": "step",
       "short": "Field strength",
-      "title": "Field strength at the border",
+      "title": "How strong is it at the border?",
       "lines": [
-        "P.1546-6 at five border points,",
-        "keep the highest"
+        "Worked out at five points on the border,",
+        "keeping the strongest"
       ],
       "cites": [
         "M-5",
@@ -773,10 +773,10 @@
       ],
       "kind": "step",
       "short": "Threshold",
-      "title": "Compare with the threshold",
+      "title": "Is it over the trigger level?",
       "lines": [
-        "T/R 25-08 value for the band,",
-        "with bandwidth correction"
+        "The European level for its band,",
+        "adjusted for channel width"
       ],
       "cites": [
         "M-6",
@@ -795,9 +795,9 @@
       ],
       "kind": "step",
       "short": "Stations",
-      "title": "Check listed stations",
+      "title": "Which Finnish stations could it affect?",
       "lines": [
-        "Field strength at each station"
+        "The signal is worked out at each listed station"
       ],
       "cites": [
         "M-8",
@@ -814,10 +814,10 @@
       ],
       "kind": "ask",
       "short": "Coordinated",
-      "title": "Already coordinated?",
+      "title": "Has it already been agreed?",
       "lines": [
-        "ITU records coordination",
-        "with Finland as completed"
+        "The ITU records that Finland",
+        "has already coordinated it"
       ],
       "cites": [],
       "reads": [
@@ -834,10 +834,10 @@
       ],
       "kind": "step",
       "short": "Ladder",
-      "title": "Place on the concern ladder",
+      "title": "How serious is it?",
       "lines": [
-        "Exceedance, margin and listed stations decide the rung.",
-        "A notice where ITU names Finland is always kept"
+        "Each filing is placed on the concern ladder.",
+        "Anything the ITU already says affects Finland is always kept"
       ],
       "cites": [
         "C-1",
@@ -860,9 +860,9 @@
       ],
       "kind": "step",
       "short": "Outputs",
-      "title": "Write the outputs",
+      "title": "Write it up",
       "lines": [
-        "Notification, review page, draft letters, spreadsheets"
+        "The notification, the report, draft letters and spreadsheets"
       ],
       "cites": [],
       "reads": [],
@@ -877,7 +877,7 @@
       ],
       "kind": "end",
       "short": "Expert",
-      "title": "An expert decides",
+      "title": "A person decides",
       "lines": [
         "Nothing is sent automatically"
       ],
