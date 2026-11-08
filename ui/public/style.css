@@ -354,3 +354,4 @@ body.busy #busy { display: flex }
 .btn.primary svg { color: var(--on-accent) }
 .btn.primary:hover { border-color: var(--accent) }
 .node.later.stop { opacity: .9; color: var(--bad) } .node.later.stop svg { width: 12px; height: 12px }
+.kl.concern svg { color: var(--bad) }

@@ -79,7 +79,7 @@ export function guidebookPage(focus) {
           const list = gb.entries.filter((e) => e.section === s.id);
           return o.line(s.id, el("span", { class: "kl", html: icon(SECTION_ICON[s.id] ?? "book") }, s.title), el("span", { class: "meta" }, `${list.length} · ${s.about}`), () => list.map(entryLine));
         }),
-        o.line("ladder", el("span", { class: "kl", html: icon("list-check") }, "Concern ladder"), el("span", { class: "meta" }, "Every filing lands on the first rung that is true, from the top"), () =>
+        o.line("ladder", el("span", { class: "kl concern", html: icon("list-check") }, "Concern ladder"), el("span", { class: "meta" }, "Every filing lands on the first rung that is true, from the top"), () =>
           gb.ladder.map((r, i) => el("div", { class: "ol leaf rung" }, el("span", { class: "rn" }, String(i + 1)), el("i", { class: "lv " + r.level }), el("b", {}, r.rung), el("span", { class: "meta" }, r.means), entryLink(r.cites))))));
   }
 
