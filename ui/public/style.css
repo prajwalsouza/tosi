@@ -302,3 +302,22 @@ body.busy #busy { display: flex }
 .rd { display: inline-flex; align-items: center; gap: 6px; color: var(--ink3); font-size: var(--fs-sm) } .rd svg { width: 11px; height: 11px }
 .sl.warn { color: #d9b36a }
 .tl.new code { color: var(--ink2) }
+.locked { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-5); color: var(--ink3); font-size: var(--fs-sm) } .locked svg { width: 12px; height: 12px }
+.col.ro { cursor: default } .col.ro:hover { color: var(--ink3) } .col.ro.on:hover { color: var(--accent) }
+.ed-ro.al { font-weight: var(--fw-medium) }
+
+/* ---------- the assistant: a floating chat panel ---------- */
+.ask { position: fixed; right: 22px; bottom: 22px; z-index: 20; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: var(--panel); color: var(--ink2); box-shadow: var(--raised-shadow), 0 10px 26px -14px rgba(0,0,0,.5); transition: color var(--dur) }
+.ask:hover, .ask.on { color: var(--accent) } .ask svg { width: 17px; height: 17px }
+.chat { position: fixed; right: 22px; bottom: 78px; z-index: 20; width: min(380px, calc(100vw - 44px)); height: min(560px, calc(100vh - 120px)); display: flex; flex-direction: column;
+  background: var(--panel); border-radius: var(--radius-panel); border: var(--panel-border); box-shadow: var(--panel-shadow), 0 24px 60px -28px rgba(0,0,0,.6) }
+.chat-h { display: flex; align-items: baseline; gap: var(--sp-2); padding: var(--sp-4) var(--sp-4) var(--sp-2) } .chat-h b { font-family: var(--font-display) } .chat-h .meta { margin-left: auto }
+.chat-log { flex: 1; overflow: auto; padding: var(--sp-2) var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3) }
+.msgl { max-width: 88%; font-size: var(--fs-sm); line-height: 1.5; color: var(--ink2) }
+.msgl.you { align-self: flex-end; color: var(--ink); text-align: right }
+.props { margin-top: var(--sp-2) } .props-h { color: var(--ink3); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .04em; margin-bottom: var(--sp-2) }
+.prop { padding: var(--sp-3) 0; border-top: 1px solid var(--line); font-size: var(--fs-sm) } .prop b { font-weight: var(--fw-medium) } .prop p { margin: 4px 0; color: var(--ink2) }
+.prop-a { display: flex; gap: var(--sp-4); margin-top: 6px } .act:disabled { opacity: .4; cursor: default }
+.chat-in { display: flex; align-items: flex-end; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4) var(--sp-4) }
+.chat-in textarea { flex: 1; resize: none; font: inherit; font-size: var(--fs-sm); color: var(--ink); background: var(--surface); border: var(--control-border); border-radius: var(--r-md); padding: 8px 10px }
+.send { width: 34px; height: 34px; display: grid; place-items: center; color: var(--ink3) } .send:hover { color: var(--accent) }

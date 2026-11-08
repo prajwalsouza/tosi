@@ -92,11 +92,13 @@ export function guidebookPage(focus) {
 export function algorithmPage(focus) {
   const { el } = ctx;
   const page = el("div", { class: "gb" });
-  let gb = null, rules = null, seen = {}, history = [], note = "";
+  let gb = null, rules = null, seen = {}, history = [], note = "", editing = false;
   const o = outline(draw);
 
   async function load() {
-    [gb, rules, seen, history] = await Promise.all([getJSON("/api/guidebook", null), getJSON("/api/rulebook/intake", null), latestTables(), getJSON("/api/rulebook/intake/changes", [])]);
+    let about;
+    [gb, rules, seen, history, about] = await Promise.all([getJSON("/api/guidebook", null), getJSON("/api/rulebook/intake", null), latestTables(), getJSON("/api/rulebook/intake/changes", []), getJSON("/api/about", {})]);
+    editing = about.editing === true;
     draw();
     if (focus) { const s = gb.steps.find((x) => x.id === focus); if (s) { const kind = s.family[0]; open.add(`algo:${kind}`); o.reveal(`step:${kind}:${s.id}`, `a-${kind}-${s.id}`); } }
   }
@@ -109,6 +111,7 @@ export function algorithmPage(focus) {
   }
 
   function editable(text, placeholder, save, cls) {
+    if (!editing) return text ? el("span", { class: "ed-ro " + (cls ?? "") }, text) : null;
     const span = el("span", { class: "ed " + (cls ?? "") + (text ? "" : " empty"), tabindex: "0", title: "Click to edit" }, text || placeholder);
     const start = (e) => {
       e.stopPropagation();
@@ -132,6 +135,7 @@ export function algorithmPage(focus) {
     const t = rules.kinds[kind].tables[name], marker = rules.kinds[kind].markers.includes(name), file = seen[kind], f = file?.tables.get(name);
     const need = neededBy(kind, name);
     const state = marker ? el("span", { class: "rd", title: `Marker table: this is how a ${rules.kinds[kind].label.toLowerCase()} is recognised`, html: icon("lock") }, "Always read")
+      : !editing ? el("span", { class: "rd" }, t.read ? "Read" : "Not read")
       : el("button", { class: "act" + (t.read ? "" : " on"), onclick: (e) => { e.stopPropagation(); change(kind, name, "read", !t.read); } }, t.read ? "Stop reading" : "Start reading");
     const label = el("span", { class: "tl" + (t.read ? "" : " off") },
       editable(t.alias, "Add a name", (v) => change(kind, name, "alias", v), "al"), el("code", {}, name));
@@ -140,9 +144,10 @@ export function algorithmPage(focus) {
       f ? ` · ${fmt(f.rows)} rows` : "");
     return o.line(`tbl:${kind}:${name}`, label, el("span", { class: "row-end" }, extra, state), () => [
       el("div", { class: "gb-about" }, editable(t.about, "Add a one-line description", (v) => change(kind, name, "about", v))),
-      el("div", { class: "cols-h" }, f ? `Columns in ${file.file}. Orange ones are required; click to change.` : "Columns required"),
+      el("div", { class: "cols-h" }, f ? `Columns in ${file.file}. Orange ones are required${editing ? "; click to change" : ""}.` : "Columns required"),
       el("div", { class: "cols" }, (f ? f.columns : t.columns).map((c) => {
         const on = t.columns.includes(c);
+        if (!editing) return el("span", { class: "col ro" + (on ? " on" : "") }, c);
         return el("button", { class: "col" + (on ? " on" : ""), "aria-pressed": String(on), onclick: () => change(kind, name, "columns", on ? t.columns.filter((x) => x !== c) : f ? f.columns.filter((x) => x === c || t.columns.includes(x)) : [...t.columns, c]) }, c);
       })),
     ]);
@@ -156,7 +161,7 @@ export function algorithmPage(focus) {
     const addRow = (name, rows, cols, why) => el("div", { class: "ol leaf" },
       el("span", { class: "tl new" }, el("code", {}, name)),
       el("span", { class: "row-end" }, el("span", { class: "meta" }, why, rows != null ? ` · ${fmt(rows)} rows · ${cols} columns` : ""),
-        el("button", { class: "act on", onclick: () => change(kind, name, "add", true) }, "Start reading")));
+        editing ? el("button", { class: "act on", onclick: () => change(kind, name, "add", true) }, "Start reading") : null));
     return [
       o.line(`known:${kind}`, el("span", { class: "sl" }, "Read by intake"), el("span", { class: "meta" }, `${known.filter((n) => k.tables[n].read).length} of ${known.length}`), () => known.map((n) => tableLine(kind, n))),
       wanted.length ? o.line(`wanted:${kind}`, el("span", { class: "sl warn" }, "Needed by later steps, not read yet"), el("span", { class: "meta" }, `${wanted.length}`), () =>
@@ -200,11 +205,11 @@ export function algorithmPage(focus) {
         el("div", { class: "outline" }, [0, 1, 2, 3].map(() => el("div", { class: "ol-row" }, el("span", { class: "sk line", style: "width:280px" })))));
       return;
     }
-    const noteIn = el("input", { class: "note", placeholder: "Why are you changing what Tosi reads? (required, kept with the change)", value: note });
-    noteIn.addEventListener("input", (e) => { note = e.target.value; });
+    const noteIn = editing ? el("input", { class: "note", placeholder: "Why are you changing what Tosi reads? (required, kept with the change)", value: note }) : el("div", { class: "locked", html: icon("lock") }, "Read-only. What Tosi reads cannot be changed here for now; editing will return as drafts that become a version only when saved.");
+    if (editing) noteIn.addEventListener("input", (e) => { note = e.target.value; });
     page.replaceChildren(
       el("header", { class: "gb-h" }, el("h1", {}, el("span", { class: "t" }, "Algorithm")), el("span", { class: "ver" }, `Rulebook version ${rules.version}`)),
-      el("p", { class: "lede" }, "The steps a filing goes through, in order. Each step applies guidebook entries and needs certain tables. Open “Relevant tables” to change what intake reads; every change keeps its reason."),
+      el("p", { class: "lede" }, "The steps a filing goes through, in order. Each step applies guidebook entries and needs certain tables. Open “Relevant tables” to see what intake reads and which steps need each table."),
       noteIn,
       el("div", { class: "outline" },
         Object.keys(FAMILY).map((kind) => o.line(`algo:${kind}`, el("span", { class: "kl", html: icon(FAMILY[kind].icon) }, FAMILY[kind].label), el("span", { class: "meta" }, `${stepsFor(kind).length} steps`), () => stepsFor(kind).map((s) => stepLine(s, kind)))),

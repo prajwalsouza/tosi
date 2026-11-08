@@ -5,6 +5,7 @@ import { readFileSync, existsSync, statSync, mkdirSync, createWriteStream } from
 import { randomBytes } from "node:crypto";
 import { makeRuns, view } from "./runs.ts";
 import { makeRulebook } from "./rulebook.ts";
+import { makeProposals } from "./proposals.ts";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join, extname } from "node:path";
@@ -21,8 +22,12 @@ const samples: string[] = (local.samples ?? []).filter((p: string) => existsSync
 const runsDir = join(root, local.runs ?? "runs");
 const runs = makeRuns(root, engines, runsDir);
 const rulebook = makeRulebook(root);
+const proposals = makeProposals(root, rulebook.apply);
 runs.clear();
 const MAX_UPLOAD = 2_000_000_000;
+// The algorithm is read-only unless this machine's settings say otherwise. Editing comes back with drafts and Save.
+const EDITING = local.editing === true;
+const LOCKED = JSON.stringify({ ok: false, error: "The algorithm is read-only. Editing will return with drafts and a Save button." });
 
 type Answer = { id: string; name: string; ok: boolean; ms: number; info?: unknown; error?: string; hint?: string };
 
@@ -81,10 +86,24 @@ createServer(async (req, res) => {
   }
   if (url.pathname === "/api/about") {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-    return send(res, 200, JSON.stringify({ tosi: pkg.version, spec: readFileSync(join(root, "spec", "VERSION"), "utf8").trim(), server: `Node ${process.versions.node}`, engines: engines.map((e) => ({ id: e.id, name: e.name })) }));
+    return send(res, 200, JSON.stringify({ tosi: pkg.version, editing: EDITING, spec: readFileSync(join(root, "spec", "VERSION"), "utf8").trim(), server: `Node ${process.versions.node}`, engines: engines.map((e) => ({ id: e.id, name: e.name })) }));
+  }
+  // Proposals: how anything but a person changes the rulebook. A person accepts or declines.
+  const readBody = (cb: (v: any) => void) => { let b = ""; req.on("data", (d) => { b += d; if (b.length > 50000) req.destroy(); }); req.on("end", () => { try { cb(JSON.parse(b || "{}")); } catch { send(res, 400, JSON.stringify({ error: "Not valid JSON" })); } }); };
+  if (url.pathname === "/api/proposals" && req.method === "GET") return send(res, 200, JSON.stringify(proposals.list()));
+  if (url.pathname === "/api/proposals" && req.method === "POST") {
+    return readBody((b) => { const p = proposals.add(b.change, b.why, b.by); send(res, "error" in p ? 400 : 200, JSON.stringify(p)); });
+  }
+  const pd = url.pathname.match(/^\/api\/proposals\/([0-9a-f]+)\/(accept|decline)$/);
+  if (pd && req.method === "POST" && pd[2] === "accept" && !EDITING) { req.resume(); return send(res, 423, LOCKED); }
+  if (pd && req.method === "POST") { req.resume(); const p = proposals.decide(pd[1], pd[2] === "accept"); return send(res, "error" in p ? 400 : 200, JSON.stringify(p)); }
+  // The assistant: a chat model that can only propose. Not connected yet; the interface says so.
+  if (url.pathname === "/api/assistant" && req.method === "POST") {
+    return readBody(() => send(res, 200, JSON.stringify({ connected: false, reply: "No model is connected yet. You can already drive Tosi from an assistant through its MCP server (see mcp/README.md); anything it wants to change appears below as a proposal for you to accept or decline.", proposals: [] })));
   }
   if (url.pathname === "/api/guidebook") return send(res, 200, readFileSync(join(root, "spec", "guidebook", "guidebook.json"), "utf8"));
   if (url.pathname === "/api/rulebook/intake/changes") return send(res, 200, JSON.stringify(rulebook.changes()));
+  if (url.pathname === "/api/rulebook/intake" && req.method === "POST" && !EDITING) { req.resume(); return send(res, 423, LOCKED); }
   if (url.pathname === "/api/rulebook/intake" && req.method === "POST") {
     let body = "";
     req.on("data", (d) => { body += d; if (body.length > 20000) req.destroy(); });
@@ -94,6 +113,8 @@ createServer(async (req, res) => {
     });
     return;
   }
+  const ag = url.pathname.match(/^\/api\/runs\/([0-9a-f]+)\/agree$/);
+  if (ag && req.method === "POST") { const r = runs.get(ag[1]); req.resume(); return r ? send(res, 200, JSON.stringify(view(runs.agree(r)))) : send(res, 404, JSON.stringify({ error: "No such run" })); }
   const again = url.pathname.match(/^\/api\/runs\/([0-9a-f]+)\/again$/);
   if (again && req.method === "POST") {
     const r = runs.get(again[1]);
@@ -112,6 +133,12 @@ createServer(async (req, res) => {
   if (url.pathname === "/api/runs" && req.method === "POST") {
     const engine = url.searchParams.get("engine") ?? engines[0].id;
     if (!engines.some((e) => e.id === engine)) return send(res, 400, JSON.stringify({ error: "No such engine" }));
+    const local = url.searchParams.get("path");
+    if (local) {
+      req.resume();
+      if (!/\.(zip|mdb)$/i.test(local) || !existsSync(local) || !statSync(local).isFile()) return send(res, 400, JSON.stringify({ error: "Give the full path of an existing .zip or .mdb file." }));
+      return send(res, 200, JSON.stringify(view(runs.start(local, local.split("/").pop() ?? local, "dropped", engine))));
+    }
     const sample = url.searchParams.get("sample");
     if (sample) {
       const p = samples.find((x) => x.split("/").pop() === sample);

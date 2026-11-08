@@ -43,3 +43,9 @@ The shape every part of Tosi follows. These rules grow as each part is built.
 - **No bare switches.** Starting or stopping reading a table is a deliberate action that requires a reason, kept with the change. Marker tables are always read.
 - **Every change goes through the server's rulebook endpoint,** which writes the file, bumps the version and appends to `changes.jsonl`.
 - **Outliners have no vertical guide lines.** Nesting shows by indentation and chevrons.
+
+## The MCP server
+
+- **A client of the local server, nothing more.** It holds no state and computes nothing; every tool calls the same API the interface uses.
+- **Read tools are marked read-only.** Tools that start work return a run id; `tosi_wait_run` follows it.
+- **No tool changes a rule or a result.** Changes are proposals with a reason, decided by a person.

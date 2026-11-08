@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
 
 export type Engine = { id: string; name: string; cwd: string; cmd: string; args: string[] };
-type EngineRun = { state: "waiting" | "running" | "done" | "failed"; started?: number; ms?: number; sha256?: string; error?: string };
+type EngineRun = { state: "idle" | "waiting" | "running" | "done" | "failed"; started?: number; ms?: number; sha256?: string; error?: string };
 export type Run = {
   id: string;
   file: { name: string; bytes: number; source: "sample" | "dropped"; path: string };
@@ -54,19 +54,28 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string) {
     });
   }
 
+  // A run uses one engine: the one chosen. The others stay idle unless an agreement check is asked for.
   async function process(run: Run) {
     const first = engines.find((e) => e.id === run.engine) ?? engines[0];
+    run.engines[first.id] = { state: "waiting" };
     const r = await queue(() => { run.engines[first.id] = { state: "running", started: Date.now() }; return exec(first, run, (ev) => run.events.push(ev)); });
     run.engines[first.id] = r;
     if (r.state !== "done") { run.state = "failed"; return; }
     run.result = JSON.parse(readFileSync(join(runsDir, run.id, first.id, "intake.json"), "utf8"));
-    // The others, side by side, for agreement. Their unpacked databases are removed afterwards to save space.
-    const rest = engines.filter((e) => e !== first);
-    for (const e of rest) {
+    run.state = "done";
+  }
+
+  // On request: run the same file through the other engines, one at a time, and keep their result fingerprints.
+  async function agree(run: Run) {
+    for (const e of engines) {
+      if (e.id === run.engine || run.engines[e.id]?.state === "running" || run.engines[e.id]?.state === "done") continue;
+      run.engines[e.id] = { state: "waiting" };
+    }
+    for (const e of engines) {
+      if (run.engines[e.id]?.state !== "waiting" || e.id === run.engine) continue;
       run.engines[e.id] = await queue(() => { run.engines[e.id] = { state: "running", started: Date.now() }; return exec(e, run); });
       rmSync(join(runsDir, run.id, e.id, "database.mdb"), { force: true });
     }
-    run.state = "done";
   }
 
   return {
@@ -79,13 +88,14 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string) {
       const run: Run = {
         id, file: { name: name || basename(path), bytes: statSync(path).size, source, path },
         engine, stage: "intake", state: "running", events: [], result: null,
-        engines: Object.fromEntries(engines.map((e) => [e.id, { state: "waiting" }])), started: Date.now(),
+        engines: Object.fromEntries(engines.map((e) => [e.id, { state: "idle" }])), started: Date.now(),
       };
       runs.set(id, run);
       process(run).catch((x) => { run.state = "failed"; run.events.push({ event: "error", error: String(x) }); });
       return run;
     },
     // Process the same file again, for example after the rulebook changed. Always a fresh run.
+    agree(r: Run) { if (r.state === "done") agree(r).catch(() => {}); return r; },
     again(r: Run, engine: string): Run { return this.start(r.file.path, r.file.name, r.file.source, engine, true); },
     clear() { runs.clear(); rmSync(runsDir, { recursive: true, force: true }); mkdirSync(runsDir, { recursive: true }); },
   };

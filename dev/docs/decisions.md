@@ -73,3 +73,14 @@ New decisions are added at the end. A changed decision gets a new entry that nam
 **Decision:** the guidebook is an editor over `spec/rulebook/intake.json`. Each table has a `read` switch, the columns the rules need, and a plain name and description. Every change bumps the rulebook's version and is appended, with its reason, to `spec/rulebook/changes.jsonl`. Every intake result records the rulebook version and the SHA-256 of the rulebook file it read.
 **Why:** what Tosi reads must be changeable by experts without code, and a result must stay traceable to the exact rules that produced it.
 **Consequence:** marker tables (how a kind is recognised) cannot be switched off in the guidebook. A file processed under an older rulebook is marked in the Flow, with a way to run it again.
+
+## D-013 One engine per run; agreement on request
+
+**Decision:** a file is processed by the engine chosen in Settings, and only that one. The Flow shows that engine's time, live. Running the same file through the other engines, to check they agree, happens only when asked (`tosi_check_agreement`, or `compare/agree.py`).
+**Why:** the Flow should show one engine's work as it happens, with honest timing; running three engines for every file triples the wait.
+
+## D-014 The MCP server reads and proposes; the algorithm is read-only for now
+
+**Decision:** the MCP server (`mcp/`, on the official SDK) drives Tosi through the local server's API. It can read, run and monitor the pipeline and read the guidebook, algorithm and rulebook. Changes to what Tosi reads are proposals, accepted or declined by a person. For now the algorithm is read-only: the server refuses rulebook changes and refuses to accept proposals, unless `"editing": true` is set in `dev/local.json`.
+**Why:** rules change only by review (guidebook P-5). Editing will return as drafts that become a version only when saved.
+**Consequence:** the chat panel (`ui/public/assistant.js`) is written but not loaded until a model is connected.

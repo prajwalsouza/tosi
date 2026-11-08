@@ -50,6 +50,7 @@ function poll(id, onTick) {
     const d = await refresh(id);
     onTick(d);
     if (d.state === "running" || Object.values(d.engines || {}).some((e) => e.state === "running" || e.state === "waiting")) polling = setTimeout(tick, 250);
+    else polling = setTimeout(tick, 2000);   // stay current if an agreement check is started from elsewhere
   };
   tick();
 }
@@ -118,6 +119,12 @@ const lerp = (a, b, t) => a + (b - a) * t;
 export function flowPage(id) {
   const { el } = ctx;
   const list = [...runs.values()];
+  // A run the page has not seen yet (started elsewhere, or a link): fetch it, then draw.
+  if (id && !runs.has(id)) {
+    const wait = el("div", { class: "empty-state" }, el("span", { class: "sk line", style: "width:220px" }));
+    refresh(id).then(() => wait.replaceWith(flowPage(id))).catch(() => wait.replaceWith(el("div", { class: "empty-state" }, "That file is not loaded.")));
+    return wait;
+  }
   const run = runs.get(id) ?? list[list.length - 1];
   if (!run) return el("div", { class: "empty-state" }, "Nothing has been loaded yet. Drop an ITU file anywhere.");
 
@@ -259,23 +266,26 @@ export function flowPage(id) {
     scrollTo({ top: scrollY + r.top + span * [0.08, 0.48, 0.94][i], behavior: "smooth" });
   }
 
-  // The corner: which engine ran it, how long it has been running, then every engine's time and whether they agree.
+  // A result made under an older rulebook: say so, and offer to run it again under the current one.
   function drawStale() {
     const v = current.result?.rulebook?.version;
     if (v == null || v === RULE_VERSION || current.state === "running") return null;
-    return el("button", { class: "stale", title: `This file was checked with rulebook version ${v}. The guidebook is now at version ${RULE_VERSION}.`,
+    return el("button", { class: "stale", title: `This file was checked with rulebook version ${v}. The rulebook is now at version ${RULE_VERSION}.`,
       onclick: async () => { const r = await fetch(`/api/runs/${current.id}/again?engine=${ctx.using()}`, { method: "POST" }).then((x) => x.json()); runs.set(r.id, r); ctx.go(`/flow/${r.id}`); }, html: icon("rotate-left") }, "Rulebook changed · run again");
   }
+
+  // The corner: the engine this file runs in and how long it has taken, live. Other engines appear only after an agreement check.
   function drawAgree() {
     const names = { ts: "TypeScript", rust: "Rust", python: "Python" };
-    const e = Object.entries(current.engines || {});
     const secs = (ms) => `${(ms / 1000).toFixed(ms < 10000 ? 1 : 0)} s`;
-    const done = e.length && e.every(([, x]) => x.state === "done"), hashes = new Set(e.map(([, x]) => x.sha256));
+    const e = Object.entries(current.engines || {}).filter(([k, x]) => k === current.engine || x.state !== "idle");
+    const others = e.filter(([k]) => k !== current.engine);
+    const checked = others.length && e.every(([, x]) => x.state === "done"), hashes = new Set(e.map(([, x]) => x.sha256));
     const times = e.map(([k, x]) => el("span", { class: "et" + (k === current.engine ? " me" : "") },
       names[k] ?? k, " ", x.state === "done" ? el("b", {}, secs(x.ms)) : x.state === "failed" ? el("b", { class: "bad" }, "failed")
-        : x.state === "running" && x.started ? el("b", {}, secs(Date.now() - x.started)) : el("i", { class: "sk dot" })));
+        : x.state === "running" && x.started ? el("b", {}, secs(Date.now() - x.started)) : el("i", { class: "sk dot", title: "Waiting for its turn" })));
     agree.replaceChildren(...[drawStale(), el("span", { class: "times" }, times),
-      done ? el("span", { class: "verdict" + (hashes.size === 1 ? "" : " bad"), html: icon(hashes.size === 1 ? "circle-check" : "circle-xmark"), title: hashes.size === 1 ? "All three engines wrote byte-identical results" : "The engines' results differ" }) : null].filter(Boolean));
+      checked ? el("span", { class: "verdict" + (hashes.size === 1 ? "" : " bad"), html: icon(hashes.size === 1 ? "circle-check" : "circle-xmark"), title: hashes.size === 1 ? "All engines wrote byte-identical results" : "The engines' results differ" }) : null].filter(Boolean));
   }
   let clock = setInterval(() => { if (current.state === "running") drawAgree(); }, 100);
 
@@ -284,7 +294,7 @@ export function flowPage(id) {
   const onResize = () => { layout(); frame(); };
   addEventListener("scroll", onScroll, { passive: true });
   addEventListener("resize", onResize);
-  page.cleanup = () => { removeEventListener("scroll", onScroll); removeEventListener("resize", onResize); clearTimeout(polling); clearInterval(clock); };
+  page.cleanup = () => { removeEventListener("scroll", onScroll); removeEventListener("resize", onResize); for (const t of ["wheel", "touchmove", "keydown"]) removeEventListener(t, stopFollow); clearTimeout(polling); clearInterval(clock); };
 
   /* hover a table: its names and size at once; click it: all its columns, pinned */
   const tip = el("div", { class: "ttip", hidden: true });
@@ -318,11 +328,27 @@ export function flowPage(id) {
     pin.hidden = false;
   });
 
+  let follow = run.state === "running", reached = 0, showAt = 0;
+  const stopFollow = (e) => { if (e.type !== "keydown" || ["ArrowDown", "ArrowUp", "PageDown", "PageUp", " ", "Home", "End"].includes(e.key)) follow = false; };
+  for (const t of ["wheel", "touchmove", "keydown"]) addEventListener(t, stopFollow, { passive: true });
+  // Which phase the engine has reached: the file while it is fingerprinted and unpacked, the tables once the catalogue
+  // is being read, the relevant tables once the check is done.
+  function phaseReached(d) {
+    const ev = d.events || [];
+    if (d.result || ev.some((x) => x.step === "check" && x.state === "done")) return 2;
+    if (ev.some((x) => x.step === "database" && (x.state === "progress" || x.state === "done"))) return 1;
+    return 0;
+  }
   function update(d) {
     current = d;
     drawCard(); drawAgree();
     if (!built) build();
     say(); light(); frame();
+    if (follow) {
+      // Step through each phase in turn, each kept on screen long enough to be seen, however fast the engine is.
+      const p = phaseReached(d);
+      while (reached < p) { reached++; const target = reached; showAt = Math.max(showAt, Date.now()) + (target === 1 ? 300 : 2200); setTimeout(() => { if (follow) jumpTo(target); }, showAt - Date.now()); }
+    }
   }
   requestAnimationFrame(() => { layout(); drawCard(); drawAgree(); light(); frame(); });
   loadRules().then(() => poll(run.id, update));

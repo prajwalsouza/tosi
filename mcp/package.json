@@ -1,0 +1,17 @@
+{
+  "name": "@tosi/mcp",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Tosi's MCP server: read, run and monitor the pipeline, read the guidebook and algorithm, and propose changes to what Tosi reads.",
+  "bin": {
+    "tosi-mcp": "server.ts"
+  },
+  "engines": {
+    "node": ">=23.6"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  }
+}
