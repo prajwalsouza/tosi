@@ -355,3 +355,11 @@ body.busy #busy { display: flex }
 .btn.primary:hover { border-color: var(--accent) }
 .node.later.stop { opacity: .9; color: var(--bad) } .node.later.stop svg { width: 12px; height: 12px }
 .kl.concern svg { color: var(--bad) }
+
+/* Downlink: one dot per filing */
+.ndot { position: absolute; left: 0; top: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--ink3); opacity: 0; cursor: pointer; transition: background .2s }
+.ndot.kept { background: var(--accent) }
+.ndot:hover { background: var(--ink) }
+.nleft { position: absolute; display: flex; align-items: baseline; gap: var(--sp-3); opacity: 0; font-size: var(--fs-sm); color: var(--ink2); white-space: nowrap }
+.nleft b { font-weight: var(--fw-medium); color: var(--ink2) } .nleft.kept b { color: var(--ink) }
+.nleft span { color: var(--ink3); font-variant-numeric: tabular-nums }

@@ -17,7 +17,7 @@ def info() -> dict:
         "version": __version__,
         "runtime": f"Python {platform.python_version()}",
         "spec": (ROOT / "spec" / "VERSION").read_text().strip(),
-        "stages": ["intake"],
+        "stages": ["intake", "downlink"],
     }
 
 
@@ -35,7 +35,12 @@ def intake():
     return run(f, sys.argv[sys.argv.index("--name") + 1] if "--name" in sys.argv else Path(f).name, arg("--out"))
 
 
-COMMANDS = {"info": info, "intake": intake}
+def downlink():
+    from .downlink import run
+    return run(arg("--in"))
+
+
+COMMANDS = {"info": info, "intake": intake, "downlink": downlink}
 
 
 def main() -> None:

@@ -10,3 +10,4 @@ out/
 runs/
 state/
 target/
+.server.log

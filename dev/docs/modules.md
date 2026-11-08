@@ -12,6 +12,8 @@ The shape every part of Tosi follows. These rules grow as each part is built.
 - **No engine imports another.** Engines share only the spec and the files stages write.
 - **Few dependencies.** Each dependency is named in the decisions log with its reason.
 
+- A stage reads the previous stage's files in the run folder (`--in <folder>`) and writes its own JSON there. Downlink reads `database.mdb` and writes `downlink.json`.
+
 ## The server
 
 - Starts engines as separate processes, using `engines/engines.json` only.

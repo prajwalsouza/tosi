@@ -1,0 +1,7 @@
+{
+  "about": "Conformance cases for downlink. Sample inputs are real files read from the local samples folder (never committed).",
+  "cases": [
+    { "id": "space-3074", "input": { "sample": "ific3074.zip" },
+      "expect": { "counts": { "notices": 196, "kept": 176, "left": { "not_satellite": 12, "nothing_filed": 2, "receive_only": 6 }, "groups": 34365 } } }
+  ]
+}

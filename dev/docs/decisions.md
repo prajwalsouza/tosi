@@ -84,3 +84,9 @@ New decisions are added at the end. A changed decision gets a new entry that nam
 **Decision:** the MCP server (`mcp/`, on the official SDK) drives Tosi through the local server's API. It can read, run and monitor the pipeline and read the guidebook, algorithm and rulebook. Changes to what Tosi reads are proposals, accepted or declined by a person. For now the algorithm is read-only: the server refuses rulebook changes and refuses to accept proposals, unless `"editing": true` is set in `dev/local.json`.
 **Why:** rules change only by review (guidebook P-5). Editing will return as drafts that become a version only when saved.
 **Consequence:** the chat panel (`ui/public/assistant.js`) is written but not loaded until a model is connected.
+
+## D-015 Downlink is the second stage, and stages run back to back in one engine
+
+**Decision:** after intake, an accepted space filing goes through Downlink (`spec/rulebook/downlink.json`): a filing goes on if it is a satellite with at least one transmitting group, and only those groups go on with it. The engine that ran intake runs Downlink straight after, reading the unpacked database intake left on disk; the run's fingerprint covers both outputs.
+**Why:** every later space step (reach, limits, power) works on downlink groups only, so this is the smallest stage that narrows the work for all of them. Reading from disk, not memory, keeps large files within an ordinary computer's RAM.
+**Consequence:** the Flow gains a fourth scene for space filings: one dot per filing, the ones that go on kept together, the rest grouped by reason. Leaving is not a concern, so the leavers are grey.

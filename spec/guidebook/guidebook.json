@@ -522,7 +522,7 @@
         "grp"
       ],
       "exit": null,
-      "built": false
+      "built": true
     },
     {
       "id": "s2",

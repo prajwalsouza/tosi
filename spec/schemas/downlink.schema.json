@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tosi/downlink/1",
+  "title": "Downlink result",
+  "description": "Which space filings transmit towards the ground. See spec/stages/downlink/README.md.",
+  "type": "object",
+  "required": ["schema", "rulebook", "file", "counts", "notices", "groups"],
+  "additionalProperties": false,
+  "$defs": { "count": { "type": "integer", "minimum": 0 }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } },
+  "properties": {
+    "schema": { "const": "downlink/1" },
+    "rulebook": { "type": "object", "required": ["version", "sha256"], "additionalProperties": false,
+      "properties": { "version": { "$ref": "#/$defs/count" }, "sha256": { "$ref": "#/$defs/sha256" } } },
+    "file": { "description": "SHA-256 of the IFIC file this came from, as intake recorded it", "$ref": "#/$defs/sha256" },
+    "counts": { "type": "object", "required": ["notices", "kept", "left", "groups", "groups_kept"], "additionalProperties": false,
+      "properties": {
+        "notices": { "$ref": "#/$defs/count" }, "kept": { "$ref": "#/$defs/count" },
+        "left": { "type": "object", "description": "Notices that left, by reason, in rulebook order", "additionalProperties": { "$ref": "#/$defs/count" } },
+        "groups": { "$ref": "#/$defs/count" }, "groups_kept": { "$ref": "#/$defs/count" } } },
+    "notices": { "type": "array", "description": "Every notice, in ascending ntc_id order",
+      "items": { "type": "object", "required": ["ntc_id", "type", "kept", "reason", "transmit", "receive"], "additionalProperties": false,
+        "properties": {
+          "ntc_id": { "type": "integer" }, "type": { "type": "string" }, "kept": { "type": "boolean" },
+          "reason": { "type": ["string", "null"], "description": "Key into the rulebook's reasons; null when kept" },
+          "transmit": { "$ref": "#/$defs/count" }, "receive": { "$ref": "#/$defs/count" } } } },
+    "groups": { "type": "array", "description": "grp_id of every transmitting group of a kept notice, ascending", "items": { "type": "integer" } }
+  }
+}

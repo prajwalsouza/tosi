@@ -1,0 +1,20 @@
+{
+  "about": "Downlink: which space filings send signals down towards the ground. A filing goes on if it is a satellite with at least one transmitting group; only its transmitting groups go on with it.",
+  "version": 1,
+  "kinds": ["space"],
+  "satellite_types": {
+    "G": "Geostationary satellite: stays fixed in the sky",
+    "N": "Non-geostationary satellite: moves across the sky"
+  },
+  "transmit": "E",
+  "receive": "R",
+  "reasons": {
+    "not_satellite": "It is a station on the ground, not a satellite. Ground stations are checked separately, not in this screen.",
+    "nothing_filed": "It is a satellite, but it files nothing that transmits or receives.",
+    "receive_only": "It is a satellite, but it only receives. Nothing it files is sent down to the ground."
+  },
+  "notes": [
+    "Reasons are tried in the order above; a filing gets the first that is true.",
+    "notice.ntc_type gives the kind of station; grp.emi_rcp says whether a group transmits (E) or receives (R)."
+  ]
+}

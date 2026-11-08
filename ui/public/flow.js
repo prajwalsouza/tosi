@@ -73,9 +73,10 @@ const st = (m, k) => m.steps[k]?.state ?? "waiting";
 
 // What the rulebook says the later steps read, per kind of filing (spec/rulebook/intake.json, served by the server).
 // Read fresh each time a Flow opens, because the guidebook can change it.
-let KIND_MARKERS = {}, REQUIRED = {}, KIND_LABEL = {}, TABLES = {}, RULE_VERSION = 0;
+let KIND_MARKERS = {}, REQUIRED = {}, KIND_LABEL = {}, TABLES = {}, RULE_VERSION = 0, DOWNLINK = null;
 async function loadRules() {
-  const r = await fetch("/api/rulebook/intake").then((x) => x.json()).catch(() => null);
+  const [r, dl] = await Promise.all([fetch("/api/rulebook/intake").then((x) => x.json()).catch(() => null), fetch("/api/rulebook/downlink").then((x) => x.json()).catch(() => null)]);
+  DOWNLINK = dl;
   if (!r) return;
   RULE_VERSION = r.version ?? 0; TABLES = {};
   for (const [k, v] of Object.entries(r.kinds)) {
@@ -107,9 +108,10 @@ const BUILT = [
   { id: "file", label: "File", icon: "file-zipper" },
   { id: "tables", label: "Tables", icon: "database" },
   { id: "relevant", label: "Relevant tables", icon: "list-check" },
+  { id: "downlink", label: "Downlink", icon: "satellite", space: true },
 ];
 const NEXT = {
-  space: ["Downlink", "Reach", "Limit", "Data", "Power", "Compare", "Stations", "Ladder", "Report"],
+  space: ["Reach", "Limit", "Data", "Power", "Compare", "Stations", "Ladder", "Report"],
   terrestrial: ["Land mobile", "Range", "Data", "Field strength", "Threshold", "Stations", "Coordinated", "Ladder", "Report"],
 };
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
@@ -183,6 +185,51 @@ export function flowPage(id) {
     layout();
   }
 
+  // Downlink: one dot per filing, out of the notice table. Those that send signals down stay; the rest step aside,
+  // grouped by why. Leaving is not a concern, so the leavers are grey, not red.
+  const SHORT = { not_satellite: "On the ground", nothing_filed: "Files nothing", receive_only: "Only receives" };
+  let dl = null;
+  const hasDownlink = () => current.result?.kind === "space" && current.result?.check?.status === "accepted";
+  function buildDownlink() {
+    const d = current.downlink;
+    if (!d?.notices || dl) return;
+    const order = Object.keys(DOWNLINK?.reasons ?? SHORT);
+    const dots = d.notices.map((n) => {
+      const e = el("i", { class: "ndot" + (n.kept ? " kept" : ""), "data-ntc": String(n.ntc_id) });
+      stage.append(e);
+      return { n, e };
+    });
+    const labels = order.filter((k) => d.counts.left[k]).map((k) => {
+      const e = el("div", { class: "nleft" }, el("b", {}, SHORT[k] ?? k), el("span", {}, fmt(d.counts.left[k])));
+      stage.append(e);
+      return { k, e };
+    });
+    const keptLabel = el("div", { class: "nleft kept" }, el("b", {}, "Sends signals down"), el("span", {}, fmt(d.counts.kept)));
+    stage.append(keptLabel);
+    dl = { dots, labels, keptLabel, order };
+    layoutDownlink();
+  }
+  function layoutDownlink() {
+    if (!dl || !geo) return;
+    const { W, H } = geo, top = Math.max(H * 0.3, 200), bottom = H * 0.9;
+    const kept = dl.dots.filter((x) => x.n.kept), left = dl.dots.filter((x) => !x.n.kept);
+    // the kept: a block on the left two thirds
+    const bw = W * 0.56, bx = W * 0.06, cols = Math.max(8, Math.ceil(Math.sqrt(kept.length * bw / (bottom - top)))), step = Math.min(bw / cols, 22);
+    kept.forEach((x, i) => { x.to = { x: bx + (i % cols) * step, y: top + 34 + Math.floor(i / cols) * step }; });
+    dl.keptLabel.style.left = `${bx}px`; dl.keptLabel.style.top = `${top}px`;
+    // the leavers: one small block per reason, stacked on the right
+    const rx = W * 0.7, rcols = 8;
+    let y = top;
+    for (const L of dl.labels) {
+      L.e.style.left = `${rx}px`; L.e.style.top = `${y}px`;
+      const mine = left.filter((x) => x.n.reason === L.k);
+      mine.forEach((x, i) => { x.to = { x: rx + (i % rcols) * step, y: y + 34 + Math.floor(i / rcols) * step }; });
+      y += 34 + Math.ceil(mine.length / rcols) * step + 22;
+    }
+    const src = built?.tiles.find((t) => t.t.name === "notice")?.l;
+    dl.from = src ? { x: src.x + src.w / 2, y: src.y + src.h / 2 } : { x: W / 2, y: H / 2 };
+  }
+
   // Two arrangements: every table on a grid, and the relevant ones lifted into a list. Scrolling moves between them.
   let geo = null;
   function layout() {
@@ -202,6 +249,7 @@ export function flowPage(id) {
       const inf = built.info[i];
       inf.e.style.left = `${rx + rw + 18}px`; inf.e.style.top = `${top + i * rh}px`; inf.e.style.height = `${rh - 8}px`;
     });
+    layoutDownlink();
   }
 
   function progress() {
@@ -209,8 +257,12 @@ export function flowPage(id) {
     return clamp(-r.top / Math.max(1, r.height - innerHeight));
   }
 
+  // With Downlink there is a fourth scene: the first three take the first three quarters of the scroll.
+  const SPAN = () => hasDownlink() ? 0.75 : 1;
   function frame() {
-    const p = progress(), W = geo?.W ?? stage.clientWidth, H = geo?.H ?? stage.clientHeight;
+    scrolly.style.height = hasDownlink() ? "440vh" : "";
+    const P = progress(), p = P / SPAN(), W = geo?.W ?? stage.clientWidth, H = geo?.H ?? stage.clientHeight;
+    const tD = hasDownlink() ? ease(clamp((P - 0.78) / 0.16)) : 0;
     const tB = ease(clamp((p - 0.2) / 0.22)), tC = ease(clamp((p - 0.58) / 0.22));
     // the file: centre stage, then up into the corner as its tables come out
     card.style.transform = `translate(${lerp(W / 2 - 110, W * 0.04, tB)}px, ${lerp(H / 2 - 110, H * 0.02, tB)}px) scale(${lerp(1, 0.62, tB)})`;
@@ -224,13 +276,23 @@ export function flowPage(id) {
         if (x.rel && x.l) b = { x: lerp(b.x, x.l.x, tC), y: lerp(b.y, x.l.y, tC), w: lerp(b.w, x.l.w, tC), h: lerp(b.h, x.l.h, tC) };
         const s = x.e.style;
         s.transform = `translate(${b.x}px, ${b.y}px)`; s.width = `${b.w}px`; s.height = `${b.h}px`;
-        s.opacity = String(x.absent ? tC : x.rel ? d : d * (1 - 0.88 * tC));
+        s.opacity = String((x.absent ? tC : x.rel ? d : d * (1 - tC)) * (1 - (x.t.name === "notice" ? clamp(tD * 1.4 - 0.4) : tD)));
         x.e.classList.toggle("lit", x.rel && tC > 0.5);
         x.e.classList.toggle("named", b.w > 64 && b.h > 16);
       });
-      built.info.forEach((inf) => { inf.e.style.opacity = String(clamp((tC - 0.6) / 0.4)); });
+      built.info.forEach((inf) => { inf.e.style.opacity = String(clamp((tC - 0.6) / 0.4) * (1 - tD)); });
     }
-    const ph = p < 0.33 ? 0 : p < 0.7 ? 1 : 2;
+    if (dl) {
+      const n = dl.dots.length;
+      dl.dots.forEach((x, i) => {
+        const d = clamp(tD * 1.6 - (i / n) * 0.6);       // the dots leave the notice table one after another
+        const b = x.to ? { x: lerp(dl.from.x, x.to.x, d), y: lerp(dl.from.y, x.to.y, d) } : dl.from;
+        x.e.style.transform = `translate(${b.x}px, ${b.y}px)`; x.e.style.opacity = String(clamp(d * 3));
+      });
+      const lo = String(clamp((tD - 0.75) / 0.25));
+      dl.labels.forEach((L) => { L.e.style.opacity = lo; }); dl.keptLabel.style.opacity = lo;
+    }
+    const ph = hasDownlink() && P >= 0.8 ? 3 : p < 0.33 ? 0 : p < 0.7 ? 1 : 2;
     if (ph !== phase) { phase = ph; say(); light(); }
   }
 
@@ -241,6 +303,8 @@ export function flowPage(id) {
       r?.database ? `<b>${fmt(r.database.tables.length)} tables</b> inside · ${fmt(r.database.rows)} rows` : r ? "No tables could be read" : "Reading the tables…",
       r?.database ? (r.check.status === "accepted" ? `The rules read <b>${built?.relevant.length ?? 0} of them</b>` + ` · ${KIND_LABEL[r.kind] ?? ""}` : `<b>Refused</b> · ${r.check.reason}`) : r ? `<b>Refused</b> · ${r.check.reason}` : "Picking the tables the rules read…",
     ];
+    const dd = current.downlink;
+    lines.push(dd ? `<b>${fmt(dd.counts.kept)} of ${fmt(dd.counts.notices)} filings</b> send signals down · ${fmt(dd.counts.groups_kept)} transmitting groups go on` : "Finding the filings that send signals down…");
     const html = lines[Math.max(0, phase)];
     if (msg.dataset.html === html) return;              // only animate when the message really changes
     msg.dataset.html = html;
@@ -252,7 +316,7 @@ export function flowPage(id) {
     const kind = current.result?.kind;
     const next = NEXT[kind];
     diagram.replaceChildren(
-      ...BUILT.map((m, i) => el("button", { class: "node" + (i === phase ? " on" : "") + (i < phase ? " past" : ""), onclick: () => jumpTo(i) },
+      ...BUILT.filter((m) => !m.space || hasDownlink()).map((m, i) => el("button", { class: "node" + (i === phase ? " on" : "") + (i < phase ? " past" : ""), onclick: () => jumpTo(i) },
         el("span", { class: "ic", html: icon(m.icon) }), el("span", { class: "label" }, m.label))),
       el("div", { class: "next-h" }, "Next"),
       ...(current.result && current.result.check.status !== "accepted" ? [el("div", { class: "node later stop" }, el("span", { class: "ic", html: icon("circle-xmark") }), el("span", { class: "label" }, "Stops here: the file was turned away"))]
@@ -261,7 +325,7 @@ export function flowPage(id) {
   }
   function jumpTo(i) {
     const r = scrolly.getBoundingClientRect(), span = r.height - innerHeight;
-    scrollTo({ top: scrollY + r.top + span * [0.08, 0.48, 0.94][i], behavior: "smooth" });
+    scrollTo({ top: scrollY + r.top + span * (i === 3 ? 0.97 : [0.08, 0.48, 0.94][i] * SPAN()), behavior: "smooth" });
   }
 
   // A result made under an older rulebook: say so, and offer to run it again under the current one.
@@ -309,7 +373,23 @@ export function flowPage(id) {
       t ? el("div", { class: "tt-c" }, (all ? t.columns : t.columns.slice(0, 8)).join(", ") + (!all && t.columns.length > 8 ? `, … ${t.columns.length - 8} more` : "")) : null,
     ];
   }
+  const TYPE = { G: "Geostationary satellite", N: "Non-geostationary satellite" };
+  function describeNotice(id) {
+    const n = current.downlink?.notices.find((x) => String(x.ntc_id) === id);
+    if (!n) return [];
+    return [el("div", { class: "tt-h" }, el("b", {}, `Filing ${n.ntc_id}`)),
+      el("div", { class: "tt-s" }, `${TYPE[n.type] ?? `Station type ${n.type}`} · ${fmt(n.transmit)} transmitting, ${fmt(n.receive)} receiving groups`),
+      el("div", { class: n.kept ? "tt-r" : "tt-a" }, n.kept ? "Goes on: it sends signals down." : DOWNLINK?.reasons?.[n.reason] ?? n.reason)];
+  }
   stage.addEventListener("pointermove", (ev) => {
+    const nd = ev.target.closest(".ndot");
+    if (nd && Number(nd.style.opacity) > 0.3) {
+      tip.replaceChildren(...describeNotice(nd.dataset.ntc)); tip.hidden = false;
+      const r = stage.getBoundingClientRect();
+      tip.style.left = `${clamp(ev.clientX - r.left + 14, 4, r.width - tip.offsetWidth - 4)}px`;
+      tip.style.top = `${clamp(ev.clientY - r.top + 14, 4, r.height - tip.offsetHeight - 4)}px`;
+      return;
+    }
     const t = ev.target.closest(".tile");
     if (!t || Number(t.style.opacity) < 0.3) { tip.hidden = true; return; }
     tip.replaceChildren(...describe(t.dataset.name, false).filter(Boolean)); tip.hidden = false;
@@ -319,6 +399,12 @@ export function flowPage(id) {
   });
   stage.addEventListener("pointerleave", () => { tip.hidden = true; });
   stage.addEventListener("click", (ev) => {
+    const nd = ev.target.closest(".ndot");
+    if (nd && Number(nd.style.opacity) > 0.3) {
+      tip.hidden = true;
+      pin.replaceChildren(...describeNotice(nd.dataset.ntc), el("button", { class: "tp-x", "aria-label": "Close", html: icon("circle-xmark"), onclick: (e) => { e.stopPropagation(); pin.hidden = true; } }));
+      pin.hidden = false; return;
+    }
     const t = ev.target.closest(".tile");
     if (!t || Number(t.style.opacity) < 0.3) { pin.hidden = true; return; }
     tip.hidden = true;
@@ -333,6 +419,7 @@ export function flowPage(id) {
   // is being read, the relevant tables once the check is done.
   function phaseReached(d) {
     const ev = d.events || [];
+    if (d.downlink) return 3;
     if (d.result || ev.some((x) => x.step === "check" && x.state === "done")) return 2;
     if (ev.some((x) => x.step === "database" && (x.state === "progress" || x.state === "done"))) return 1;
     return 0;
@@ -341,6 +428,7 @@ export function flowPage(id) {
     current = d;
     drawCard(); drawAgree();
     if (!built) build();
+    if (!dl) buildDownlink();
     say(); light(); frame();
     if (follow) {
       // Step through each phase in turn, each kept on screen long enough to be seen, however fast the engine is.

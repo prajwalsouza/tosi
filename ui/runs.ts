@@ -16,6 +16,8 @@ export type Run = {
   state: "running" | "done" | "failed";
   events: unknown[];
   result: unknown | null;
+  downlink: unknown | null;                       // stage 2, for accepted space filings (without its group list)
+  stages: Record<string, { ms: number }>;
   engines: Record<string, EngineRun>;
   started: number;
 };
@@ -27,13 +29,14 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string, onDon
   const queue = <T,>(job: () => Promise<T>): Promise<T> => { const p = chain.then(job); chain = p.catch(() => {}); return p; };
   mkdirSync(runsDir, { recursive: true });
 
-  function exec(e: Engine, run: Run, onEvent?: (ev: unknown) => void): Promise<EngineRun> {
+  function exec(e: Engine, run: Run, onEvent?: (ev: unknown) => void, stage = "intake"): Promise<EngineRun> {
     const out = join(runsDir, run.id, e.id);
     const cwd = join(root, e.cwd);
     const cmd = e.cmd.includes("/") ? join(cwd, e.cmd) : e.cmd;
+    const args = stage === "intake" ? ["intake", "--file", run.file.path, "--name", run.file.name, "--out", out] : [stage, "--in", out];
     return new Promise((resolve) => {
       const t0 = performance.now();
-      const p = spawn(cmd, [...e.args, "intake", "--file", run.file.path, "--name", run.file.name, "--out", out], { cwd });
+      const p = spawn(cmd, [...e.args, ...args], { cwd });
       let buf = "", err = "";
       p.stderr.on("data", (d) => {
         buf += d;
@@ -47,22 +50,44 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string, onDon
       p.on("error", (x) => resolve({ state: "failed", error: x.message }));
       p.on("close", (code) => {
         const ms = Math.round(performance.now() - t0);
-        const f = join(out, "intake.json");
+        const f = join(out, `${stage}.json`);
         if (code !== 0 || !existsSync(f)) return resolve({ state: "failed", ms, error: err.trim() || `exited with code ${code}` });
         resolve({ state: "done", ms, sha256: createHash("sha256").update(readFileSync(f)).digest("hex") });
       });
     });
   }
 
+  // Every stage that applies, in order, in one engine: intake, then downlink for an accepted space filing.
+  // The engine's fingerprint covers every stage's result, so an agreement check compares them all.
+  async function stages(e: Engine, run: Run, onEvent?: (ev: unknown) => void): Promise<{ r: EngineRun; result?: any; downlink?: any; times: Record<string, { ms: number }> }> {
+    const started = Date.now(), folder = join(runsDir, run.id, e.id), times: Record<string, { ms: number }> = {};
+    const a = await exec(e, run, onEvent);
+    times.intake = { ms: a.ms ?? 0 };
+    if (a.state !== "done") return { r: a, times };
+    const result = JSON.parse(readFileSync(join(folder, "intake.json"), "utf8"));
+    const h = createHash("sha256").update(readFileSync(join(folder, "intake.json")));
+    let downlink;
+    if (result.kind === "space" && result.check.status === "accepted") {
+      const b = await exec(e, run, onEvent, "downlink");
+      times.downlink = { ms: b.ms ?? 0 };
+      if (b.state !== "done") return { r: b, result, times };
+      h.update(readFileSync(join(folder, "downlink.json")));
+      const { groups, ...rest } = JSON.parse(readFileSync(join(folder, "downlink.json"), "utf8"));
+      downlink = rest;
+    }
+    return { r: { state: "done", ms: Date.now() - started, sha256: h.digest("hex") }, result, downlink, times };
+  }
+
   // A run uses one engine: the one chosen. The others stay idle unless an agreement check is asked for.
   async function process(run: Run) {
     const first = engines.find((e) => e.id === run.engine) ?? engines[0];
     run.engines[first.id] = { state: "waiting" };
-    const r = await queue(() => { run.engines[first.id] = { state: "running", started: Date.now() }; return exec(first, run, (ev) => run.events.push(ev)); });
-    run.engines[first.id] = r;
-    if (r.state !== "done") { run.state = "failed"; onDone?.(run); return; }
-    run.result = JSON.parse(readFileSync(join(runsDir, run.id, first.id, "intake.json"), "utf8"));
-    run.state = "done";
+    const out = await queue(() => { run.engines[first.id] = { state: "running", started: Date.now() }; return stages(first, run, (ev) => run.events.push(ev)); });
+    run.engines[first.id] = out.r;
+    run.stages = out.times;
+    if (out.result) run.result = out.result;
+    if (out.downlink) run.downlink = out.downlink;
+    run.state = out.r.state === "done" ? "done" : "failed";
     onDone?.(run);
   }
 
@@ -74,7 +99,7 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string, onDon
     }
     for (const e of engines) {
       if (run.engines[e.id]?.state !== "waiting" || e.id === run.engine) continue;
-      run.engines[e.id] = await queue(() => { run.engines[e.id] = { state: "running", started: Date.now() }; return exec(e, run); });
+      run.engines[e.id] = (await queue(() => { run.engines[e.id] = { state: "running", started: Date.now() }; return stages(e, run); })).r;
       rmSync(join(runsDir, run.id, e.id, "database.mdb"), { force: true });
     }
   }
@@ -88,7 +113,7 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string, onDon
       const id = randomBytes(5).toString("hex");
       const run: Run = {
         id, file: { name: name || basename(path), bytes: statSync(path).size, source, path },
-        engine, stage: "intake", state: "running", events: [], result: null,
+        engine, stage: "intake", state: "running", events: [], result: null, downlink: null, stages: {},
         engines: Object.fromEntries(engines.map((e) => [e.id, { state: "idle" }])), started: Date.now(),
       };
       runs.set(id, run);
@@ -109,5 +134,5 @@ export function summary(r: Run) {
 // What the page sees: everything except the server's own file paths.
 export function view(r: Run, since = 0) {
   // A dropped file is kept until the server stops, so it can be processed again.
-  return { ...summary(r), stage: r.stage, events: r.events.slice(since), eventCount: r.events.length, result: r.result, engines: r.engines };
+  return { ...summary(r), stage: r.stage, events: r.events.slice(since), eventCount: r.events.length, result: r.result, downlink: r.downlink, stages: r.stages, engines: r.engines };
 }
