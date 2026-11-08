@@ -37,6 +37,9 @@ The shape every part of Tosi follows. These rules grow as each part is built.
 - **Every page starts level with the sidebar's first row.** `main` begins at the same height as the sidebar's top row, and a page's first heading is one row tall (`--row`) with trimmed text, so the Tosi mark, its name, the collapse chevron and the page heading share one centre line, open or collapsed.
 - **Collapsing the sidebar only hides the sidebar's own labels** (`body.shut #side .label`). Page labels never depend on the sidebar's state.
 
+- Settings · Tests (`ui/public/tests.js`, server `ui/tests.ts`): timed runs, three per engine and sample, medians kept in `bench/` (not committed). Estimates are labelled as heuristics.
+- Number cards with a draggable fill (`ui/public/metric.js`) are the one control for sizes.
+
 ## The guidebook and the algorithm
 
 - **Two sources in the spec.** `spec/guidebook/guidebook.json` is the constitution: principles (P), concerns (C), methods (M), data rules (D), known limits (L), the concern ladder, and the steps of the algorithm with the entries each applies and the tables each needs. `spec/rulebook/intake.json` is what intake reads. Both are the rules modules follow; neither holds conversation, names or quotes.

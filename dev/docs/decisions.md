@@ -90,3 +90,9 @@ New decisions are added at the end. A changed decision gets a new entry that nam
 **Decision:** after intake, an accepted space filing goes through Downlink (`spec/rulebook/downlink.json`): a filing goes on if it is a satellite with at least one transmitting group, and only those groups go on with it. The engine that ran intake runs Downlink straight after, reading the unpacked database intake left on disk; the run's fingerprint covers both outputs.
 **Why:** every later space step (reach, limits, power) works on downlink groups only, so this is the smallest stage that narrows the work for all of them. Reading from disk, not memory, keeps large files within an ordinary computer's RAM.
 **Consequence:** the Flow gains a fourth scene for space filings: one dot per filing, the ones that go on kept together, the rest grouped by reason. Leaving is not a concern, so the leavers are grey.
+
+## D-016 Tests give estimates, and say they are estimates
+
+**Decision:** Settings has a Tests page. It runs every engine three times on each sample file, through the same stages and queue as a real run (but not kept as a run or in the Library), and keeps each step's middle time in `bench/results.json` on this computer. It then estimates how long a file of any size would take by scaling each step's time in proportion to file size, from the largest sample; starting the engine is not scaled.
+**Why:** people need a rough idea of the wait for large files and of which engine to pick. A straight-line estimate from real timings is honest about what it is; the page says so at the top.
+**Consequence:** results depend on the computer and its disk, so they are never committed. The same size card (`ui/public/metric.js`) is used for the file size limit on the Algorithm page, a parameter shown as a draft that cannot be saved while the algorithm is read-only.

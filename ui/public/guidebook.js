@@ -4,6 +4,10 @@
 //  - the Algorithm: the steps in order, the entries each applies, and the tables each needs. The tables intake
 //    reads (spec/rulebook/intake.json) are edited here, each with the steps that need it and a reason for any change.
 import { icon } from "./icons.js";
+import { metric, sizeFormat, sizeParse } from "./metric.js";
+
+// The file size limit, in gigabytes: a showcase parameter for now, kept while the page is open.
+const SIZE_LIMIT = { saved: 100, draft: 100 };
 
 let ctx = null;
 const open = new Set(["P", "C", "ladder", "algo:space", "step:space:relevant", "known:space"]);
@@ -171,6 +175,32 @@ export function algorithmPage(focus) {
     ].filter(Boolean);
   }
 
+  // A parameter of the File step: the largest file Tosi will take. Shown as its value; open it to adjust a draft.
+  // The algorithm is read-only for now, so the draft cannot be saved yet.
+  function sizeLimitLine(kind) {
+    const shown = el("span", { class: "meta pv" });
+    const save = el("button", { class: "btn primary", disabled: true, title: editing ? "" : "The algorithm is read-only for now", html: icon("check") }, "Save");
+    const reset = el("button", { class: "btn", html: icon("rotate-left"), onclick: () => card.set(SIZE_LIMIT.saved) }, "Undo");
+    const state = el("span", { class: "meta" });
+    function sync(v) {
+      SIZE_LIMIT.draft = v;
+      const changed = Math.abs(v - SIZE_LIMIT.saved) > 1e-9;
+      shown.textContent = `${sizeFormat(SIZE_LIMIT.saved).join(" ")}${changed ? ` · draft ${sizeFormat(v).join(" ")}` : ""}`;
+      reset.hidden = !changed;
+      save.disabled = !changed || !editing;
+      state.textContent = changed ? (editing ? "Not saved yet." : "A draft. Saving comes back when the algorithm can be edited.") : "";
+    }
+    const card = metric(el, { label: "Largest file Tosi will take", value: SIZE_LIMIT.draft, min: 0.05, max: 200, log: true, format: sizeFormat, parse: sizeParse,
+      hint: "Drag across the card, or type a size. Up to 200 GB.", onInput: sync });
+    sync(SIZE_LIMIT.draft);
+    return o.line(`param:${kind}:size`, el("span", { class: "sl" }, el("span", { class: "pk", html: icon("weight-hanging") }), "File size limit"), shown, () => [
+      el("div", { class: "param" },
+        el("p", { class: "gb-about" }, "A file larger than this is turned away before anything else happens, so nobody waits hours on a file that was sent by mistake."),
+        card,
+        el("div", { class: "param-a" }, save, reset, state)),
+    ]);
+  }
+
   function stepLine(s, kind) {
     const cites = s.cites.map((id) => gb.entries.find((e) => e.id === id)).filter(Boolean);
     return o.line(`step:${kind}:${s.id}`, el("span", { class: "st-l" }, el("i", { class: "pip" + (s.built ? " built" : "") }), el("b", {}, s.short), el("span", { class: "st-t" }, s.title)),
@@ -182,6 +212,7 @@ export function algorithmPage(focus) {
           return el("span", { class: "tref" + (k?.read ? "" : " missing"), title: k?.read ? "Read by intake" : "Not read by intake yet" }, k?.alias ? `${k.alias} (${t})` : t);
         })) : null,
         s.id === "relevant" ? el("div", { class: "reads" }, readsFor(kind)) : null,
+        s.id === "file" ? el("div", { class: "reads" }, sizeLimitLine(kind)) : null,
       ].filter(Boolean), { id: `a-${kind}-${s.id}` });
   }
 

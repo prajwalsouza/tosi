@@ -5,6 +5,7 @@ import { readFileSync, existsSync, statSync, mkdirSync, createWriteStream } from
 import { randomBytes } from "node:crypto";
 import { makeRuns, view } from "./runs.ts";
 import { makeRulebook } from "./rulebook.ts";
+import { makeTests } from "./tests.ts";
 import { makeProposals } from "./proposals.ts";
 import { makeLibrary } from "./library.ts";
 import { spawn } from "node:child_process";
@@ -23,6 +24,7 @@ const samples: string[] = (local.samples ?? []).filter((p: string) => existsSync
 const runsDir = join(root, local.runs ?? "runs");
 const library = makeLibrary(root, local.library ?? "library");
 const runs = makeRuns(root, engines, runsDir, (run) => { try { library.add(run, JSON.parse(readFileSync(join(root, "spec", "rulebook", "intake.json"), "utf8"))); } catch (e) { console.error("library:", e); } });
+const tests = makeTests(root, engines, samples, (p, e) => runs.bench(p, e));
 const rulebook = makeRulebook(root);
 const proposals = makeProposals(root, rulebook.apply);
 runs.clear();
@@ -139,6 +141,9 @@ createServer(async (req, res) => {
     const f = join(root, "spec", "rulebook", `${rb[1]}.json`);
     return existsSync(f) ? send(res, 200, readFileSync(f, "utf8")) : send(res, 404, JSON.stringify({ error: "No such rulebook" }));
   }
+  // Tests: timed runs of every engine on the samples, kept on this computer.
+  if (url.pathname === "/api/tests" && req.method === "GET") return send(res, 200, JSON.stringify(tests.view()));
+  if (url.pathname === "/api/tests/run" && req.method === "POST") return send(res, 200, JSON.stringify(tests.start()));
   if (url.pathname === "/api/samples") {
     return send(res, 200, JSON.stringify(samples.map((p) => ({ name: p.split("/").pop(), bytes: statSync(p).size }))));
   }

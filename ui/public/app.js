@@ -3,6 +3,7 @@ import { icon } from "./icons.js";
 import * as flow from "./flow.js";
 import * as guidebook from "./guidebook.js";
 import * as library from "./library.js";
+import { testsPage } from "./tests.js";
 
 const $ = (id) => document.getElementById(id);
 const store = {
@@ -88,6 +89,7 @@ function drawSide(route) {
 /* ---------- pages ---------- */
 const SETTINGS = [
   { id: "engines", label: "Engines", icon: "microchip", draw: enginesPage },
+  { id: "tests", label: "Tests", icon: "flask-vial", draw: () => testsPage(el) },
   { id: "appearance", label: "Appearance", icon: "palette", draw: appearancePage },
   { id: "about", label: "About", icon: "circle-info", draw: aboutPage },
 ];

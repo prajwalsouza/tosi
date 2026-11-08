@@ -123,6 +123,22 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string, onDon
     // Process the same file again, for example after the rulebook changed. Always a fresh run.
     agree(r: Run) { if (r.state === "done") agree(r).catch(() => {}); return r; },
     again(r: Run, engine: string): Run { return this.start(r.file.path, r.file.name, r.file.source, engine, true); },
+    // A timed test: the same stages, in the same queue, but not kept as a run or in the library. Returns every step's
+    // timing so the Tests page can compare engines and estimate larger files.
+    async bench(path: string, engineId: string) {
+      const e = engines.find((x) => x.id === engineId);
+      if (!e) throw new Error("No such engine");
+      const id = "test-" + randomBytes(4).toString("hex");
+      const run: Run = {
+        id, file: { name: basename(path), bytes: statSync(path).size, source: "sample", path },
+        engine: e.id, stage: "intake", state: "running", events: [], result: null, downlink: null, stages: {}, engines: {}, started: Date.now(),
+      };
+      const events: any[] = [];
+      let stage = "intake";
+      const out = await queue(() => stages(e, run, (ev: any) => { if (ev.step === "downlink" && ev.state === "start") stage = "downlink"; events.push({ ...ev, stage }); }));
+      rmSync(join(runsDir, id), { recursive: true, force: true });
+      return { state: out.r.state, ms: out.r.ms, error: out.r.error, events, times: out.times, kind: out.result?.kind, accepted: out.result?.check?.status === "accepted" };
+    },
     clear() { runs.clear(); rmSync(runsDir, { recursive: true, force: true }); mkdirSync(runsDir, { recursive: true }); },
   };
 }

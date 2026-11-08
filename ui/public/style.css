@@ -363,3 +363,52 @@ body.busy #busy { display: flex }
 .nleft { position: absolute; display: flex; align-items: baseline; gap: var(--sp-3); opacity: 0; font-size: var(--fs-sm); color: var(--ink2); white-space: nowrap }
 .nleft b { font-weight: var(--fw-medium); color: var(--ink2) } .nleft.kept b { color: var(--ink) }
 .nleft span { color: var(--ink3); font-variant-numeric: tabular-nums }
+
+/* Metric card: a big number with its unit; a faint fill behind it is the slider */
+.mc { position: relative; overflow: hidden; border-radius: var(--radius-panel, 16px); background: var(--surface); padding: var(--sp-5) var(--sp-6); cursor: ew-resize; user-select: none; touch-action: pan-y; box-shadow: var(--raised-shadow, none); outline: none }
+.mc:focus-visible { box-shadow: 0 0 0 2px var(--accent) }
+.mc-fill { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--accent) 16%, transparent); pointer-events: none; transition: width .12s var(--ease) }
+.mc.drag .mc-fill { transition: none; background: color-mix(in srgb, var(--accent) 22%, transparent) }
+.mc > :not(.mc-fill) { position: relative }
+.mc-l { color: var(--ink2); font-size: var(--fs-sm) }
+.mc-v { display: flex; align-items: baseline; gap: 8px; margin-top: 6px }
+.mc-n { font: var(--fw-medium) 44px/1.1 var(--font-display); letter-spacing: -.02em; color: var(--ink); background: none; border: 0; padding: 0; min-width: 1ch; font-variant-numeric: tabular-nums; cursor: text; border-bottom: 1.5px dashed transparent }
+.mc-n:hover, .mc-n:focus { border-bottom-color: var(--ink3); outline: none }
+.mc-u { font: var(--fw-medium) 20px/1 var(--font-display); color: var(--ink2) }
+.mc-h { margin-top: 8px; color: var(--ink3); font-size: var(--fs-xs) }
+.mc.off { cursor: default } .mc.off .mc-n { cursor: default; color: var(--ink2) }
+
+/* Settings · Tests */
+.tests .bar .btn { flex: none }
+.heur { display: flex; gap: var(--sp-3); align-items: flex-start; margin: 0 0 var(--sp-6); color: var(--ink2); font-size: var(--fs-sm); line-height: 1.55 }
+.heur > svg { flex: none; width: 15px; height: 15px; margin-top: 3px; color: var(--accent) }
+.heur p { margin: 0; max-width: 72ch } .heur b { color: var(--ink); font-weight: var(--fw-medium) }
+.trun { display: grid; gap: 6px; margin-bottom: var(--sp-5) }
+.tsec { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); margin: var(--sp-6) 0 var(--sp-2) }
+.tsec h3 { margin: 0; font: var(--fw-medium) var(--fs-md, 16px) var(--font-display); color: var(--ink) }
+.ttab { width: 100%; border-collapse: collapse; margin-top: var(--sp-3); font-size: var(--fs-sm) }
+.ttab th { text-align: left; font-weight: var(--fw-regular, 400); color: var(--ink3); padding: 8px 12px 8px 0 }
+.ttab thead th { font-size: var(--fs-xs); color: var(--ink2) }
+.ttab tbody th, .ttab tfoot th { color: var(--ink2) }
+.ttab td { padding: 8px 12px 8px 0; vertical-align: top; width: 24% }
+.ttab tfoot th, .ttab tfoot td { padding-top: 14px } .ttab tfoot th { color: var(--ink) }
+.tc { display: flex; align-items: baseline; gap: 8px; white-space: nowrap }
+.tc b { font-weight: var(--fw-medium); color: var(--ink); font-variant-numeric: tabular-nums }
+.tr-best { color: var(--accent); font-size: var(--fs-xs) } .tr-rel { color: var(--ink3); font-size: var(--fs-xs) }
+.tna { color: var(--ink3) }
+.tbar { height: 4px; margin-top: 6px; border-radius: 2px; background: var(--line) }
+.tbar.wide { margin: 0 }
+.tbar i { display: block; height: 100%; border-radius: 2px; background: var(--ink3) } .tbar i.best { background: var(--accent) }
+.est { display: grid; gap: var(--sp-3); margin-top: var(--sp-5) }
+.est-r { display: grid; grid-template-columns: 96px minmax(80px, 1fr) 140px; align-items: center; column-gap: var(--sp-4); row-gap: 2px; font-size: var(--fs-sm) }
+.est-n { color: var(--ink2) } .est-t { font-weight: var(--fw-medium); color: var(--ink); font-variant-numeric: tabular-nums; text-align: right }
+.est-m { grid-column: 2 / -1; color: var(--ink3); font-size: var(--fs-xs) }
+.est-note { margin-top: var(--sp-4); font-size: var(--fs-xs); max-width: 72ch }
+.param { display: grid; gap: var(--sp-4); max-width: 520px; padding: var(--sp-2) 0 var(--sp-4) }
+.param .gb-about { margin: 0 }
+.param-a { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap }
+.param-a .meta { font-size: var(--fs-xs) }
+.pv { font-variant-numeric: tabular-nums }
+.sl .pk { display: inline-flex; margin-right: 8px; color: var(--ink3) } .sl .pk svg { width: 12px; height: 12px }
+.btn[hidden] { display: none }
+.btn:disabled { opacity: .45; cursor: default }
