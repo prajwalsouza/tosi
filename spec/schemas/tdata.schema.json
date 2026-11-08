@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tosi/tdata/1",
+  "title": "Data result",
+  "type": "object",
+  "required": [
+    "schema",
+    "rulebook",
+    "file",
+    "counts",
+    "notices"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tdata/1"
+    },
+    "rulebook": {
+      "type": "object",
+      "required": [
+        "version",
+        "sha256",
+        "cites"
+      ],
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "cites": {
+          "type": "object",
+          "description": "The sources the stage's rulebook cites, copied from it: every entry named \"method\", \"basis\" or ending in \"_basis\", in rulebook order. Every result carries them, so a reader sees which guideline or policy set each number.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "file": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "notices",
+        "kept",
+        "left"
+      ],
+      "properties": {
+        "notices": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "kept": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "left": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "notices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "terrakey",
+          "kept",
+          "reason",
+          "erp_dbw",
+          "heff_m",
+          "heff_from",
+          "assumptions"
+        ],
+        "properties": {
+          "terrakey": {
+            "type": "integer"
+          },
+          "kept": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "erp_dbw": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "heff_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "heff_from": {
+            "enum": [
+              "eff_hgtmax",
+              "fxm_ant_hgt",
+              "hgt_agl",
+              "default",
+              null
+            ]
+          },
+          "assumptions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

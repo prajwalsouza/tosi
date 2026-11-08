@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tosi/limit/1",
+  "title": "Limit result",
+  "description": "Which international limits apply to each transmitting group of a satellite Finland can see. See spec/stages/limit/README.md.",
+  "type": "object",
+  "required": [
+    "schema",
+    "rulebook",
+    "file",
+    "counts",
+    "notices",
+    "tables",
+    "rows"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "limit/1"
+    },
+    "rulebook": {
+      "type": "object",
+      "required": [
+        "version",
+        "sha256",
+        "cites"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "cites": {
+          "type": "object",
+          "description": "The sources the stage's rulebook cites, copied from it: every entry named \"method\", \"basis\" or ending in \"_basis\", in rulebook order. Every result carries them, so a reader sees which guideline or policy set each number.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "file": {
+      "description": "SHA-256 of the IFIC file this came from, as intake recorded it",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "notices",
+        "limited",
+        "left",
+        "how",
+        "groups",
+        "groups_limited",
+        "rows",
+        "named_countries_rows"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "notices": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limited": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "left": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "how": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "groups": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "groups_limited": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "named_countries_rows": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "notices": {
+      "type": "array",
+      "description": "In ascending ntc_id order",
+      "items": {
+        "type": "object",
+        "required": [
+          "ntc_id",
+          "type",
+          "limited",
+          "how",
+          "groups",
+          "rows"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ntc_id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "limited": {
+            "type": "boolean"
+          },
+          "how": {
+            "type": "string",
+            "description": "Key into the rulebook's outcomes"
+          },
+          "groups": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "rows": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "tables": {
+      "description": "SHA-256 of the ITU limit tables' source file",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "rows": {
+      "type": "array",
+      "description": "Every applicable pair of a group and a limit, by grp_id, table, exam row, provision",
+      "items": {
+        "type": "array",
+        "description": "[grp_id, ntc_id, table (G fixed, N moving), exam row (ix_freq), provision (ix_provn)]",
+        "prefixItems": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "enum": [
+              "G",
+              "N"
+            ]
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "integer"
+          }
+        ],
+        "minItems": 5,
+        "maxItems": 5
+      }
+    }
+  }
+}

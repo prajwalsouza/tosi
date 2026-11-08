@@ -99,7 +99,7 @@ New decisions are added at the end. A changed decision gets a new entry that nam
 
 ## D-017 Reach is the third stage, and it leans to the worst case
 
-**Decision:** after Downlink, a space filing goes through Reach (`spec/rulebook/reach.json`): can the satellite ever be seen from Finland? A fixed satellite is seen if it rises above 0° somewhere in a box around Finland's land and territorial sea (59.3–70.1° N, 19.0–31.6° E), moved towards Finland by its filed tolerance. A moving satellite is seen if, for any orbit, its folded tilt plus how far it sees over the horizon from apogee reaches the box's south edge. A satellite around another body (the Moon, the Sun, Jupiter) is seen. A filing without a usable position is assumed seen and left for the Data step. A satellite never seen is clear (guidebook M-9).
+**Decision:** after Downlink, a space filing goes through Reach (`spec/rulebook/reach.json`): can the satellite ever be seen from Finland? A fixed satellite is seen if it rises above 0° somewhere in a box around Finland's land and territorial sea (59.3–70.1° N, 19.0–31.6° E), moved towards Finland by its filed tolerance. A moving satellite is seen if, for any orbit, its folded tilt plus how far it sees over the horizon from apogee reaches the box's south edge. A satellite around another body (the Moon, the Sun, Jupiter) is seen. A filing without a usable position is assumed seen and left for the Data step. A satellite never seen is clear (guidebook MD-9).
 **Why:** Traficom ruled that the worst case always applies. Each choice can only add satellites, never drop one that could be seen. A box and two closed-form tests need no map file, so the three engines can agree byte for byte.
 **Consequence:** angles are rounded to two decimals as `floor(x · 100 + 0.5) / 100` and written in shortest form, which every engine must match. The box edges are estimates from the outermost points plus 12 nautical miles; they should be checked against the official territorial-sea limits. Intake does not yet require `geo`, `non_geo` or `orbit`; a missing table counts as nothing filed, so its filings are assumed seen. The Flow gains a fifth scene; the MCP server gains `tosi_get_stage`.
 
@@ -114,3 +114,51 @@ New decisions are added at the end. A changed decision gets a new entry that nam
 **Decision:** the Reach scene opens on a 2.5D picture (`ui/public/reachglobe.js`): Finland on the curve of the globe with the sky above it as a dome. Each satellite Finland can see sits where you would look for it, seen from the middle of Finland. Fixed satellites are purple and placed truthfully. Moving satellites are pink, deeper for a steeper orbit, and placed at their highest pass. Satellites around other bodies are a soft blue. The clear ones go grey to the side, as in the grid. A toggle switches to the grid and back, and the dots move smoothly between the two. The picture can be turned and tilted by dragging, and a double-click resets it.
 **Why:** a picture of the sky shows what Reach means: what Finland can see and what is hidden below its horizon.
 **Consequence:** it is not to scale and says so. The filing gives no time, so where a moving satellite sits is illustrative. The Reach result decides, not the picture. It is plain projection maths in SVG with no 3D library, and Finland's outline (`ui/public/finland.json`, Natural Earth, public domain) is for display only.
+
+## D-020 Reference tables are built once, from named sources, by one script
+
+**Decision:** `dev/tools/tables.py` builds every reference table the rules read: `spec/tables/pfd.json` (the ITU power-flux-density limits), `spec/tables/p1546.json` (Recommendation ITU-R P.1546-6 curves, from the ITU-R WP 3K reference implementation v6.2), and `spec/tables/finland.json` (test points, Finland's outer limit as land border plus 12 nautical miles of sea stopped short of neighbours, and nearby land outlines, from Natural Earth). Each table records its source file and hash. The Traficom station list becomes `state/reference/stations.json`, which stays on this computer. `ui/public/region.json` (display only) is built by the same script.
+**Why:** rules must read tables, never fetch or guess them, and every number must trace back to a published source.
+**Consequence:** changing a table means rerunning the script and checking the agreement again. The display outlines cover more than any map view (46–76° N, 2° W–56° E), so maps fade out instead of ending at a cut; that change left `finland.json` byte for byte the same.
+
+## D-021 Space screening: Limit, Data, Power, Compare, Stations
+
+**Decision:** after Reach, a space filing goes through five more stages: Limit (is there an international power limit that protects Finland?), Data (does it file everything the calculation needs?), Power (worst-case power, every antenna pointed at Finland), Compare (against the limit at every arrival angle; within 3 dB is near), and Stations (which listed Finnish stations work on its frequencies). All three engines agree byte for byte on both space samples.
+**Why:** this follows how the Radiocommunication Bureau checks power-flux density, with the worst case always applied, as Traficom ruled.
+**Consequence:** on ific3074: 120 of 138 have a limit, 111 can be calculated, 62 are over, 28 near and 21 under; 69 filings touch 386 listed stations.
+
+## D-022 Terrestrial screening: Land mobile, Range, Data, Field strength, Threshold, Stations
+
+**Decision:** a terrestrial filing goes through six stages: foreign land mobile stations only; within 1,000 km and 30–4,000 MHz (the range of P.1546-6); power and height filed; field strength at Finland's land border and sea limit by P.1546-6 (10% of time, 50% of locations, 10 m receiver); the trigger level of ECC T/R 25-08 for the band, adjusted for channel width; and the same at each listed Finnish station. Coordination completed with Finland is shown as a case to verify, never as closed.
+**Why:** Traficom's answers of 7 November 2026: land mobile only, flag any exceedance including at sea-limit points, and they verify coordination against their own register.
+**Consequence:** the P.1546-6 port matches all 52 ITU validation cases (`compare/p1546_check.ts`). On brific3076: 4,057 stations, 1,858 land mobile, 57 in range, 1 over, 5 over but coordinated.
+
+## D-023 The ladder places every case; the report is the notification
+
+**Decision:** Ladder (space) and Tladder (terrestrial) put every filing or station on the first concern rung that is true, from the top, then order by rung, by how far over, and by number. Report and Treport write the notification: `report.json` (the crit and warn cases, each with what, where, why, how much and what to do next), `report.csv` (every filing or station, one row each: the processed file Traficom asked for) and `report.md` (the short notification). All four agree byte for byte in the three engines and are in `engines/chain.json`.
+**Why:** the notification is the product (Traficom, 7 November 2026). Being over a limit is a concern even with no listed station, because licence-exempt use does not appear in the station list.
+**Consequence:** the Flow lists Ladder and Report as steps; their own scenes are still to build. The Report scene will be an expandable outliner on top with the map below it, at the end of the story.
+
+## D-024 Every result cites its sources
+
+**Decision:** every stage result's `rulebook` stamp carries `cites`: the rulebook entries named `method`, `basis` or ending in `_basis`, copied in rulebook order. The Flow shows them under each scene's summary line, in a few words with the full text on hover, and the Threshold scene lists the trigger levels by band for the stations in the file.
+**Why:** a reader must see which guideline or policy sets each acceptable level, and a result file must say so on its own, without the rulebook beside it.
+**Consequence:** results changed shape but not values. The schemas require `cites`. A rulebook's source that is administration policy says so in its own words, so policy is never presented as an external rule.
+
+## D-025 Method definitions are MD-n, not M-n
+
+**Decision:** the guidebook's methods section is `MD` (method definitions) and its entries are MD-1 to MD-9. Every reference in the rulebooks, stage specs, the guidebook's steps and the MCP server's guidebook tool uses the new ids. The guidebook, compare, data, ladder and tladder rulebooks went up one version.
+**Why:** "M4", "M5" and so on are Traficom's regulations (M4 is the Radio Frequency Regulation and its national frequency allocation table). A guidebook entry called M-4 would be read as one of them.
+**Consequence:** results carry the new rulebook hashes; values are unchanged.
+
+## D-026 Finnish use comes from the national frequency table (M4)
+
+**Decision:** `dev/tools/tables.py --m4` builds `spec/tables/m4.json` from Traficom's open-data frequency allocation table (in English), the annex to Radio Frequency Regulation 4: each sub-band in MHz with a use in Finland, and whether that use is licence-exempt (the table's own note says exempt from licensing, or it is a short range device, which the table refers to Traficom Regulation 15 for). Identical rows are merged: 1,401 uses, 184 licence-exempt. Both ladders record, for every case over or near the level, the uses whose sub-band touches the case's frequencies and the licence-exempt ones among them (`m4`), with the table's hash. Both reports carry them as `finnish_use`, name the first four in the notification, and add two CSV columns. Guidebook D-4.
+**Why:** Traficom asked for files to be processed using Finnish usage data, and said an exceedance counts even where only licence-exempt use exists, citing the frequency table's use. The station list has no licence-exempt use; the table does.
+**Consequence:** the rungs and their levels do not change: the table adds evidence, not a new rule. Raising "Exceeds, no listed station" to crit where the table shows licence-exempt use would be a policy change for the administration to decide. All three engines agree byte for byte on both samples.
+
+## D-027 Station and frequency-table evidence stays with its transmission
+
+**Decision:** Stations matches listed stations to each of Compare's rows on its own (one transmission in one limit band, with its own margin) and records, besides every station on any over or near row, the stations on a row over the limit, the ones only on near rows, and the strongest over and near row that reach a station, with margin, band and station numbers. The Ladder says "Exceeds at a listed station" only when the same transmission is over the limit and on a listed station's frequencies, and "Near limit at a listed station" when a near transmission reaches one, even if another transmission of the filing is over. Each case carries its worst transmission and the station evidence separately, each with the Finnish use (M4) on its own band only. The report states the worst margin with its band and, when different, the station evidence with its own margin and band. The CSV adds the worst band and the over and near station counts, and its M4 columns are for the worst band.
+**Why:** the earlier rule pooled a filing's stations across all its transmissions, so a filing over the limit on one band and near it on another, where the stations were, read as exceeding at those stations. On ific3074, TIANQI-3E-2 (124545392) is 22.48 dB over at 32,300–32,380 MHz, where no listed station works, while its 329 station matches come from transmissions 0.06 to 2.76 dB under the limit.
+**Consequence:** the power calculation and every margin are unchanged; only matching, rungs and wording change. On ific3074, four filings move from "Exceeds at a listed station" to "Near limit at a listed station" (crit 51 → 47, warn 40 → 44). The regression case is 124545392.

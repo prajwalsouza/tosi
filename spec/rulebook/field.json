@@ -1,0 +1,25 @@
+{
+  "about": "Field strength: how strong each station's signal is at Finland's outer limit, by Recommendation ITU-R P.1546-6 without terrain, keeping the strongest point.",
+  "version": 1,
+  "kinds": [
+    "terrestrial"
+  ],
+  "method": "Recommendation ITU-R P.1546-6, steps 6 to 11, 14 and 19, ported from the ITU-R WP 3K reference implementation (version 6.2); checked against its 52 validation examples (compare/p1546_check.ts).",
+  "time_percent": 10,
+  "locations_percent": 50,
+  "receiver_height_m": 10,
+  "receiver_area": "rural",
+  "sea": "cold",
+  "parameters_basis": "Field strength exceeded 10% of the time at 50% of locations, receiving antenna 10 m above ground, rural receiver, as in ECC T/R 25-08; the Baltic and Arctic count as cold sea (P.1546-6). No terrain profile: accepted by Traficom on 7 November 2026.",
+  "earth_radius_km": 6371.0,
+  "nearest_points": 5,
+  "min_km": 1,
+  "samples": 60,
+  "points_basis": "Administration policy, worst case, following Traficom (7 November 2026: calculate along land borders and the outer territorial-sea limit, at several points): the 5 nearest points of Finland's outer limit; every third border point (about every 30 km) within 100 km of the nearest distance; and the nearest land-border and sea-limit points. The strongest counts. A path is split into land and sea by testing 60 evenly spaced points along the straight line against the land outlines in spec/tables/finland.json. Paths shorter than 1 km are taken at 1 km.",
+  "notes": [
+    "e.r.p. and effective height come from the Data step.",
+    "The field strength is for the station's own e.r.p.: P.1546 curves are for 1 kW, so e.r.p. − 30 dB is added."
+  ],
+  "spread_km": 100,
+  "stride": 3
+}

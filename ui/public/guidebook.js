@@ -5,6 +5,21 @@
 //    reads (spec/rulebook/intake.json) are edited here, each with the steps that need it and a reason for any change.
 import { icon } from "./icons.js";
 import { metric, sizeFormat, sizeParse } from "./metric.js";
+import { demo, onDemo, ready, locate, STAGE_OF_STEP, paramLabel, paramValue } from "./demo.js";
+
+// The demo run lights up what the agent is reading or changing: a short pulse on each row, one after another.
+function lit(ids, scrollTo, block = "center") {
+  requestAnimationFrame(() => {
+    const first = document.getElementById(scrollTo ?? ids[0]);
+    first?.scrollIntoView({ block, behavior: "smooth" });
+    ids.forEach((id, i) => {
+      const n = document.getElementById(id); if (!n) return;
+      n.classList.remove("dm-lit"); void n.offsetWidth;
+      n.style.setProperty("--dm-d", `${i * 120}ms`); n.classList.add("dm-lit");
+      setTimeout(() => n.classList.remove("dm-lit"), 2400 + i * 120);
+    });
+  });
+}
 
 // The file size limit, in gigabytes: a showcase parameter for now, kept while the page is open.
 const SIZE_LIMIT = { saved: 100, draft: 100 };
@@ -12,7 +27,7 @@ const SIZE_LIMIT = { saved: 100, draft: 100 };
 let ctx = null;
 const open = new Set(["P", "C", "ladder", "algo:space", "step:space:relevant", "known:space"]);
 const fmt = (n) => Number(n).toLocaleString("en-GB");
-const SECTION_ICON = { P: "scale-balanced", C: "triangle-exclamation", M: "sitemap", D: "database", L: "lock" };
+const SECTION_ICON = { P: "scale-balanced", C: "triangle-exclamation", MD: "sitemap", D: "database", L: "lock" };
 const FAMILY = { space: { label: "Space", icon: "satellite-dish" }, terrestrial: { label: "Terrestrial", icon: "tower-broadcast" } };
 
 export function init(c) { ctx = c; }
@@ -57,16 +72,29 @@ export function guidebookPage(focus) {
   const entryLink = (id) => el("a", { class: "eref", href: `#/guidebook/${id}` }, id);
   const stepLink = (s) => el("a", { class: "sref", href: `#/algorithm/${s.id}` }, s.short);
 
+  // The demo run: proposals that cite this entry, the one waiting first.
+  const demoFor = (id) => [demo.pending, ...demo.decided.slice().reverse()].filter((p) => p && p.cites.some((c) => c.id === id));
+  function demoNote(p) {
+    const st = gb.steps.find((x) => x.id === p.step);
+    const state = p === demo.pending ? `Proposed for version ${p.versionTo}` : p.approved ? `Approved as version ${p.version}` : "Declined";
+    return el("div", { class: "dm-note" + (p === demo.pending ? " now" : "") },
+      el("span", { class: "dm-tag" }, "Demo run"),
+      el("span", {}, `${state}: ${st?.short ?? p.stage}, ${paramLabel(p.parameter)} ${paramValue(p.parameter, p.from)} → ${paramValue(p.parameter, p.to)}. The proposal cites this entry.`),
+      el("a", { class: "sref", href: `#/algorithm/${p.step}` }, "See it on the Algorithm page"));
+  }
+
   function entryLine(e) {
     const usedBy = gb.steps.filter((s) => s.cites.includes(e.id)), rungs = gb.ladder.filter((r) => r.cites === e.id);
-    return o.line(`e:${e.id}`, el("span", { class: "en" }, el("code", { class: "eid" }, e.id), el("b", {}, e.title)), el("span", { class: "meta" }, e.applies.length === 1 ? applies(el, e.applies) : null), () => [
+    const dm = demoFor(e.id);
+    return o.line(`e:${e.id}`, el("span", { class: "en" }, el("code", { class: "eid" }, e.id), el("b", {}, e.title)), el("span", { class: "meta" }, e.applies.length === 1 ? applies(el, e.applies) : null, dm.length ? el("span", { class: "dm-chip" + (dm[0] === demo.pending ? " now" : "") }, dm[0] === demo.pending ? "cited by the proposal" : "cited in the demo") : null), () => [
+      ...dm.slice(0, 1).map(demoNote),
       el("p", { class: "rule" }, e.rule),
       e.why ? el("p", { class: "kv" }, el("span", {}, "Why"), e.why) : null,
       e.effect ? el("p", { class: "kv" }, el("span", {}, "Effect"), e.effect) : null,
       el("p", { class: "kv" }, el("span", {}, "Basis"), e.basis.join(" · ")),
       usedBy.length ? el("p", { class: "kv" }, el("span", {}, "Applied in"), usedBy.map(stepLink)) : null,
       rungs.length ? el("p", { class: "kv" }, el("span", {}, "Ladder"), rungs.map((r) => el("span", { class: "rref " + r.level }, r.rung))) : null,
-    ].filter(Boolean), { id: `g-${e.id}` });
+    ].filter(Boolean), { id: `g-${e.id}`, class: "ol" + (dm[0] === demo.pending && dm.length ? " dm-cited" : "") });
   }
 
   function draw() {
@@ -77,7 +105,10 @@ export function guidebookPage(focus) {
     }
     page.replaceChildren(
       el("header", { class: "gb-h" }, el("h1", {}, el("span", { class: "t" }, "Guidebook")), el("span", { class: "ver" }, `Version ${gb.version} · ${gb.entries.length} entries`)),
-      el("p", { class: "lede" }, "What every finding is cited against. Each entry says its rule, why it exists, what it changes and where it comes from, and links to the steps that apply it."),
+      el("div", { class: "lede why" },
+        el("p", {}, "When Finland raises a concern about another country's filing, that country's engineers will check every number. So every finding Tosi makes has to point to a written rule: this is that book of rules."),
+        el("p", {}, "Each entry says the rule, why it exists, what it changes and where it comes from: a Radio Regulation, an ITU Recommendation, a published table, or a choice the administration makes and owns. Nothing is decided anywhere else."),
+        el("p", {}, "Because the rules are written down, a concern can cite them, a person can question them, and a change to one shows exactly which results it moves before anyone approves it.")),
       el("div", { class: "outline" },
         gb.sections.map((s) => {
           const list = gb.entries.filter((e) => e.section === s.id);
@@ -87,8 +118,23 @@ export function guidebookPage(focus) {
           gb.ladder.map((r, i) => el("div", { class: "ol leaf rung" }, el("span", { class: "rn" }, String(i + 1)), el("i", { class: "lv " + r.level }), el("b", {}, r.rung), el("span", { class: "meta" }, r.means), entryLink(r.cites))))));
   }
 
+  // The demo run follows the agent here: entries it cites are opened; entries it reads light up in their sections.
+  function showTarget(t) {
+    if (!gb || !t || t.page !== "guidebook") return;
+    const ids = (t.entries ?? []).filter((id) => gb.entries.some((e) => e.id === id));
+    for (const id of ids) { open.add(gb.entries.find((x) => x.id === id).section); if (t.cite) open.add(`e:${id}`); }
+    draw();
+    if (ids.length) lit(ids.map((id) => `g-${id}`));
+  }
+  page.cleanup = onDemo((why) => { if (why === "target") showTarget(demo.target); else draw(); });
+
   draw();
-  getJSON("/api/guidebook", null).then((d) => { gb = d; draw(); if (focus) { const e = gb.entries.find((x) => x.id === focus); if (e) { open.add(e.section); open.add(`e:${e.id}`); o.reveal(`e:${e.id}`, `g-${e.id}`); } } });
+  getJSON("/api/guidebook", null).then((d) => {
+    gb = d; draw();
+    if (demo.target?.page === "guidebook") showTarget(demo.target);
+    else if (focus) { const e = gb.entries.find((x) => x.id === focus); if (e) { open.add(e.section); open.add(`e:${e.id}`); o.reveal(`e:${e.id}`, `g-${e.id}`); } }
+    ready("guidebook");
+  });
   return page;
 }
 
@@ -96,15 +142,58 @@ export function guidebookPage(focus) {
 export function algorithmPage(focus) {
   const { el } = ctx;
   const page = el("div", { class: "gb" });
-  let gb = null, rules = null, seen = {}, history = [], note = "", editing = false;
+  let gb = null, rules = null, seen = {}, history = [], note = "", editing = false, stageRules = {};
   const o = outline(draw);
 
   async function load() {
-    let about;
-    [gb, rules, seen, history, about] = await Promise.all([getJSON("/api/guidebook", null), getJSON("/api/rulebook/intake", null), latestTables(), getJSON("/api/rulebook/intake/changes", []), getJSON("/api/about", {})]);
+    let about, staged;
+    [gb, rules, seen, history, about, staged] = await Promise.all([getJSON("/api/guidebook", null), getJSON("/api/rulebook/intake", null), latestTables(), getJSON("/api/rulebook/intake/changes", []), getJSON("/api/about", {}),
+      Promise.all(Object.values(STAGE_OF_STEP).map(async (st) => [st, await getJSON(`/api/rulebook/${st}`, null)]))]);
+    stageRules = Object.fromEntries(staged.filter(([, r]) => r));
     editing = about.editing === true;
     draw();
-    if (focus) { const s = gb.steps.find((x) => x.id === focus); if (s) { const kind = s.family[0]; open.add(`algo:${kind}`); o.reveal(`step:${kind}:${s.id}`, `a-${kind}-${s.id}`); } }
+    if (demo.target?.page === "algorithm") showTarget(demo.target);
+    else if (focus) { const s = gb.steps.find((x) => x.id === focus); if (s) { const kind = s.family[0]; open.add(`algo:${kind}`); if (STAGE_OF_STEP[s.id]) open.add(`prm:${kind}:${s.id}`); o.reveal(`step:${kind}:${s.id}`, `a-${kind}-${s.id}`); } }
+    ready("algorithm");
+  }
+
+  // The demo run follows the agent here: the steps it reads light up one by one; a step it changes opens at the parameter.
+  function showTarget(t) {
+    if (!gb || !t || t.page !== "algorithm") return;
+    const kind = t.kind ?? gb.steps.find((x) => x.id === t.step)?.family[0] ?? "terrestrial";
+    open.add(`algo:${kind}`);
+    if (t.step) {
+      open.add(`step:${kind}:${t.step}`);
+      if (t.parameter) open.add(`prm:${kind}:${t.step}`);
+      draw();
+      lit(t.parameter ? [`p-${t.stage}-${t.parameter}`, `a-${kind}-${t.step}`] : [`a-${kind}-${t.step}`]);
+    } else if (t.steps) {
+      draw();
+      lit(t.steps.map((id) => `a-${kind}-${id}`), `a-${kind}-${t.steps[0]}`, "start");
+    }
+  }
+  page.cleanup = onDemo((why) => { if (why === "target") showTarget(demo.target); else draw(); });
+
+  // A step's numbers, from its rulebook, with the demo run's proposed or approved values over them (in memory only).
+  const stageVersion = (stage) => demo.stageVersion[stage] ?? stageRules[stage]?.version;
+  function paramsLine(s, kind) {
+    const stage = STAGE_OF_STEP[s.id], r = stageRules[stage];
+    if (!r) return null;
+    const keys = Object.keys(r).filter((k) => k !== "version" && typeof r[k] === "number");
+    if (!keys.length) return null;
+    const p = demo.pending?.stage === stage ? demo.pending : null;
+    const ver = stageVersion(stage);
+    return o.line(`prm:${kind}:${s.id}`, el("span", { class: "sl" }, "Parameters"),
+      el("span", { class: "meta" }, `${keys.length} · ${stage}.json, version ${ver}`, p ? el("span", { class: "dm-chip now" }, `v${ver} → v${ver + 1} proposed`) : demo.stageVersion[stage] ? el("span", { class: "dm-chip" }, "demo") : null), () =>
+      keys.map((k) => {
+        const saved = r[k], now = demo.values[stage]?.[k] ?? saved, prop = p?.parameter === k ? p : null;
+        const basis = r[`${k}_basis`] ?? r[`${k.split("_")[0]}_basis`] ?? "";
+        const value = prop ? el("span", { class: "dm-val" }, el("s", {}, paramValue(k, now)), el("span", { class: "dm-arrow" }, "→"), el("b", {}, paramValue(k, prop.to)))
+          : el("span", { class: "pv" + (now !== saved ? " dm-changed" : "") }, paramValue(k, now));
+        return el("div", { class: "ol leaf prm" + (prop ? " dm-prop" : ""), id: `p-${stage}-${k}` },
+          el("span", { class: "prm-l" }, el("span", {}, paramLabel(k)), el("code", {}, k)), value,
+          el("span", { class: "meta prm-b", title: basis }, prop ? "Proposed in the demo run" : now !== saved ? `Demo: was ${paramValue(k, saved)}` : basis));
+      }));
   }
 
   async function change(kind, table, field, value) {
@@ -201,10 +290,19 @@ export function algorithmPage(focus) {
     ]);
   }
 
+  // Marks beside a step the demo run proposed or changed; each takes you to the parameter.
+  function stepBadges(s) {
+    const go = (p) => (e) => { e.stopPropagation(); locate(p.target); };
+    return [
+      ...demo.decided.filter((d) => d.approved && d.step === s.id).map((d) => el("span", { class: "dm-chip go", role: "button", tabindex: "0", title: `${paramLabel(d.parameter)} ${paramValue(d.parameter, d.from)} → ${paramValue(d.parameter, d.to)}`, onclick: go(d) }, `Changed in v${d.version}`)),
+      demo.pending?.step === s.id ? el("span", { class: "dm-chip now go", role: "button", tabindex: "0", title: `${paramLabel(demo.pending.parameter)}: proposed`, onclick: go(demo.pending) }, `Proposed for v${demo.pending.versionTo}`) : null,
+    ];
+  }
+
   function stepLine(s, kind) {
     const cites = s.cites.map((id) => gb.entries.find((e) => e.id === id)).filter(Boolean);
     return o.line(`step:${kind}:${s.id}`, el("span", { class: "st-l" }, el("i", { class: "pip" + (s.built ? " built" : "") }), el("b", {}, s.short), el("span", { class: "st-t" }, s.title)),
-      el("span", { class: "meta" }, s.built ? "built" : "planned", s.exit ? ` · exit: ${s.exit}` : ""), () => [
+      el("span", { class: "meta" }, s.built ? "built" : "planned", s.exit ? ` · exit: ${s.exit}` : "", stepBadges(s)), () => [
         s.lines?.length ? el("p", { class: "rule" }, s.lines.join(" ")) : null,
         cites.length ? el("p", { class: "kv" }, el("span", {}, "Applies"), cites.map((e) => el("a", { class: "eref", href: `#/guidebook/${e.id}`, title: e.rule }, `${e.id} ${e.title}`))) : null,
         s.reads.length ? el("p", { class: "kv" }, el("span", {}, "Needs"), s.reads.map((t) => {
@@ -213,11 +311,13 @@ export function algorithmPage(focus) {
         })) : null,
         s.id === "relevant" ? el("div", { class: "reads" }, readsFor(kind)) : null,
         s.id === "file" ? el("div", { class: "reads" }, sizeLimitLine(kind)) : null,
+        STAGE_OF_STEP[s.id] ? el("div", { class: "reads" }, paramsLine(s, kind)) : null,
       ].filter(Boolean), { id: `a-${kind}-${s.id}` });
   }
 
   function historyLine() {
     const describe = (h) => {
+      if (h.field === "parameter") return `${h.stage}: ${paramLabel(h.parameter)} ${paramValue(h.parameter, h.from)} → ${paramValue(h.parameter, h.to)}`;
       const n = h.to?.alias ? `${h.to.alias} (${h.table})` : h.table;
       if (h.field === "add") return `Started reading ${h.table}`;
       if (h.field === "read") return `${h.to.read ? "Started" : "Stopped"} reading ${n}`;
@@ -240,8 +340,12 @@ export function algorithmPage(focus) {
     const noteIn = editing ? el("input", { class: "note", placeholder: "Why are you changing what Tosi reads? (required, kept with the change)", value: note }) : el("div", { class: "locked", html: icon("lock") }, "Read-only. What Tosi reads cannot be changed here for now; editing will return as drafts that become a version only when saved.");
     if (editing) noteIn.addEventListener("input", (e) => { note = e.target.value; });
     page.replaceChildren(
-      el("header", { class: "gb-h" }, el("h1", {}, el("span", { class: "t" }, "Algorithm")), el("span", { class: "ver" }, `Rulebook version ${rules.version}`)),
-      el("p", { class: "lede" }, "The steps a filing goes through, in order. Each step applies guidebook entries and needs certain tables. Open “Relevant tables” to see what intake reads and which steps need each table."),
+      el("header", { class: "gb-h" }, el("h1", {}, el("span", { class: "t" }, "Algorithm")), el("span", { class: "ver" }, `Rulebook version ${rules.version}`),
+        demo.active ? el("span", { class: "dm-badge" + (demo.pending ? " now" : "") }, el("span", { class: "dm-tag" }, "Demo run"), demo.pending ? `Version ${demo.version} → ${demo.version + 1} (proposed)` : `Version ${demo.version}`) : null),
+      el("div", { class: "lede why" },
+        el("p", {}, "The algorithm is the guidebook put in order: the questions a filing is asked, one after another, until it is either set aside with a reason or becomes a concern."),
+        el("p", {}, "It is drawn as a path so that every result can be traced back. For any filing you can see which step decided it, which guidebook entries that step applied, and which tables of the filing it read."),
+        el("p", {}, "Each step is a plain question with a plain answer, so a person can follow the reasoning without reading code, and the same file always takes the same path.")),
       noteIn,
       el("div", { class: "outline" },
         Object.keys(FAMILY).map((kind) => o.line(`algo:${kind}`, el("span", { class: "kl", html: icon(FAMILY[kind].icon) }, FAMILY[kind].label), el("span", { class: "meta" }, `${stepsFor(kind).length} steps`), () => stepsFor(kind).map((s) => stepLine(s, kind)))),

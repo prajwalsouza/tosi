@@ -38,6 +38,16 @@
   --side: 224px;
   --side-shut: 60px;
   --gap: 12px;          /* distance of floating panels from the window edge */
+
+  /* dots: one per filing in the Flow. How they scale with the size of a file (ui/public/dots.js reads these).
+     The dot fills a share of its cell; the cell shrinks as dots are added, between the largest and smallest dot.
+     Above dot-dom-max, dots are drawn on a canvas; above dot-group-max, each dot stands for a group of filings. */
+  --dot-max: 12px;          /* largest dot, for a few filings */
+  --dot-min: 3px;           /* smallest dot that can still be seen and pointed at */
+  --dot-fill: 0.62;         /* share of its cell a dot fills; the rest is the gap */
+  --dot-cell-max: 22px;     /* cells never grow past this, however few the dots */
+  --dot-dom-max: 1500;      /* up to this many, every dot is its own element */
+  --dot-group-max: 6000;    /* above this many, dots are grouped so at most this many are drawn */
   --dot: 7px;
 
   /* motion */

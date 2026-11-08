@@ -115,6 +115,10 @@ pub fn run(file: &str, name: &str, out: &str) -> Result<String, String> {
     let Some(idx) = mdb else { emit("unpack", "done", json!({ "refused": true })); refuse(&mut r, &rules, "no_database", vec![]); return finish(&r, out); };
     let target = out.join("database.mdb");
     let (mdb_name, total) = { let a = r.archive.as_ref().unwrap(); (a.entries[idx].name.clone(), a.entries[idx].bytes) };
+    let cap = std::env::var("TOSI_MAX_DATABASE_BYTES").ok().and_then(|v| v.parse::<u64>().ok());
+    if cap.is_some_and(|max| total > max) {
+        return Err("Uncompressed database exceeds the hosted size limit".into());
+    }
     emit("unpack", "progress", json!({ "done": 0, "total": total, "entry": mdb_name }));
     {
         let mut src = zip.by_index(idx).map_err(|e| e.to_string())?;
@@ -124,8 +128,13 @@ pub fn run(file: &str, name: &str, out: &str) -> Result<String, String> {
         loop {
             let n = src.read(&mut buf).map_err(|e| e.to_string())?;
             if n == 0 { break; }
-            dst.write_all(&buf[..n]).map_err(|e| e.to_string())?;
             done += n as u64;
+            if cap.is_some_and(|max| done > max) {
+                drop(dst);
+                let _ = fs::remove_file(&target);
+                return Err("Uncompressed database exceeds the hosted size limit".into());
+            }
+            dst.write_all(&buf[..n]).map_err(|e| e.to_string())?;
             if done - last >= 32 * MIB as u64 || done == total { emit("unpack", "progress", json!({ "done": done, "total": total, "entry": mdb_name })); last = done; }
         }
     }

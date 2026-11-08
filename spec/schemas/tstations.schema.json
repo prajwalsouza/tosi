@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tosi/tstations/1",
+  "title": "Stations result",
+  "type": "object",
+  "required": [
+    "schema",
+    "rulebook",
+    "file",
+    "counts",
+    "notices",
+    "list"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tstations/1"
+    },
+    "rulebook": {
+      "type": "object",
+      "required": [
+        "version",
+        "sha256",
+        "cites"
+      ],
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "cites": {
+          "type": "object",
+          "description": "The sources the stage's rulebook cites, copied from it: every entry named \"method\", \"basis\" or ending in \"_basis\", in rulebook order. Every result carries them, so a reader sees which guideline or policy set each number.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "file": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "notices",
+        "how"
+      ],
+      "properties": {
+        "notices": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "how": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "notices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "terrakey",
+          "outcome",
+          "checked",
+          "over",
+          "worst"
+        ],
+        "properties": {
+          "terrakey": {
+            "type": "integer"
+          },
+          "outcome": {
+            "enum": [
+              "exposed",
+              "not_exposed",
+              "no_station",
+              "no_list"
+            ]
+          },
+          "checked": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "over": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "worst": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "station": {
+                "type": "string"
+              },
+              "e": {
+                "type": "number"
+              },
+              "excess": {
+                "type": "number"
+              },
+              "km": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "list": {
+      "type": "object",
+      "required": [
+        "present",
+        "sha256",
+        "stations"
+      ],
+      "properties": {
+        "present": {
+          "type": "boolean"
+        },
+        "sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stations": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

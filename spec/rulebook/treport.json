@@ -1,0 +1,20 @@
+{
+  "about": "Terrestrial report: the notification for a terrestrial file. The stations on crit and warn rungs of the terrestrial ladder, each with who filed it, where, its frequency, its distance to Finland, its field strength against the trigger level, its coordination with Finland and the listed Finnish stations it exposes, and what to do next. Also every station as one row of report.csv, and a short report.md. Administration names come from spec/reference/administrations.json; the wording of rungs from spec/rulebook/tladder.json.",
+  "version": 2,
+  "kinds": ["terrestrial"],
+  "levels_reported": ["crit", "warn"],
+  "stations_listed": 5,
+  "uses_listed": 4,
+  "uses_basis": "Finland's use on a case's frequencies comes from the national frequency allocation table, the annex to Traficom Radio Frequency Regulation 4 (M4), as the ladder found it.",
+  "administration": "FIN",
+  "next": {
+    "exceeds": "Check the station's power, height and antenna against the border, and decide within the comment period whether Finland should comment or ask for coordination.",
+    "station_exposed": "Check the exposed Finnish stations' use of the channel, and decide whether to ask for coordination.",
+    "near_threshold": "Look at the margin and decide whether to watch the station or ask for its details.",
+    "exceeds_coordinated": "Verify that the completed coordination covers this station as filed now (power, height, frequency)."
+  },
+  "notes": [
+    "report.json lists the reported stations in ladder order. report.csv has every station in the file, in ascending terrakey order. report.md is the short notification.",
+    "CSV: a header row, comma-separated, RFC 4180 quoting, \\n line endings, numbers in shortest form, empty for none."
+  ]
+}

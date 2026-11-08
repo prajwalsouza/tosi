@@ -10,6 +10,7 @@ import hashlib, json, subprocess, sys, time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+CHAIN = {k: v for k, v in json.loads((ROOT / "engines" / "chain.json").read_text()).items() if k != "about"}
 
 def main():
     f = Path(sys.argv[1]).resolve()
@@ -32,9 +33,8 @@ def main():
             print(f"{e['name']:11} {stage:9} {ms:7} ms  {h[:16] if h else 'FAILED':16}  {(p.stderr.strip().splitlines() or [''])[-1][:110] if not h else ''}")
             if stage == "intake" and h:
                 r = json.loads(res.read_text())
-                if r["kind"] == "space" and r["check"]["status"] == "accepted":
-                    stages.append(("downlink", ["downlink", "--in", str(folder)]))
-                    stages.append(("reach", ["reach", "--in", str(folder)]))
+                if r["check"]["status"] == "accepted":
+                    stages += [(s, [s, "--in", str(folder)]) for s in CHAIN.get(r["kind"], [])]
         (folder / "database.mdb").unlink(missing_ok=True)
     same = True
     for stage in {s for h in hashes.values() for s in h}:

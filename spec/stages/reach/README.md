@@ -4,7 +4,7 @@
 
 ## Why it comes here
 
-A satellite can only interfere with a receiver in Finland if it rises above Finland's horizon. One that is always below the horizon, seen from everywhere in Finland, has the whole Earth between it and us. It cannot interfere, so it is **clear**. This is one of three outcomes the guidebook keeps apart (M-9): clear, no applicable limit, and cannot calculate.
+A satellite can only interfere with a receiver in Finland if it rises above Finland's horizon. One that is always below the horizon, seen from everywhere in Finland, has the whole Earth between it and us. It cannot interfere, so it is **clear**. This is one of three outcomes the guidebook keeps apart (MD-9): clear, no applicable limit, and cannot calculate.
 
 Reach runs on the filings Downlink kept: satellites that transmit.
 

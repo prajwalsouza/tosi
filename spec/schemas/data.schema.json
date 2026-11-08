@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tosi/data/1",
+  "title": "Data result",
+  "description": "Whether everything needed to work out the power is filed. See spec/stages/data/README.md.",
+  "type": "object",
+  "required": [
+    "schema",
+    "rulebook",
+    "file",
+    "counts",
+    "notices",
+    "rows"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "data/1"
+    },
+    "rulebook": {
+      "type": "object",
+      "required": [
+        "version",
+        "sha256",
+        "cites"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "cites": {
+          "type": "object",
+          "description": "The sources the stage's rulebook cites, copied from it: every entry named \"method\", \"basis\" or ending in \"_basis\", in rulebook order. Every result carries them, so a reader sees which guideline or policy set each number.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "file": {
+      "description": "SHA-256 of the IFIC file this came from, as intake recorded it",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "notices",
+        "complete",
+        "left",
+        "how",
+        "rows",
+        "rows_ok",
+        "rows_missing"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "notices": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "complete": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "left": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "how": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rows_ok": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rows_missing": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "notices": {
+      "type": "array",
+      "description": "In ascending ntc_id order",
+      "items": {
+        "type": "object",
+        "required": [
+          "ntc_id",
+          "type",
+          "complete",
+          "how",
+          "rows",
+          "rows_ok"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ntc_id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "how": {
+            "type": "string"
+          },
+          "rows": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "rows_ok": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "rows": {
+      "type": "array",
+      "description": "The complete rows, in Limit's order",
+      "items": {
+        "type": "array",
+        "description": "[grp_id, ntc_id, table (G fixed, N moving), exam row (ix_freq), provision (ix_provn)]",
+        "prefixItems": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "enum": [
+              "G",
+              "N"
+            ]
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "integer"
+          }
+        ],
+        "minItems": 5,
+        "maxItems": 5
+      }
+    }
+  }
+}

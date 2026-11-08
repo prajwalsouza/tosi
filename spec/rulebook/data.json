@@ -1,0 +1,23 @@
+{
+  "about": "Data: whether everything needed to work out the power is filed, for each pair of a group and a limit from the Limit step. A filing goes on if at least one pair is complete. Otherwise it leaves as 'cannot calculate' (guidebook MD-9), which is not the same as clear: a person should look.",
+  "version": 2,
+  "kinds": ["space"],
+  "transmit": "E",
+  "reasons_order": ["no_orbit", "no_gain", "no_power", "needs_xy"],
+  "needs": {
+    "no_orbit": "Where the satellite is: its longitude if it stays fixed in the sky (geo.long_nom), or the lowest perigee of its orbits if it moves (orbit.perig_km, zero or more).",
+    "no_gain": "The gain of the antenna the group transmits through (s_beam.gain for the group's beam, transmitting).",
+    "no_power": "A power: the peak power (emiss.pep_max) or the power density (emiss.pwr_ds_max). A limit on total power (no reference bandwidth) needs the peak power.",
+    "needs_xy": "A limit the filing's numbers can be put into: at least one part of the limit's mask that does not depend on extra values the ITU computes elsewhere (the NGSO tables' C4 and C5)."
+  },
+  "outcomes": {
+    "complete": "Everything needed to work out its power is filed.",
+    "no_orbit": "Its position or orbit is not filed in full, so the distance to Finland cannot be worked out.",
+    "no_gain": "The gain of its transmitting antenna is not filed.",
+    "no_power": "No power is filed for what it transmits.",
+    "needs_xy": "Its only limits need values that are not in the filing."
+  },
+  "notes": [
+    "Each pair gets the first missing item in the order above. A filing that leaves gets the first reason, in that order, that any of its pairs had."
+  ]
+}

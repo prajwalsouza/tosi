@@ -1,0 +1,39 @@
+{
+ "about": "Conformance cases for threshold. Sample inputs are real files read from the local samples folder (never committed).",
+ "cases": [
+  {
+   "id": "terrestrial-3076",
+   "input": {
+    "sample": "brific3076.zip"
+   },
+   "expect": {
+    "counts": {
+     "notices": 57,
+     "how": {
+      "over": 1,
+      "over_coordinated": 5,
+      "near": 0,
+      "under": 51
+     }
+    },
+    "station": {
+     "terrakey": 93075637,
+     "limit": 12,
+     "outcome": "over"
+    }
+   }
+  },
+  {
+   "id": "wide-channel",
+   "input": {
+    "f_mhz": 450,
+    "bandwidth_khz": 200,
+    "e": 28
+   },
+   "expect": {
+    "limit": 29.03,
+    "outcome": "near"
+   }
+  }
+ ]
+}

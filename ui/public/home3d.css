@@ -1,0 +1,19 @@
+/* The 3D scene under the home page: a small island observatory under passing satellites.
+   It starts within the first screen, under the drop hint, so it shows before anyone scrolls. */
+.home:has(> .home3d) { position: relative; min-height: calc(68vh - 76px); padding-top: 6vh }
+.home3d { position: absolute; left: 0; right: 0; top: calc(100% - 4vh); height: clamp(420px, 84vh, 880px); padding-bottom: 48px; pointer-events: none }
+.home3d canvas {
+  position: absolute; inset: 0 0 48px 0; width: 100%; height: calc(100% - 48px); display: block;
+  pointer-events: auto; touch-action: pan-y; cursor: grab; outline: none; background: transparent;
+  /* no edge anywhere: the top, the foot and both sides fade into the page (two masks, intersected) */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12%, #000 64%, transparent 94%), linear-gradient(to right, transparent 0, #000 20%, #000 80%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 12%, #000 64%, transparent 94%), linear-gradient(to right, transparent 0, #000 20%, #000 80%, transparent 100%);
+  mask-composite: intersect;
+  opacity: 0; transition: opacity .9s ease;
+}
+.home3d canvas.on { opacity: 1 }
+.home3d canvas.dragging { cursor: grabbing }
+.home3d .home3d-sk { position: absolute; left: 50%; top: 46%; width: min(46%, 520px); aspect-ratio: 2.4; transform: translate(-50%, -50%); border-radius: 50%; opacity: .45;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 72%); mask-image: radial-gradient(ellipse at center, #000 30%, transparent 72%) }
+@media (prefers-reduced-motion: reduce) { .home3d canvas { transition: none } }

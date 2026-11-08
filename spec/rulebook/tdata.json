@@ -1,0 +1,30 @@
+{
+  "about": "Data: whether each station in range files what the field strength needs: a position, power and an antenna height.",
+  "version": 1,
+  "kinds": [
+    "terrestrial"
+  ],
+  "heights": [
+    "eff_hgtmax",
+    "fxm_ant_hgt",
+    "hgt_agl"
+  ],
+  "heights_basis": "The effective height filed (fxm_ant.eff_hgtmax), else the highest effective height by azimuth (fxm_ant_hgt.eff_hgt), else the height above ground (fxm_ant.hgt_agl) taken as effective height over flat ground.",
+  "mobile_default_m": 3,
+  "mobile_default_basis": "Administration policy: a land mobile station (ML) that files no height is taken at 3 m, a vehicle antenna. Recorded as an assumption.",
+  "power": {
+    "E": "e.r.p.: used as filed",
+    "I": "e.i.r.p.: 2.15 dB is taken off to give e.r.p. (gain of a half-wave dipole over isotropic)",
+    "other": "Any other reference is treated as e.r.p. and recorded as an assumption"
+  },
+  "eirp_to_erp_db": 2.15,
+  "transmit_rows": "Antenna rows marked TX, or with no direction, give the power: the highest filed.",
+  "reasons": {
+    "no_position": "Its position is not filed, so its distance to Finland cannot be worked out.",
+    "no_power": "It files no transmit power.",
+    "no_height": "It files no antenna height, and it is not a land mobile station that could take the default."
+  },
+  "notes": [
+    "Reasons are tried in the order above."
+  ]
+}

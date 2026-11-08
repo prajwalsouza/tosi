@@ -1,0 +1,336 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tosi/ladder/1",
+  "title": "Ladder result",
+  "description": "Every space filing on one rung of the concern ladder. See spec/stages/ladder/README.md.",
+  "type": "object",
+  "required": [
+    "schema",
+    "rulebook",
+    "file",
+    "list",
+    "tables",
+    "counts",
+    "notices"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "stamp": {
+      "type": "object",
+      "required": [
+        "version",
+        "sha256",
+        "cites"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "cites": {
+          "type": "object",
+          "description": "The sources the stage's rulebook cites, copied from it: every entry named \"method\", \"basis\" or ending in \"_basis\", in rulebook order. Every result carries them, so a reader sees which guideline or policy set each number.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "num": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Rounded to two decimals; null when it does not apply"
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "notices",
+        "levels",
+        "rungs"
+      ],
+      "properties": {
+        "notices": {
+          "$ref": "#/$defs/count"
+        },
+        "levels": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/count"
+          }
+        },
+        "rungs": {
+          "type": "object",
+          "description": "Filings per rung, in ladder order",
+          "additionalProperties": {
+            "$ref": "#/$defs/count"
+          }
+        }
+      }
+    }
+  },
+  "properties": {
+    "schema": {
+      "const": "ladder/1"
+    },
+    "rulebook": {
+      "$ref": "#/$defs/stamp"
+    },
+    "file": {
+      "$ref": "#/$defs/sha256"
+    },
+    "list": {
+      "type": "object",
+      "required": [
+        "present",
+        "sha256"
+      ],
+      "properties": {
+        "present": {
+          "type": "boolean"
+        },
+        "sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "tables": {
+      "type": "object",
+      "required": [
+        "m4"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "m4": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "SHA-256 of spec/tables/m4.json as read"
+        }
+      }
+    },
+    "counts": {
+      "$ref": "#/$defs/counts"
+    },
+    "notices": {
+      "type": "array",
+      "description": "Every filing, in ladder order: rung, then worst excess first, then ntc_id",
+      "items": {
+        "type": "object",
+        "required": [
+          "ntc_id",
+          "rung",
+          "by",
+          "excess",
+          "stations",
+          "near_frequency",
+          "itu",
+          "stations_over",
+          "stations_near",
+          "worst",
+          "margin"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ntc_id": {
+            "type": "integer"
+          },
+          "rung": {
+            "type": "string",
+            "description": "Key into the rulebook's rungs"
+          },
+          "by": {
+            "type": "string",
+            "description": "The stage that decided it: downlink, reach, limit, data, compare, stations or ladder"
+          },
+          "excess": {
+            "$ref": "#/$defs/num"
+          },
+          "stations": {
+            "$ref": "#/$defs/count"
+          },
+          "stations_over": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Listed stations on a transmission over the limit"
+          },
+          "stations_near": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Listed stations only on transmissions near the limit"
+          },
+          "near_frequency": {
+            "$ref": "#/$defs/count"
+          },
+          "itu": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "provn",
+                "srv_area",
+                "tr_aff_ntw"
+              ]
+            }
+          },
+          "worst": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "grp_id",
+                  "excess",
+                  "lo_mhz",
+                  "hi_mhz",
+                  "m4"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "grp_id": {
+                    "type": "integer"
+                  },
+                  "excess": {
+                    "type": "number"
+                  },
+                  "lo_mhz": {
+                    "type": "number"
+                  },
+                  "hi_mhz": {
+                    "type": "number"
+                  },
+                  "m4": {
+                    "oneOf": [
+                      {
+                        "type": "null",
+                        "description": "Not checked: the case is not over or near the level"
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "uses",
+                          "exempt"
+                        ],
+                        "additionalProperties": false,
+                        "description": "Finnish use on the case's frequencies, from Finland's national frequency allocation table (Traficom Radio Frequency Regulation 4, M4; spec/tables/m4.json)",
+                        "properties": {
+                          "uses": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Every use whose sub-band touches the case's frequencies, once each, in table order"
+                          },
+                          "exempt": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Of those, the uses the table marks licence-exempt, in table order"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "description": "The filing's worst transmission (the first, if equal), with the Finnish use (M4) on its band only"
+              }
+            ]
+          },
+          "margin": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "grp_id",
+                  "excess",
+                  "lo_mhz",
+                  "hi_mhz",
+                  "stations",
+                  "m4"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "grp_id": {
+                    "type": "integer"
+                  },
+                  "excess": {
+                    "type": "number",
+                    "description": "This transmission's margin over the limit, dB (negative: under)"
+                  },
+                  "lo_mhz": {
+                    "type": "number"
+                  },
+                  "hi_mhz": {
+                    "type": "number",
+                    "description": "The transmission's band within the limit's band, MHz"
+                  },
+                  "stations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Listed stations on this transmission's frequencies, ascending"
+                  },
+                  "m4": {
+                    "oneOf": [
+                      {
+                        "type": "null",
+                        "description": "Not checked: the case is not over or near the level"
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "uses",
+                          "exempt"
+                        ],
+                        "additionalProperties": false,
+                        "description": "Finnish use on the case's frequencies, from Finland's national frequency allocation table (Traficom Radio Frequency Regulation 4, M4; spec/tables/m4.json)",
+                        "properties": {
+                          "uses": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Every use whose sub-band touches the case's frequencies, once each, in table order"
+                          },
+                          "exempt": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Of those, the uses the table marks licence-exempt, in table order"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "description": "The station evidence: the strongest transmission over the limit that reaches a listed station, else the strongest near one; its own margin, band, stations and Finnish use (M4). Station rungs rest on exactly this transmission"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

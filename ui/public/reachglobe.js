@@ -83,7 +83,7 @@ export function makeGlobe(el, finland) {
     const pr = (v) => ({ x: ox + s * dot3(v, right), y: oy - s * dot3(v, up), z: dot3(v, cam) });
     const rd = r / s;
     const skyv = (az, elv) => add(add(E.map((v) => v * Math.cos(elv * RAD) * Math.sin(az * RAD)), U, Math.cos(elv * RAD) * Math.cos(az * RAD)), N, Math.sin(elv * RAD));
-    P = { r, cx, cy, sky: (az, elv) => { const d = skyv(az, elv), p = pr(add(N, d, rd)); return { ...p, far: dot3(d, cam) < -0.05 }; } };
+    P = { r, cx, cy, ground: (lon, lat) => pr(vec(lat, lon)), sky: (az, elv) => { const d = skyv(az, elv), p = pr(add(N, d, rd)); return { ...p, far: dot3(d, cam) < -0.05 }; } };
     const path = (pts) => pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join("");
     earth.setAttribute("cx", ox); earth.setAttribute("cy", oy); earth.setAttribute("r", s);
     const g0 = defs.querySelector("radialGradient");
@@ -103,14 +103,16 @@ export function makeGlobe(el, finland) {
     legend.style.left = `${box.x0}px`; legend.style.top = `${box.y1 - 16}px`; legend.style.maxWidth = `${box.x1 - box.x0}px`;
   }
   // Screen position for a satellite at (az, el); a dot is centred on it.
-  const place = (az, elv) => { if (!P) return null; const p = P.sky(az, elv); return { x: p.x - 6, y: p.y - 6, far: p.far }; };
+  const place = (az, elv, size = 12) => { if (!P) return null; const p = P.sky(az, elv); return { x: p.x - size / 2, y: p.y - size / 2, far: p.far }; };
+  // A point on Finland's ground, for the stations and where the beams land (the middle of Finland by default).
+  const toGround = (lon = LON0, lat = LAT0) => P ? P.ground(lon, lat) : null;
   // Whether a point on the stage is over the picture, where a drag turns it.
   const over = (x, y) => !!box && x >= box.x0 && x <= box.x1 && y >= box.y0 - 10 && y <= box.y1;
-  function show(o) {
-    svg.style.opacity = String(o); note.style.opacity = String(o); legend.style.opacity = String(o);
+  function show(o, words = o) {                // words: the note and legend, which only Reach itself shows
+    svg.style.opacity = String(o); note.style.opacity = String(words); legend.style.opacity = String(words);
     svg.style.transform = `scale(${0.97 + 0.03 * o})`;
   }
-  return { svg, note, legend, layout, place, show, turn, reset, turned, over };
+  return { svg, note, legend, layout, place, show, turn, reset, turned, over, toGround };
 }
 
 // Pink for a moving satellite, paler for a gentle orbit tilt, deeper for a steep one. Kept well away from red.

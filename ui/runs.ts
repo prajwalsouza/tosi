@@ -4,7 +4,8 @@
 import { spawn } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export type Engine = { id: string; name: string; cwd: string; cmd: string; args: string[] };
 type EngineRun = { state: "idle" | "waiting" | "running" | "done" | "failed"; started?: number; ms?: number; sha256?: string; error?: string };
@@ -18,10 +19,21 @@ export type Run = {
   result: unknown | null;
   downlink: unknown | null;                       // stage 2, for accepted space filings (without its group list)
   reach: unknown | null;                          // stage 3, likewise
+  out: Record<string, unknown>;                   // every stage after intake, by name, without its long per-row lists
   stages: Record<string, { ms: number }>;
   engines: Record<string, EngineRun>;
   started: number;
 };
+
+// The stages after intake, in order, for each kind of filing (engines/chain.json). A stage is listed there once all three engines pass
+// its conformance cases and agree on the samples (spec/stages/<stage>/README.md).
+export const CHAIN: Record<string, string[]> = (() => {
+  const { about, ...c } = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "engines", "chain.json"), "utf8"));
+  return c;
+})();
+// What the page is sent of a stage's result: everything except the long per-row lists, which stay on disk.
+const HEAVY = new Set(["groups", "rows", "points"]);
+function light(o: any) { return Object.fromEntries(Object.entries(o).filter(([k]) => !HEAVY.has(k))); }
 
 export function makeRuns(root: string, engines: Engine[], runsDir: string, onDone?: (run: Run) => void) {
   const runs = new Map<string, Run>();
@@ -58,31 +70,26 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string, onDon
     });
   }
 
-  // Every stage that applies, in order, in one engine: intake, then downlink and reach for an accepted space filing.
-  // The engine's fingerprint covers every stage's result, so an agreement check compares them all.
-  async function stages(e: Engine, run: Run, onEvent?: (ev: unknown) => void): Promise<{ r: EngineRun; result?: any; downlink?: any; reach?: any; times: Record<string, { ms: number }> }> {
-    const started = Date.now(), folder = join(runsDir, run.id, e.id), times: Record<string, { ms: number }> = {};
+  // Every stage that applies, in order, in one engine: intake, then the stages for its kind of filing, as long as
+  // each succeeds. The engine's fingerprint covers every stage's result, so an agreement check compares them all.
+  async function stages(e: Engine, run: Run, onEvent?: (ev: unknown) => void): Promise<{ r: EngineRun; result?: any; out: Record<string, any>; times: Record<string, { ms: number }> }> {
+    const started = Date.now(), folder = join(runsDir, run.id, e.id), times: Record<string, { ms: number }> = {}, out: Record<string, any> = {};
     const a = await exec(e, run, onEvent);
     times.intake = { ms: a.ms ?? 0 };
-    if (a.state !== "done") return { r: a, times };
+    if (a.state !== "done") return { r: a, out, times };
     const result = JSON.parse(readFileSync(join(folder, "intake.json"), "utf8"));
     const h = createHash("sha256").update(readFileSync(join(folder, "intake.json")));
-    let downlink, reach;
-    if (result.kind === "space" && result.check.status === "accepted") {
-      const b = await exec(e, run, onEvent, "downlink");
-      times.downlink = { ms: b.ms ?? 0 };
-      if (b.state !== "done") return { r: b, result, times };
-      h.update(readFileSync(join(folder, "downlink.json")));
-      const { groups, ...rest } = JSON.parse(readFileSync(join(folder, "downlink.json"), "utf8"));
-      downlink = rest;
-      const c = await exec(e, run, onEvent, "reach");
-      times.reach = { ms: c.ms ?? 0 };
-      if (c.state !== "done") return { r: c, result, downlink, times };
-      h.update(readFileSync(join(folder, "reach.json")));
-      const { groups: g2, ...rest2 } = JSON.parse(readFileSync(join(folder, "reach.json"), "utf8"));
-      reach = rest2;
+    if (result.check.status === "accepted") {
+      for (const stage of CHAIN[result.kind] ?? []) {
+        const b = await exec(e, run, onEvent, stage);
+        times[stage] = { ms: b.ms ?? 0 };
+        if (b.state !== "done") return { r: b, result, out, times };
+        const bytes = readFileSync(join(folder, `${stage}.json`));
+        h.update(bytes);
+        out[stage] = light(JSON.parse(bytes.toString("utf8")));
+      }
     }
-    return { r: { state: "done", ms: Date.now() - started, sha256: h.digest("hex") }, result, downlink, reach, times };
+    return { r: { state: "done", ms: Date.now() - started, sha256: h.digest("hex") }, result, out, times };
   }
 
   // A run uses one engine: the one chosen. The others stay idle unless an agreement check is asked for.
@@ -93,8 +100,8 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string, onDon
     run.engines[first.id] = out.r;
     run.stages = out.times;
     if (out.result) run.result = out.result;
-    if (out.downlink) run.downlink = out.downlink;
-    if (out.reach) run.reach = out.reach;
+    run.out = out.out;
+    run.downlink = out.out.downlink ?? null; run.reach = out.out.reach ?? null;
     run.state = out.r.state === "done" ? "done" : "failed";
     onDone?.(run);
   }
@@ -121,7 +128,7 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string, onDon
       const id = randomBytes(5).toString("hex");
       const run: Run = {
         id, file: { name: name || basename(path), bytes: statSync(path).size, source, path },
-        engine, stage: "intake", state: "running", events: [], result: null, downlink: null, reach: null, stages: {},
+        engine, stage: "intake", state: "running", events: [], result: null, downlink: null, reach: null, out: {}, stages: {},
         engines: Object.fromEntries(engines.map((e) => [e.id, { state: "idle" }])), started: Date.now(),
       };
       runs.set(id, run);
@@ -139,11 +146,11 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string, onDon
       const id = "test-" + randomBytes(4).toString("hex");
       const run: Run = {
         id, file: { name: basename(path), bytes: statSync(path).size, source: "sample", path },
-        engine: e.id, stage: "intake", state: "running", events: [], result: null, downlink: null, reach: null, stages: {}, engines: {}, started: Date.now(),
+        engine: e.id, stage: "intake", state: "running", events: [], result: null, downlink: null, reach: null, out: {}, stages: {}, engines: {}, started: Date.now(),
       };
       const events: any[] = [];
       let stage = "intake";
-      const out = await queue(() => stages(e, run, (ev: any) => { if ((ev.step === "downlink" || ev.step === "reach") && ev.state === "start") stage = ev.step; events.push({ ...ev, stage }); }));
+      const out = await queue(() => stages(e, run, (ev: any) => { if (ev.step !== "intake" && ev.state === "start" && Object.values(CHAIN).some((c) => c.includes(ev.step))) stage = ev.step; events.push({ ...ev, stage }); }));
       rmSync(join(runsDir, id), { recursive: true, force: true });
       return { state: out.r.state, ms: out.r.ms, error: out.r.error, events, times: out.times, kind: out.result?.kind, accepted: out.result?.check?.status === "accepted" };
     },
@@ -158,5 +165,5 @@ export function summary(r: Run) {
 // What the page sees: everything except the server's own file paths.
 export function view(r: Run, since = 0) {
   // A dropped file is kept until the server stops, so it can be processed again.
-  return { ...summary(r), stage: r.stage, events: r.events.slice(since), eventCount: r.events.length, result: r.result, downlink: r.downlink, reach: r.reach, stages: r.stages, engines: r.engines };
+  return { ...summary(r), stage: r.stage, events: r.events.slice(since), eventCount: r.events.length, result: r.result, downlink: r.downlink, reach: r.reach, out: r.out, stages: r.stages, engines: r.engines };
 }

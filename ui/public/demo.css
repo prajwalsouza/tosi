@@ -1,0 +1,188 @@
+/* The demo run: a floating prompt at the bottom of the Algorithm and Guidebook pages, the page fading behind it,
+   a side panel with the recorded agent's messages and tool calls, and the marks a proposal leaves on the pages.
+   Colours come from the theme tokens only. */
+:root { --dm-w: clamp(300px, 28vw, 400px); --dm-ask: 44px }
+
+body:not(.dm-page) #ask, body:not(.dm-page) .dm-dock, body:not(.dm-page) .dm-fade { display: none }
+body.dm-page main { padding-bottom: 210px }
+body.dm-page.dm-open main { margin-right: calc(var(--dm-w) + var(--gap) * 2) }
+
+/* the page fades into the background colour towards the bottom, so the prompt floats over it */
+.dm-fade { position: fixed; left: calc(var(--side) + var(--gap) * 2); right: 0; transition: left var(--dur) var(--ease); bottom: 0; height: 190px; z-index: 15; pointer-events: none;
+  background: linear-gradient(to top, var(--bg) 0%, var(--bg) 38%, color-mix(in srgb, var(--bg) 70%, transparent) 68%, transparent 100%) }
+
+.dm-dock { position: fixed; z-index: 18; bottom: 22px; display: flex; justify-content: center; pointer-events: none;
+  left: calc(var(--side) + var(--gap) * 2 + var(--sp-8)); right: calc(22px + var(--dm-ask) + var(--sp-4)); transition: left var(--dur) var(--ease), right var(--dur) var(--ease) }
+body.shut .dm-dock { left: calc(var(--side-shut) + var(--gap) * 2 + var(--sp-8)) }
+body.shut .dm-fade { left: calc(var(--side-shut) + var(--gap) * 2) }
+body.dm-open .dm-dock { right: calc(var(--dm-w) + var(--gap) * 2 + var(--sp-4)) }
+.dm-box { pointer-events: auto; width: 100%; max-width: 760px; display: grid; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4) var(--sp-3);
+  background: var(--panel); border: var(--panel-border, 0); border-radius: var(--r-lg); box-shadow: var(--raised-shadow), 0 16px 36px -18px rgba(0, 0, 0, .55) }
+.dm-box.now { background: color-mix(in srgb, var(--accent) 10%, var(--panel)) }
+.dm-head { display: flex; align-items: center; gap: var(--sp-2); color: var(--ink3); font-size: var(--fs-xs); line-height: 1.4; min-width: 0 }
+.dm-head .dm-hd { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.dm-tag { flex: none; display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: var(--r-round); background: var(--accent-fill); color: var(--on-accent); font-size: 11px; font-weight: var(--fw-medium); letter-spacing: .02em; white-space: nowrap }
+
+.dm-in { display: flex; align-items: flex-end; gap: var(--sp-2) }
+.dm-in textarea { flex: 1; resize: none; border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; font-size: var(--fs-sm); line-height: 1.5; padding: 2px 0; min-height: 3em; overflow: auto; cursor: default }
+.dm-in textarea:focus-visible { color: var(--ink) }
+.dm-send { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--accent-fill); color: var(--on-accent); transition: background var(--dur) }
+.dm-send:hover { background: color-mix(in srgb, var(--accent) 42%, var(--bg)) }
+.dm-send svg { width: 14px; height: 14px }
+.dm-go { flex: none; display: grid; justify-items: center; gap: 4px }
+.dm-hint { color: var(--ink3); font-size: 11px; line-height: 1 }
+.dm-box:focus-within .dm-hint { color: var(--accent) }
+
+.dm-run { display: flex; align-items: center; gap: var(--sp-3); min-height: 36px } .dm-run .btn { flex: none }
+.dm-busy { flex: none; width: 64px } .dm-busy .sk { width: 64px }
+.dm-what { flex: 1; min-width: 0; color: var(--ink2); font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.dm-what b { color: var(--ink); font-weight: var(--fw-medium) }
+.dm-ask { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap }
+.dm-q { flex: 1; min-width: 220px; display: grid; gap: 2px }
+.dm-q b { font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-md); color: var(--ink) }
+.dm-q span { color: var(--ink2); font-size: var(--fs-sm) }
+.dm-btns { display: flex; gap: var(--sp-2) }
+
+/* the side panel: the recorded session, as a calm conversation */
+.dm-panel { position: fixed; z-index: 20; top: var(--gap); right: var(--gap); bottom: calc(22px + var(--dm-ask) + var(--sp-3)); width: var(--dm-w); display: flex; flex-direction: column;
+  background: var(--panel); border: var(--panel-border, 0); border-radius: var(--radius-panel, var(--r-lg)); box-shadow: var(--panel-shadow, var(--raised-shadow)); overflow: hidden }
+.dm-panel[hidden] { display: none }
+.dm-ph { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-4) var(--sp-3) var(--sp-1) var(--sp-4) }
+.dm-ph b { font-family: var(--font-display); font-weight: var(--fw-bold) }
+.dm-av { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--accent-fill); color: var(--on-accent) } .dm-av svg { width: 13px; height: 13px }
+.dm-sp { flex: 1 }
+.dm-x { flex: none; width: 28px; height: 28px; display: grid; place-items: center; color: var(--ink3); transition: color var(--dur) }
+.dm-x:hover { color: var(--ink) } .dm-x svg { width: 13px; height: 13px }
+.dm-about { display: flex; align-items: center; gap: 6px; width: 100%; padding: 2px var(--sp-4) var(--sp-3); color: var(--ink3); font-size: var(--fs-xs); text-align: left; transition: color var(--dur) }
+.dm-about:hover { color: var(--ink2) } .dm-about .chev { width: 12px } .dm-about .chev svg { width: 8px; height: 8px }
+.dm-aboutx { padding: 0 var(--sp-4) var(--sp-3) calc(var(--sp-4) + 18px); color: var(--ink2); font-size: var(--fs-xs); line-height: 1.55 }
+.dm-aboutx p { margin: 0 0 6px } .dm-aboutx .meta { margin: 0; font-size: 11px }
+.dm-log { flex: 1; overflow: auto; padding: var(--sp-3) var(--sp-4) var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-4); scroll-behavior: smooth }
+.dm-empty { margin: var(--sp-4) 0 0 }
+
+.dm-follow { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: var(--r-round); background: var(--surface); color: var(--ink3); font-size: 11px; font-weight: var(--fw-medium); white-space: nowrap; transition: color var(--dur), background var(--dur) }
+.dm-follow:hover { color: var(--ink) } .dm-follow.on { color: var(--accent) }
+.dm-follow:not(.on) { background: var(--accent-fill); color: var(--on-accent) }
+.dm-follow .dm-ic svg { width: 11px; height: 11px }
+
+.dm-ic { flex: none; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; color: var(--ink3) }
+.dm-ic svg { width: 11px; height: 11px }
+.dm-ic.think { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent) }
+.dm-ic.read { color: var(--ink2); background: var(--surface) }
+.dm-ic.pen, .dm-ic.change { color: var(--on-accent); background: var(--accent-fill) }
+.dm-ic.page { color: var(--accent) }
+
+.dm-you { align-self: flex-end; max-width: 88%; padding: var(--sp-3) var(--sp-4); border-radius: var(--r-lg) var(--r-lg) 4px var(--r-lg); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); color: var(--ink); font-size: var(--fs-sm); line-height: 1.55 }
+.dm-msg { color: var(--ink); font-size: var(--fs-sm); line-height: 1.6; animation: dmin .35s var(--ease) }
+.dm-msg.thinking { color: var(--ink2); font-size: var(--fs-xs) }
+.dm-msg p { margin: 0 0 var(--sp-3) } .dm-msg p:last-child { margin-bottom: 0 }
+.dm-msg b { font-weight: var(--fw-bold) }
+.dm-msg code { font: 12px var(--font-mono); color: var(--ink2) }
+.dm-msg table { width: 100%; border-collapse: collapse; margin: var(--sp-2) 0; font-size: var(--fs-xs); line-height: 1.45 }
+.dm-msg th { text-align: left; color: var(--ink3); font-weight: var(--fw-medium); padding: 4px 8px 6px 0; vertical-align: bottom }
+.dm-msg td { padding: 8px 8px 8px 0; vertical-align: top; border-top: 1px solid var(--line) }
+@keyframes dmin { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: none } }
+
+/* one-line rows that open: Thinking and tool calls */
+.dm-fold { animation: dmin .3s var(--ease) }
+.dm-fold + .dm-fold { margin-top: calc(var(--sp-2) * -1) }
+.dm-fr { display: flex; align-items: center; gap: var(--sp-2); width: 100%; min-height: 30px; text-align: left; color: var(--ink2); font-size: var(--fs-sm); transition: color var(--dur) }
+.dm-fr:hover { color: var(--ink) }
+.dm-fr .chev { width: 12px; flex: none; opacity: .6 } .dm-fr .chev svg { width: 8px; height: 8px }
+.dm-fold.open > .dm-fr .chev { transform: rotate(90deg) }
+.dm-fl { flex: none; font-weight: var(--fw-medium); white-space: nowrap }
+.dm-fs { flex: 1; min-width: 0; color: var(--ink3); font-size: var(--fs-xs); overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.dm-st { flex: none; width: 16px; display: grid; place-items: center } .dm-st .dm-ic { width: 16px; height: 16px; color: var(--ok) } .dm-st .sk.dot { width: 7px; height: 7px }
+.dm-fold.err .dm-st .dm-ic { color: var(--bad) }
+.dm-fb { display: none; padding: var(--sp-2) 0 var(--sp-1) 30px }
+.dm-fold.open > .dm-fb { display: block }
+.dm-k { color: var(--ink3); font-size: 11px; margin: 6px 0 4px }
+.dm-raw { margin: 0; max-height: 200px; overflow: auto; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm); background: var(--surface); color: var(--ink2); font: 11px/1.45 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere }
+.dm-raw:empty { display: none }
+
+.dm-nav { display: flex; align-items: center; gap: var(--sp-2); width: 100%; text-align: left; color: var(--ink3); font-size: var(--fs-xs); transition: color var(--dur); animation: dmin .3s var(--ease) }
+.dm-nav:hover { color: var(--ink) } .dm-nav b { margin-left: auto; color: var(--accent); font-weight: var(--fw-medium) }
+.dm-fold + .dm-nav, .dm-nav + .dm-fold { margin-top: calc(var(--sp-2) * -1) }
+
+/* a proposed change: clickable, says what, where, from what to what, why */
+.dm-card { display: grid; gap: var(--sp-2); padding: var(--sp-4); border-radius: var(--r-lg); background: var(--surface); color: var(--ink2); cursor: pointer; animation: dmin .35s var(--ease); transition: background var(--dur) }
+.dm-card:hover { background: color-mix(in srgb, var(--accent) 6%, var(--surface)) }
+.dm-card.now { background: color-mix(in srgb, var(--accent) 14%, var(--surface)) }
+.dm-card.no { opacity: .62 }
+.dm-ch { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-xs) }
+.dm-cv { color: var(--ink); font-weight: var(--fw-medium) } .dm-cs { margin-left: auto; color: var(--ink3) }
+.dm-card.now .dm-cs { color: var(--accent) } .dm-card.ok .dm-cs { color: var(--ok) }
+.dm-cw { display: flex; align-items: baseline; gap: var(--sp-2); flex-wrap: wrap; font-size: var(--fs-sm) } .dm-cw b { color: var(--ink); font-weight: var(--fw-bold) }
+.dm-val.big { font-size: var(--fs-lg); gap: 10px } .dm-val.big .dm-arrow svg { width: 13px; height: 13px }
+.dm-why { margin: 0; font-size: var(--fs-xs); line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden }
+.dm-card.now .dm-why { -webkit-line-clamp: 6 }
+.dm-cites { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px }
+.dm-cites .meta { margin-left: 0; font-size: 11px } .dm-where { margin-left: auto !important }
+
+.dm-dec { display: flex; align-items: center; gap: var(--sp-2); color: var(--ink2); font-size: var(--fs-sm); line-height: 1.5; animation: dmin .3s var(--ease) }
+.dm-dec .dm-ic { color: var(--ink3); background: var(--surface) } .dm-dec.ok .dm-ic { color: var(--on-accent); background: var(--accent-fill) }
+.dm-sum { display: grid; gap: var(--sp-3); padding: var(--sp-4); border-radius: var(--r-lg); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); font-size: var(--fs-sm); animation: dmin .35s var(--ease) }
+.dm-sum > b { font-family: var(--font-display); font-weight: var(--fw-bold) }
+.dm-sum p { margin: 0; color: var(--ink2); line-height: 1.5 }
+.dm-sl { display: grid; gap: 2px }
+.dm-si { display: flex; align-items: center; gap: var(--sp-2); width: 100%; min-height: 30px; text-align: left; color: var(--ink3); font-size: var(--fs-xs); transition: color var(--dur) }
+.dm-si:hover { color: var(--ink) } .dm-si.ok { color: var(--ink) } .dm-si.ok .dm-ic { color: var(--accent) }
+.dm-si > span:nth-child(2) { flex: 1; min-width: 0 } .dm-si .meta { margin-left: 0; font-size: 11px; white-space: nowrap }
+.dm-sum .btn { justify-self: start }
+
+/* marks on the Algorithm and Guidebook pages */
+.dm-badge { display: inline-flex; align-items: center; gap: var(--sp-2); color: var(--ink2); font-size: var(--fs-sm); font-variant-numeric: tabular-nums }
+.dm-badge.now { color: var(--accent) }
+.dm-chip { display: inline-flex; align-items: center; height: 20px; margin-left: var(--sp-2); padding: 0 8px; border-radius: var(--r-round); background: var(--surface); color: var(--ink2); font-size: 11px; white-space: nowrap }
+.dm-chip.now { background: var(--accent-fill); color: var(--on-accent) }
+.dm-chip.go { cursor: pointer; transition: color var(--dur) } .dm-chip.go:hover { color: var(--accent) } .dm-chip.now.go:hover { color: var(--on-accent) }
+.dm-hd { flex: 1; min-width: 0 }
+.dm-head .dm-follow { margin-left: auto }
+/* what the agent is reading or changing lights up, row after row */
+.dm-lit > .ol-row, .ol.leaf.dm-lit { animation: dmlit 2.2s var(--ease) var(--dm-d, 0ms) both }
+@keyframes dmlit { 0% { background: transparent } 18% { background: color-mix(in srgb, var(--accent) 22%, transparent) } 100% { background: transparent } }
+.dm-lit > .ol-row { border-radius: var(--r-sm) }
+.prm.dm-prop .dm-val b { animation: dmnew .7s var(--ease) .35s both }
+@keyframes dmnew { from { opacity: 0; transform: translateY(6px) scale(.9) } to { opacity: 1; transform: none } }
+.dm-val { display: inline-flex; align-items: baseline; gap: 6px; font-variant-numeric: tabular-nums; white-space: nowrap }
+.dm-val s { color: var(--ink3); text-decoration-color: color-mix(in srgb, var(--ink3) 70%, transparent) }
+.dm-val b { font-weight: var(--fw-bold); color: var(--ink) }
+.dm-arrow { color: var(--accent) }
+
+.prm { gap: var(--sp-3); min-height: 34px; border-radius: var(--r-sm); transition: background .6s var(--ease) }
+.prm-l { display: inline-flex; align-items: baseline; gap: var(--sp-2); min-width: min(250px, 40%) } .prm-l code { font: var(--fs-xs) var(--font-mono); color: var(--ink3) }
+.prm .pv { min-width: 84px; font-variant-numeric: tabular-nums }
+.prm .pv.dm-changed { color: var(--accent); font-weight: var(--fw-medium) }
+.prm-b { flex: 1; min-width: 0; margin-left: 0; font-size: var(--fs-xs); overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.prm.dm-prop { background: color-mix(in srgb, var(--accent) 16%, transparent); padding-right: var(--sp-3) }
+.prm.dm-prop .prm-b { color: var(--accent) }
+.prm.dm-prop .dm-val { padding: 2px 8px; border-radius: var(--r-sm); background: var(--accent-fill); color: var(--on-accent) }
+.prm.dm-prop .dm-val b { color: var(--on-accent) } .prm.dm-prop .dm-val s { color: color-mix(in srgb, var(--on-accent) 60%, transparent) }
+.prm.flash { animation: dmpulse 1.4s var(--ease) }
+@keyframes dmpulse { 0%, 100% { box-shadow: 0 0 0 0 transparent } 30% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent) } }
+
+.dm-cited > .ol-row .eid, .dm-cited > .ol-row b { color: var(--accent) }
+.dm-note { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; margin: 6px 0 8px 18px; padding: var(--sp-2) var(--sp-3); max-width: 72ch; border-radius: var(--r-md);
+  background: var(--surface); color: var(--ink2); font-size: var(--fs-sm); line-height: 1.5 }
+.dm-note.now { background: color-mix(in srgb, var(--accent) 14%, var(--surface)) }
+
+@media (max-width: 1000px) {
+  :root { --dm-w: min(360px, calc(100vw - 2 * var(--gap))) }
+  body.dm-page.dm-open main { margin-right: 0 }
+  body.dm-open .dm-dock { right: calc(22px + var(--dm-ask) + var(--sp-4)) }
+  .dm-panel { bottom: 170px }
+}
+@media (max-width: 760px) {
+  .dm-dock { left: var(--gap) !important; right: calc(22px + var(--dm-ask) + var(--sp-2)) !important }
+  .dm-fade { left: 0 !important }
+  .prm-l { min-width: 0 }
+}
+/* when the panel leaves the page narrow (1024 wide with the panel open), rows keep one line each */
+body.dm-page main { container: dmmain / inline-size }
+@container dmmain (max-width: 600px) {
+  .st-l .st-t, .prm-l code, .prm-b { display: none }
+  .st-l b { min-width: 0 }
+  .prm-l { flex: 1; min-width: 0 }
+  .ol-row > .meta { white-space: nowrap }
+}
+@media (prefers-reduced-motion: reduce) { .dm-msg, .dm-fold, .dm-nav, .dm-card, .dm-dec, .dm-sum, .prm.flash, .dm-lit > .ol-row, .ol.leaf.dm-lit, .prm.dm-prop .dm-val b { animation: none } .dm-log { scroll-behavior: auto } }

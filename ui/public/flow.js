@@ -2,6 +2,10 @@
 // The left column explains each step; the right column shows it, live, from the engine's own progress events.
 import { icon } from "./icons.js";
 import { makeGlobe, gsoSky, ngsoSky, spread, tiltPink, farBlue } from "./reachglobe.js";
+import { plan } from "./dots.js";
+import { SCENES as SPACE_SCENES } from "./scenes/space.js";
+import { makeTerra } from "./scenes/terra.js";
+import { makeReport } from "./scenes/report.js";
 
 let ctx = null;              // { el, store, using(), go(route) } from app.js
 const runs = new Map();      // id -> run as the server reports it, with every event so far
@@ -74,11 +78,18 @@ const st = (m, k) => m.steps[k]?.state ?? "waiting";
 
 // What the rulebook says the later steps read, per kind of filing (spec/rulebook/intake.json, served by the server).
 // Read fresh each time a Flow opens, because the guidebook can change it.
-let KIND_MARKERS = {}, REQUIRED = {}, KIND_LABEL = {}, TABLES = {}, RULE_VERSION = 0, DOWNLINK = null, REACH = null, FINLAND = null;
+let KIND_MARKERS = {}, REQUIRED = {}, KIND_LABEL = {}, TABLES = {}, RULE_VERSION = 0, DOWNLINK = null, REACH = null, FINLAND = null, REGION = null;
+// The ladders' rungs and wording (spec/rulebook/ladder.json, tladder.json) and the guidebook rules they cite, by id.
+const RB = {}; let GUIDE = null;
 async function loadRules() {
   const get = (n) => fetch(`/api/rulebook/${n}`).then((x) => x.json()).catch(() => null);
-  const [r, dl, rc, fi] = await Promise.all([get("intake"), get("downlink"), get("reach"), FINLAND ? FINLAND : fetch("/finland.json").then((x) => x.json()).catch(() => null)]);
+  fetch("/api/chain").then((x) => x.json()).then((c) => { CHAIN = c; }).catch(() => {});
+  const [r, dl, rc, fi, la, tla, gb] = await Promise.all([get("intake"), get("downlink"), get("reach"), FINLAND ? FINLAND : fetch("/finland.json").then((x) => x.json()).catch(() => null),
+    get("ladder"), get("tladder"), fetch("/api/guidebook").then((x) => x.json()).catch(() => null)]);
+  RB.ladder = la; RB.tladder = tla;
+  GUIDE = Object.fromEntries((gb?.entries ?? gb?.rules ?? (Array.isArray(gb) ? gb : [])).filter((e) => e?.id).map((e) => [e.id, { title: e.title, rule: e.rule }]));
   DOWNLINK = dl; REACH = rc; FINLAND = fi;
+  if (!REGION) REGION = await fetch("/region.json").then((x) => x.json()).catch(() => null);
   if (!r) return;
   RULE_VERSION = r.version ?? 0; TABLES = {};
   for (const [k, v] of Object.entries(r.kinds)) {
@@ -89,20 +100,32 @@ async function loadRules() {
 }
 
 /* ---------- pages ---------- */
+// Where the ITU publishes each kind of issue (BR IFIC for space services and for terrestrial services).
+const ITU = { space: "https://www.itu.int/en/ITU-R/space/brific/Pages/default.aspx", terrestrial: "https://www.itu.int/en/ITU-R/terrestrial/brific/Pages/default.aspx" };
 export function homePage(samples) {
   const { el } = ctx;
-  return el("div", { class: "home" },
+  // The 3D scene just below the fold. It loads on its own; the page's cleanup stops it.
+  const scene = el("section", { class: "home3d", "aria-hidden": "true" });
+  let stop3d = null, gone3d = false;
+  import("./home3d.js").then((m) => { if (!gone3d) stop3d = m.mount(scene); }).catch(() => scene.remove());
+  const home = el("div", { class: "home" },
     el("div", { class: "drop-hint" },
       el("div", { class: "dh-ic", html: icon("arrow-up-from-bracket") }),
-      el("h1", {}, el("span", { class: "t" }, "Drop an ITU IFIC file anywhere")),
-      el("p", {}, "A space or terrestrial issue, as the zip the ITU publishes. It is processed on this computer.")),
+      // the ITU pages where the issues are published, opened in the browser
+      el("h1", {}, el("span", { class: "t" }, "Drop an ", el("a", { class: "ext", href: ITU.space, target: "_blank", rel: "noopener" }, "ITU IFIC file"), " anywhere")),
+      el("p", {}, "A ", el("a", { class: "ext", href: ITU.space, target: "_blank", rel: "noopener" }, "space"), " or ",
+        el("a", { class: "ext", href: ITU.terrestrial, target: "_blank", rel: "noopener" }, "terrestrial"), " issue, ",
+        el("a", { class: "ext", href: ITU.space, target: "_blank", rel: "noopener" }, "as the zip the ITU publishes"), ". It is processed on this computer.")),
     samples === null
       ? el("div", { class: "samples" }, [0, 1].map(() => el("div", { class: "sample" }, el("span", { class: "sk title" }), el("span", { class: "sk line", style: "width:120px;margin-top:8px" }))))
       : samples.length ? el("div", { class: "samples" },
-        el("div", { class: "s-h" }, "Or start with a sample"),
+        el("div", { class: "s-h" }, "Or click a sample to try it"),
         samples.map((s) => el("button", { class: "sample", onclick: async () => ctx.go(`/flow/${await startSample(s.name)}`) },
           el("span", { class: "ic", html: icon(/^br/i.test(s.name) ? "tower-broadcast" : "satellite-dish") }),
-          el("span", {}, el("b", {}, s.name), el("small", {}, `${/^br/i.test(s.name) ? "Terrestrial" : "Space"} · ${mb(s.bytes)}`))))) : null);
+          el("span", {}, el("b", {}, s.name), el("small", {}, `${/^br/i.test(s.name) ? "Terrestrial" : "Space"} · ${mb(s.bytes)}`))))) : null,
+    scene);
+  home.cleanup = () => { gone3d = true; stop3d?.(); };
+  return home;
 }
 
 /* ---------- the flow: modules on the left, the picture on the right, driven by scrolling ---------- */
@@ -110,16 +133,64 @@ const BUILT = [
   { id: "file", label: "File", icon: "file-zipper" },
   { id: "tables", label: "Tables", icon: "database" },
   { id: "relevant", label: "Relevant tables", icon: "list-check" },
-  { id: "downlink", label: "Downlink", icon: "satellite", space: true },
-  { id: "reach", label: "Reach", icon: "satellite-dish", space: true },
 ];
-const NEXT = {
-  space: ["Limit", "Data", "Power", "Compare", "Stations", "Ladder", "Report"],
-  terrestrial: ["Land mobile", "Range", "Data", "Field strength", "Threshold", "Stations", "Coordinated", "Ladder", "Report"],
+// Every stage after intake, by command name: its label and icon. Which ones a run shows comes from engines/chain.json.
+const STAGES = {
+  downlink: { label: "Downlink", icon: "satellite" }, reach: { label: "Reach", icon: "satellite-dish" },
+  limit: { label: "Limit", icon: "scale-balanced" }, data: { label: "Data", icon: "list-check" }, power: { label: "Power", icon: "weight-hanging" },
+  compare: { label: "Compare", icon: "scale-unbalanced" }, stations: { label: "Stations", icon: "tower-broadcast" },
+  mobile: { label: "Land mobile", icon: "tower-broadcast" }, range: { label: "Range", icon: "route" }, tdata: { label: "Data", icon: "list-check" },
+  field: { label: "Field strength", icon: "gauge-high" }, threshold: { label: "Threshold", icon: "scale-unbalanced" }, tstations: { label: "Stations", icon: "tower-broadcast" },
+  ladder: { label: "Ladder", icon: "triangle-exclamation" }, report: { label: "Report", icon: "paper-plane" },
+  tladder: { label: "Ladder", icon: "triangle-exclamation" }, treport: { label: "Report", icon: "paper-plane" },
 };
+// The whole path for each kind of filing, built or not, so the steps still to come can be listed.
+const PATH = {
+  space: ["Downlink", "Reach", "Limit", "Data", "Power", "Compare", "Stations", "Ladder", "Report"],
+  terrestrial: ["Land mobile", "Range", "Data", "Field strength", "Threshold", "Stations", "Ladder", "Report"],
+};
+let CHAIN = { space: ["downlink", "reach"], terrestrial: [] };
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const ease = (t) => t * t * (3 - 2 * t);
 const lerp = (a, b, t) => a + (b - a) * t;
+
+// A rulebook source in a few words: the part before its colon, or the named source of an "As in …" pointer.
+const citeShort = (t) => {
+  const s = String(t), m = s.match(/^As in spec\/rulebook\/[\w.]+ \((.+)\)\.?$/);
+  if (m) return m[1];
+  const i = s.indexOf(":");
+  return (i > 0 && i < 110 ? s.slice(0, i) : s.split(/\.\s/)[0]).replace(/\.$/, "").trim();
+};
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+// The line under the picture for each stage once it has a result, and while it is working.
+const SAY = {
+  downlink: (o) => `<b>${fmt(o.counts.kept)} of ${fmt(o.counts.notices)} filings</b> send signals down · ${fmt(o.counts.groups_kept)} transmitting groups go on`,
+  reach: (o) => `<b>${fmt(o.counts.seen)} of ${fmt(o.counts.notices)} filings</b> can be seen from Finland · ${fmt(o.counts.clear)} are clear`,
+};
+Object.assign(SAY, {
+  limit: (o) => `<b>${fmt(o.counts.limited)} of ${fmt(o.counts.notices)} filings</b> have an international power limit · ${fmt(o.counts.left)} have none`,
+  data: (o) => `<b>${fmt(o.counts.complete)} of ${fmt(o.counts.notices)} filings</b> file everything the calculation needs · ${fmt(o.counts.left)} cannot be calculated`,
+  power: (o) => `Worst-case power worked out for <b>${fmt(o.notices.filter((n) => n.eirp != null).length)} filings</b>, as if every antenna pointed straight at Finland`,
+  compare: (o) => `<b>${fmt(o.counts.how?.over ?? 0)} over the limit</b> · ${fmt(o.counts.how?.near ?? 0)} within 3 dB · ${fmt(o.counts.how?.under ?? 0)} under`,
+  stations: (o) => o.counts.how?.no_list ? "The list of Finnish stations is not on this computer" : `<b>${fmt(o.notices.filter((n) => n.stations?.length).length)} filings</b> work on the frequencies of ${fmt(o.counts.stations_hit ?? 0)} listed Finnish stations`,
+});
+Object.assign(SAY, {
+  mobile: (o) => `<b>${fmt(o.counts.kept)} of ${fmt(o.counts.notices)} stations</b> are foreign land mobile stations`,
+  range: (o) => `<b>${fmt(o.counts.kept)} of ${fmt(o.counts.notices)}</b> are close enough to matter: within 1,000 km of Finland`,
+  tdata: (o) => `<b>${fmt(o.counts.kept)} of ${fmt(o.counts.notices)}</b> file power and antenna height`,
+  field: (o) => `Signal strength worked out at Finland's border for <b>${fmt(o.counts.notices)} stations</b>`,
+  threshold: (o) => `<b>${fmt(o.counts.how?.over ?? 0)} over the trigger level</b> · ${fmt(o.counts.how?.over_coordinated ?? 0)} over but already coordinated · ${fmt(o.counts.how?.near ?? 0)} near`,
+  tstations: (o) => o.counts.how?.no_list ? "The list of Finnish stations is not on this computer" : `<b>${fmt(o.counts.how?.exposed ?? 0)} stations</b> are too strong at a listed Finnish station`,
+  ladder: (o) => `<b>${fmt(o.counts.levels.crit)} ${o.counts.levels.crit === 1 ? "filing needs" : "filings need"} attention</b> · ${fmt(o.counts.levels.warn)} worth a look · ${fmt(o.counts.levels.none)} no concern`,
+  report: (o) => `The notification lists <b>${fmt(o.counts.items)} filings</b> · every filing is in the CSV`,
+  tladder: (o) => `<b>${fmt(o.counts.levels.crit)} ${o.counts.levels.crit === 1 ? "station needs" : "stations need"} attention</b> · ${fmt(o.counts.levels.warn)} worth a look · ${fmt(o.counts.levels.none)} no concern`,
+  treport: (o) => `The notification lists <b>${fmt(o.counts.items)} stations</b> · every station is in the CSV`,
+});
+const WAIT = { mobile: "Finding the foreign land mobile stations…", range: "Measuring the distance to Finland…", tdata: "Checking power and antenna height…",
+  field: "Working out the signal at Finland's border…", threshold: "Comparing with the trigger level…", tstations: "Working out the signal at Finnish stations…", downlink: "Finding the filings that send signals down…", reach: "Working out which satellites Finland can see…", limit: "Looking up the international limits…",
+  data: "Checking what each filing files…", power: "Working out the power that could arrive…", compare: "Comparing with the limit at every angle…", stations: "Finding the Finnish stations on these frequencies…",
+  ladder: "Placing each filing on the concern ladder…", report: "Writing the notification…", tladder: "Placing each station on the concern ladder…", treport: "Writing the notification…" };
 
 export function flowPage(id) {
   const { el } = ctx;
@@ -134,14 +205,30 @@ export function flowPage(id) {
   if (!run) return el("div", { class: "empty-state" }, "Nothing has been loaded yet. Drop an ITU file anywhere.");
 
   const agree = el("div", { class: "agree" });
+  // The module names can fold away, leaving their icons, to give the picture more room. Names show by default.
+  let compact = (() => { try { return localStorage.getItem("tosi.flowCompact") === "1"; } catch { return false; } })();
+  const fold = el("button", { class: "fold", onclick: () => {
+    compact = !compact;
+    try { localStorage.setItem("tosi.flowCompact", compact ? "1" : "0"); } catch {}
+    setFold(); requestAnimationFrame(() => { layout(); frame(); });
+  } });
+  function setFold() {
+    page.classList.toggle("compact", compact);
+    fold.innerHTML = icon(compact ? "angles-right" : "angles-left");
+    fold.setAttribute("aria-label", compact ? "Show the module names" : "Hide the module names"); fold.title = fold.getAttribute("aria-label");
+  }
   const diagram = el("nav", { class: "diagram", "aria-label": "Modules" });
   const stage = el("div", { class: "stage" });
   const msg = el("div", { class: "msg", "aria-live": "polite" });
   const scrolly = el("div", { class: "scrolly" }, el("div", { class: "sticky" }, stage, msg));
+  // The last scene, the report, is not part of the sticky picture: once the ladder has been seen the page scrolls on
+  // into the notification (the outliner, the table and the map), so it reads and scrolls like a document.
+  const reportBox = el("section", { class: "rp", "aria-label": "Report" });
   const page = el("div", { class: "flow" },
-    el("header", { class: "flow-h" }, el("h1", {}, el("span", { class: "t" }, "Flow")), agree),
-    el("div", { class: "flow-body" }, el("div", { class: "diagram-col" }, diagram), scrolly));
+    el("header", { class: "flow-h" }, el("h1", {}, el("span", { class: "t" }, "Flow"), fold), agree),
+    el("div", { class: "flow-body" }, el("div", { class: "diagram-col" }, diagram), el("div", { class: "flow-main" }, scrolly, reportBox)));
 
+  setFold();
   let current = run, built = null, phase = -1;
 
   /* the file card and the tiles are built once the catalogue is known; until then, skeletons */
@@ -217,11 +304,13 @@ export function flowPage(id) {
     const { W, H } = geo, top = Math.max(H * 0.3, 200), bottom = H * 0.9;
     const kept = dl.dots.filter((x) => x.n.kept), left = dl.dots.filter((x) => !x.n.kept);
     // the kept: a block on the left two thirds
-    const bw = W * 0.56, bx = W * 0.06, cols = Math.max(8, Math.ceil(Math.sqrt(kept.length * bw / (bottom - top)))), step = Math.min(bw / cols, 22);
+    // dot size and spacing from how many filings there are (design tokens --dot-*, ui/public/dots.js)
+    const bw = W * 0.56, bx = W * 0.06, pl = plan(kept.length, bw, bottom - top - 34), cols = pl.cols, step = pl.cell;
+    stage.style.setProperty("--nd", `${pl.size}px`); dl.size = pl.size;
     kept.forEach((x, i) => { x.to = { x: bx + (i % cols) * step, y: top + 34 + Math.floor(i / cols) * step }; });
     dl.keptLabel.style.left = `${bx}px`; dl.keptLabel.style.top = `${top}px`;
     // the leavers: one small block per reason, stacked on the right
-    const rx = W * 0.7, rcols = 8;
+    const rx = W * 0.7, rcols = Math.max(4, Math.floor((W * 0.28) / step));
     let y = top;
     for (const L of dl.labels) {
       L.e.style.left = `${rx}px`; L.e.style.top = `${y}px`;
@@ -296,11 +385,11 @@ export function flowPage(id) {
     if (!rc || !geo) return;
     const { W, H } = geo, top = Math.max(H * 0.3, 200), bottom = H * 0.9;
     const seen = dl.dots.filter((x) => x.r?.seen), clear = dl.dots.filter((x) => x.r && !x.r.seen);
-    const bw = W * 0.56, bx = W * 0.06, cols = Math.max(8, Math.ceil(Math.sqrt(seen.length * bw / (bottom - top)))), step = Math.min(bw / cols, 22);
+    const bw = W * 0.56, bx = W * 0.06, pl = plan(seen.length, bw, bottom - top - 54), cols = pl.cols, step = pl.cell;
     seen.forEach((x, i) => { x.rt = { x: bx + (i % cols) * step, y: top + 54 + Math.floor(i / cols) * step }; });
     rc.seenLabel.style.left = `${bx}px`; rc.seenLabel.style.top = `${top}px`;
     rc.sub.style.left = `${bx}px`; rc.sub.style.top = `${top + 24}px`;
-    const rx = W * 0.7, rcols = 8;
+    const rx = W * 0.7, rcols = Math.max(4, Math.floor((W * 0.28) / step));
     let y = top;
     for (const L of rc.labels) {
       L.e.style.left = `${rx}px`; L.e.style.top = `${y}px`;
@@ -319,14 +408,42 @@ export function flowPage(id) {
   }
   function placeInSky() {
     if (!rc?.globe) return;
-    for (const x of dl.dots.filter((d) => d.r?.seen)) {
-      const r = x.r, f = FILINGS?.[r.ntc_id];
-      const at = r.how === "above_horizon" ? (() => { const q = gsoSky(r.longitude); return { az: q.az, el: Math.max(2, q.el) }; })()
-        : r.how === "beyond_earth" ? { az: 180 + (spread(r.ntc_id) - 0.5) * 140, el: 12 + 30 * spread(r.ntc_id, 2) }
-        : r.how === "assumed" && r.type === "G" ? { az: 180 + (spread(r.ntc_id) - 0.5) * 90, el: 10 }
-        : ngsoSky(r.ntc_id, f?.tilt ?? null, f?.apogee ?? null);
-      x.gt = rc.globe.place(at.az, at.el);
+    for (const x of dl.dots.filter((d) => d.r?.seen)) { const at = skyAt(x.r); x.gt = rc.globe.place(at.az, at.el, dl.size ?? 12); }
+    if (geo) for (const id in later) later[id].layout(geo);       // beams and ground stations follow the turned sky
+  }
+
+  // Where in Finland's sky a filing Finland can see is drawn (az, el in degrees), from its Reach result. Display only.
+  function skyAt(r) {
+    const f = FILINGS?.[r.ntc_id];
+    return r.how === "above_horizon" ? (() => { const q = gsoSky(r.longitude); return { az: q.az, el: Math.max(2, q.el) }; })()
+      : r.how === "beyond_earth" ? { az: 180 + (spread(r.ntc_id) - 0.5) * 140, el: 12 + 30 * spread(r.ntc_id, 2) }
+      : r.how === "assumed" && r.type === "G" ? { az: 180 + (spread(r.ntc_id) - 0.5) * 90, el: 10 }
+      : ngsoSky(r.ntc_id, f?.tilt ?? null, f?.apogee ?? null);
+  }
+
+  // The space scenes after Reach (ui/public/scenes/space.js), built as each stage's result arrives.
+  const later = {};
+  let STATIONS = null;
+  const laterIds = () => { const x = extras(), i = x.indexOf("reach"); return i < 0 ? [] : x.slice(i + 1).filter((id) => SPACE_SCENES[id]); };
+  function buildLater() {
+    if (!rc || !dl) return;
+    if (STATIONS === null && current.out?.stations) { STATIONS = []; fetch("/api/stations").then((x) => x.json()).then((d) => { STATIONS = d.stations; later.stations?.layout(geo); frame(); }).catch(() => {}); }
+    for (const id of laterIds()) {
+      if (later[id] || !current.out?.[id]) continue;
+      later[id] = SPACE_SCENES[id]({ el, stage, dots: dl.dots, out: current.out, fmt, size: () => dl.size ?? 12, finland: FINLAND, globe: rc.globe, rulebooks: RB, guide: GUIDE, get stations() { return STATIONS; } });
+      if (geo) later[id].layout(geo);
     }
+  }
+
+  // Terrestrial: one map for all its scenes (ui/public/scenes/terra.js), built once Land mobile has a result.
+  let terra = null;
+  const TERRA = ["mobile", "range", "tdata", "field", "threshold", "tstations", "tladder"];
+  function buildTerra() {
+    if (terra && current.out?.tladder && !terra.hasLadder) { terra.addLadder(current.out); if (geo) layout(); }
+    if (terra || current.result?.kind !== "terrestrial" || !current.out?.mobile) return;
+    if (STATIONS === null) { STATIONS = []; fetch("/api/stations").then((x) => x.json()).then((d) => { STATIONS = d.stations; frame(); report?.layout(); }).catch(() => {}); }
+    terra = makeTerra({ el, stage, out: current.out, fmt, region: REGION, rulebooks: RB, guide: GUIDE, get stations() { return STATIONS; } });
+    if (geo) layout();
   }
 
   // Two arrangements: every table on a grid, and the relevant ones lifted into a list. Scrolling moves between them.
@@ -350,6 +467,8 @@ export function flowPage(id) {
     });
     layoutDownlink();
     layoutReach();
+    for (const id in later) later[id].layout(geo);
+    if (terra) { const src = built?.tiles.find((t) => t.t.name === "fxm_terra")?.l; terra.layout(geo, src ? { x: src.x + src.w / 2, y: src.y + src.h / 2 } : null); }
   }
 
   function progress() {
@@ -358,12 +477,20 @@ export function flowPage(id) {
   }
 
   // An accepted space filing has two more scenes, Downlink and Reach: the first three take the first 60% of the scroll.
-  const SPAN = () => hasDownlink() ? 0.6 : 1;
+  // Scenes after intake share the scroll after the first three: each gets an equal window, entered over most of it.
+  const extras = () => current.result?.check?.status === "accepted" ? CHAIN[current.result.kind] ?? [] : [];
+  const FINAL = new Set(["report", "treport"]);            // shown in the page below the scroll story, not in the picture
+  const scened = () => extras().filter((id) => !FINAL.has(id));
+  const SPAN = () => 1 / (1 + scened().length / 3);
+  const win = (i) => { const n = scened().length, w = (1 - SPAN()) / Math.max(1, n); return { start: SPAN() + i * w, w }; };
+  const tScene = (P, id) => { const i = scened().indexOf(id); if (i < 0) return 0; const { start, w } = win(i); return ease(clamp((P - start - 0.1 * w) / (0.7 * w))); };
   function frame() {
-    scrolly.style.height = hasDownlink() ? "540vh" : "";
+    scrolly.style.height = scened().length ? `${300 + 120 * scened().length}vh` : "";
     const P = progress(), p = P / SPAN(), W = geo?.W ?? stage.clientWidth, H = geo?.H ?? stage.clientHeight;
-    const tD = hasDownlink() ? ease(clamp((P - 0.62) / 0.14)) : 0;
-    const tR = hasDownlink() ? ease(clamp((P - 0.8) / 0.14)) : 0;
+    const tD = tScene(P, "downlink");
+    const tR = tScene(P, "reach");
+    const lids = laterIds(), tL = Object.fromEntries(lids.map((id) => [id, later[id] ? tScene(P, id) : 0]));
+    const afterReach = 1 - clamp((tL[lids[0]] ?? 0) * 3);         // Reach's labels and picture give way to the next scene
     const tB = ease(clamp((p - 0.2) / 0.22)), tC = ease(clamp((p - 0.58) / 0.22));
     // the file: centre stage, then up into the corner as its tables come out
     card.style.transform = `translate(${lerp(W / 2 - 110, W * 0.04, tB)}px, ${lerp(H / 2 - 110, H * 0.02, tB)}px) scale(${lerp(1, 0.62, tB)})`;
@@ -377,12 +504,13 @@ export function flowPage(id) {
         if (x.rel && x.l) b = { x: lerp(b.x, x.l.x, tC), y: lerp(b.y, x.l.y, tC), w: lerp(b.w, x.l.w, tC), h: lerp(b.h, x.l.h, tC) };
         const s = x.e.style;
         s.transform = `translate(${b.x}px, ${b.y}px)`; s.width = `${b.w}px`; s.height = `${b.h}px`;
-        const op = (x.absent ? tC : x.rel ? d : d * (1 - tC)) * (1 - (x.t.name === "notice" ? clamp(tD * 1.4 - 0.4) : tD));
+        const tF = tScene(P, extras()[0]), src = current.result?.kind === "terrestrial" ? "fxm_terra" : "notice";
+        const op = (x.absent ? tC : x.rel ? d : d * (1 - tC)) * (1 - (x.t.name === src ? clamp(tF * 1.4 - 0.4) : tF));
         s.opacity = String(op); s.pointerEvents = op > 0.3 ? "" : "none";   // a faded tile must not catch the pointer
         x.e.classList.toggle("lit", x.rel && tC > 0.5);
         x.e.classList.toggle("named", b.w > 64 && b.h > 16);
       });
-      built.info.forEach((inf) => { inf.e.style.opacity = String(clamp((tC - 0.6) / 0.4) * (1 - tD)); });
+      built.info.forEach((inf) => { inf.e.style.opacity = String(clamp((tC - 0.6) / 0.4) * (1 - tScene(P, extras()[0]))); });
     }
     if (dl) {
       const n = dl.dots.length;
@@ -395,10 +523,22 @@ export function flowPage(id) {
         }
         // In the sky, a moving satellite is pink: paler for a gentle orbit tilt, deeper for a steep one.
         const sky = rc && x.gt && tR > 0.5 && viewT > 0.5;
-        x.e.style.background = !sky ? "" : x.r.how === "beyond_earth" ? farBlue(dark) : x.r.type === "N" ? tiltPink(FILINGS?.[x.n.ntc_id]?.tilt, dark) : "";
+        const skyColour = !sky ? "" : x.r.how === "beyond_earth" ? farBlue(dark) : x.r.type === "N" ? tiltPink(FILINGS?.[x.n.ntc_id]?.tilt, dark) : "";
+        x.e.style.background = skyColour;
+        // the scenes after Reach: a dot moves to its place in each; one that has no place there fades as it begins
+        let gone = 0, back = 0, paint;
+        for (const id of lids) {
+          const t = tL[id]; if (!t || (!x.r && !later[id].all)) continue;
+          const at = x.at?.[id], sk = x.sky?.[id];
+          const to = at && sk ? { x: lerp(at.x, sk.x, ease(viewT)), y: lerp(at.y, sk.y, ease(viewT)) } : at ?? sk;
+          if (to) { b = { x: lerp(b.x, to.x, t), y: lerp(b.y, to.y, t) }; if (t > 0.5) paint = later[id].colour(x) ?? undefined; if (later[id].all) back = Math.max(back, t); }
+          else if (!x.unknown) gone = Math.max(gone, t);            // a satellite that cannot be calculated stays in view
+        }
+        if (lids.some((id) => tL[id] > 0.5)) x.e.style.background = paint ?? skyColour;   // a concern colour wins; else the sky's own
+        x.e.classList.toggle("unknown", !!x.unknown && (tL.data ?? 0) > 0.5);
         x.e.style.transform = `translate(${b.x}px, ${b.y}px)`;
         // in the sky, a satellite on the far side of the dome is fainter, so the dome reads as round
-        const op = clamp(d * 3) * (rc && !x.n.kept ? 1 - tR : 1) * (rc && x.gt?.far ? 1 - 0.45 * tR * viewT : 1);
+        const op = clamp(d * 3) * (rc && !x.n.kept ? 1 - tR * (1 - back) : 1) * (rc && x.gt?.far ? 1 - 0.45 * tR * viewT * afterReach : 1) * (1 - gone * (1 - back));
         x.e.style.opacity = String(op); x.e.style.pointerEvents = op > 0.3 ? "" : "none";
         x.e.classList.toggle("kept", x.n.kept && !(rc && tR > 0.5 && x.r && !x.r.seen));
       });
@@ -406,14 +546,21 @@ export function flowPage(id) {
       dl.labels.forEach((L) => { L.e.style.opacity = String(lo); }); dl.keptLabel.style.opacity = String(lo);
     }
     if (rc) {
-      const ro = clamp((tR - 0.75) / 0.25);
+      const ro = clamp((tR - 0.75) / 0.25) * afterReach;
       rc.labels.forEach((L) => { L.e.style.opacity = String(ro); }); rc.seenLabel.style.opacity = String(ro); rc.sub.style.opacity = String(ro);
-      rc.globe?.show(clamp((tR - 0.35) / 0.65) * viewT);
-      rc.toggle.style.opacity = String(ro); rc.toggle.style.pointerEvents = ro > 0.3 ? "" : "none";
+      const tAll = Math.max(0, ...lids.filter((id) => later[id]?.all).map((id) => tL[id]));   // the ladder takes the whole picture
+      rc.globe?.show(clamp((tR - 0.35) / 0.65) * viewT * (1 - tAll), clamp((tR - 0.35) / 0.65) * viewT * afterReach);   // the sky stays; its note is Reach's own
+      const to = clamp((tR - 0.75) / 0.25) * (1 - clamp(tAll * 2));
+      rc.toggle.style.opacity = String(to); rc.toggle.style.pointerEvents = to > 0.3 ? "" : "none";
       rc.bSky.classList.toggle("on", view === "globe"); rc.bGrid.classList.toggle("on", view === "grid");
     }
-    const ph = hasDownlink() && P >= 0.82 ? 4 : hasDownlink() && P >= 0.64 ? 3 : p < 0.33 ? 0 : p < 0.7 ? 1 : 2;
-    if (ph !== phase) { phase = ph; say(); light(); }
+    if (terra) { const tt = Object.fromEntries(TERRA.map((id) => [id, current.out?.[id] ? tScene(P, id) : 0])); terra.frame(tt, tt.mobile, 1); }
+    lids.forEach((id, i) => { const sc = later[id]; if (sc) sc.frame(tL[id], 1 - clamp((tL[lids[i + 1]] ?? 0) * 3), ease(viewT)); });
+    let ph = p < 0.33 ? 0 : p < 0.7 ? 1 : 2;
+    scened().forEach((_, i) => { if (P >= win(i).start + 0.2 * win(i).w) ph = 3 + i; });
+    const fin = extras().find((id) => FINAL.has(id));
+    if (fin && reportBox.getBoundingClientRect().top < innerHeight * 0.55) ph = 3 + extras().indexOf(fin);
+    if (ph !== phase) { phase = ph; say(); light(); if (terra && ph >= 3) terra.words(extras()[ph - 3]); }
   }
 
   function say() {
@@ -423,11 +570,12 @@ export function flowPage(id) {
       r?.database ? `<b>${fmt(r.database.tables.length)} tables</b> inside · ${fmt(r.database.rows)} rows` : r ? "No tables could be read" : "Reading the tables…",
       r?.database ? (r.check.status === "accepted" ? `The rules read <b>${built?.relevant.length ?? 0} of them</b>` + ` · ${KIND_LABEL[r.kind] ?? ""}` : `<b>Refused</b> · ${r.check.reason}`) : r ? `<b>Refused</b> · ${r.check.reason}` : "Picking the tables the rules read…",
     ];
-    const dd = current.downlink;
-    lines.push(dd ? `<b>${fmt(dd.counts.kept)} of ${fmt(dd.counts.notices)} filings</b> send signals down · ${fmt(dd.counts.groups_kept)} transmitting groups go on` : "Finding the filings that send signals down…");
-    const rr = current.reach;
-    lines.push(rr ? `<b>${fmt(rr.counts.seen)} of ${fmt(rr.counts.notices)} filings</b> can be seen from Finland · ${fmt(rr.counts.clear)} are clear` : "Working out which satellites Finland can see…");
-    const html = lines[Math.max(0, phase)];
+    for (const id of extras()) { const o = current.out?.[id]; lines.push(o && SAY[id] ? SAY[id](o) : WAIT[id] ?? `Working on ${STAGES[id]?.label ?? id}…`); }
+    let html = lines[Math.max(0, phase)] ?? lines[lines.length - 1];
+    // a bare pointer to another rulebook ("As in spec/rulebook/…: …") names no source of its own: leave it out
+    const sid = extras()[phase - 3], cites = sid ? Object.values(current.out?.[sid]?.rulebook?.cites ?? {}).filter((c) => !/^As in spec\/rulebook\/[\w.]+:/.test(String(c))) : [];
+    html = `<span class="say">${html}</span>`;
+    if (cites.length) html += `<small class="cite" title="${esc(cites.join("\n\n"))}">Based on ${[...new Set(cites.map(citeShort))].map(esc).join(" · ")}</small>`;
     if (msg.dataset.html === html) return;              // only animate when the message really changes
     msg.dataset.html = html;
     msg.classList.remove("in"); void msg.offsetWidth;
@@ -436,18 +584,26 @@ export function flowPage(id) {
 
   function light() {
     const kind = current.result?.kind;
-    const next = NEXT[kind];
+    // the steps still to come: the whole path for this kind, after the ones this run shows
+    const next = PATH[kind]?.slice(extras().length);
     diagram.replaceChildren(
-      ...BUILT.filter((m) => !m.space || hasDownlink()).map((m, i) => el("button", { class: "node" + (i === phase ? " on" : "") + (i < phase ? " past" : ""), onclick: () => jumpTo(i) },
+      ...[...BUILT, ...extras().map((id) => ({ id, ...STAGES[id] }))].map((m, i) => el("button", { class: "node" + (i === phase ? " on" : "") + (i < phase ? " past" : ""), onclick: () => jumpTo(i) },
         el("span", { class: "ic", html: icon(m.icon) }), el("span", { class: "label" }, m.label))),
-      el("div", { class: "next-h" }, "Next"),
+      // "Next" only while steps remain: a refused file, a path still to build, or a result not in yet
+      ...(next && !next.length && current.result?.check.status === "accepted" ? [] : [el("div", { class: "next-h" }, "Next")]),
       ...(current.result && current.result.check.status !== "accepted" ? [el("div", { class: "node later stop" }, el("span", { class: "ic", html: icon("circle-xmark") }), el("span", { class: "label" }, "Stops here: the file was turned away"))]
         : next ? next.map((n) => el("div", { class: "node later" }, el("span", { class: "ic" }, el("i", { class: "pip" })), el("span", { class: "label" }, n)))
         : [0, 1, 2, 3].map(() => el("div", { class: "node later" }, el("span", { class: "ic" }, el("i", { class: "sk dot" })), el("span", { class: "sk line", style: "width:80px" })))));
   }
   function jumpTo(i) {
+    if (i >= 3 && FINAL.has(extras()[i - 3])) {
+      const head = parseFloat(getComputedStyle(page).getPropertyValue("--flowhead")) || 90;
+      // the report's own heading just under the page's header; the story's last line slips behind the header
+      return scrollTo({ top: scrollY + reportBox.getBoundingClientRect().top + (parseFloat(getComputedStyle(reportBox).paddingTop) || 0) - head - 4, behavior: "smooth" });
+    }
     const r = scrolly.getBoundingClientRect(), span = r.height - innerHeight;
-    scrollTo({ top: scrollY + r.top + span * (i === 4 ? 0.97 : i === 3 ? 0.78 : [0.08, 0.48, 0.94][i] * SPAN()), behavior: "smooth" });
+    const at = i >= 3 ? Math.min(0.99, win(scened().indexOf(extras()[i - 3])).start + 0.9 * win(scened().indexOf(extras()[i - 3])).w) : [0.08, 0.48, 0.94][i] * SPAN();
+    scrollTo({ top: scrollY + r.top + span * at, behavior: "smooth" });
   }
 
   // A result made under an older rulebook: say so, and offer to run it again under the current one.
@@ -475,10 +631,10 @@ export function flowPage(id) {
 
   let raf = 0;
   const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); };
-  const onResize = () => { layout(); frame(); };
+  const onResize = () => { layout(); frame(); report?.layout(); };
   addEventListener("scroll", onScroll, { passive: true });
   addEventListener("resize", onResize);
-  page.cleanup = () => { removeEventListener("scroll", onScroll); removeEventListener("resize", onResize); for (const t of ["wheel", "touchmove", "keydown"]) removeEventListener(t, stopFollow); clearTimeout(polling); clearInterval(clock); };
+  page.cleanup = () => { report?.cleanup(); removeEventListener("scroll", onScroll); removeEventListener("resize", onResize); for (const t of ["wheel", "touchmove", "keydown"]) removeEventListener(t, stopFollow); clearTimeout(polling); clearInterval(clock); };
 
   /* hover a table: its names and size at once; click it: all its columns, pinned */
   const tip = el("div", { class: "ttip", hidden: true });
@@ -501,7 +657,7 @@ export function flowPage(id) {
   function loadFilings() {
     if (!current.downlink || filingsFor === current.id) return;
     filingsFor = current.id;
-    fetch(`/api/runs/${current.id}/filings`).then((x) => x.ok ? x.json() : null).then((f) => { FILINGS = f; layoutReach(); frame(); }).catch(() => {});
+    fetch(`/api/runs/${current.id}/filings`).then((x) => x.ok ? x.json() : null).then((f) => { FILINGS = f; layoutReach(); frame(); report?.layout(); }).catch(() => {});
   }
   function describeNotice(id) {
     const n = current.downlink?.notices.find((x) => String(x.ntc_id) === id);
@@ -515,7 +671,8 @@ export function flowPage(id) {
       el("div", { class: "tt-s" }, `${fmt(n.transmit)} transmitting, ${fmt(n.receive)} receiving groups`),
       f?.note ? el("div", { class: "tt-n" }, `“${f.note.length > 160 ? f.note.slice(0, 157) + "…" : f.note}”`) : null,
       el("div", { class: n.kept ? "tt-r" : "tt-a" }, n.kept ? "Goes on: it sends signals down." : DOWNLINK?.reasons?.[n.reason] ?? n.reason),
-      ...describeReach(n.ntc_id)].filter(Boolean);
+      ...describeReach(n.ntc_id),
+      ...laterIds().filter((id, i) => later[id] && phase >= 3 + extras().indexOf(id)).map((id) => { const t = later[id].describe(n.ntc_id); return t ? el("div", { class: "tt-s" }, t) : null; })].filter(Boolean);
   }
   // Reach, once it has run: whether Finland can see it, why, and the number behind it.
   function describeReach(ntc) {
@@ -528,8 +685,21 @@ export function flowPage(id) {
       : r.north != null ? (r.north >= 90 ? "Can see the ground all the way to the North Pole" : `Can see the ground as far north as ${deg(r.north)} N; Finland starts at ${south} N`) : null;
     return [el("div", { class: r.seen ? "tt-r" : "tt-a" }, words), num ? el("div", { class: "tt-s" }, num) : null];
   }
+  const showTip = (ev, lines) => {
+    tip.replaceChildren(...lines); tip.hidden = false;
+    const r = stage.getBoundingClientRect();
+    tip.style.left = `${clamp(ev.clientX - r.left + 14, 4, r.width - tip.offsetWidth - 4)}px`;
+    tip.style.top = `${clamp(ev.clientY - r.top + 14, 4, r.height - tip.offsetHeight - 4)}px`;
+  };
   stage.addEventListener("pointermove", (ev) => {
     const nd = ev.target.closest(".ndot");
+    const sceneNow = extras()[phase - 3];
+    // Stations: hover a satellite to draw its stations; hover a station on the ground to see what reaches it and why
+    if (sceneNow === "stations" && later.stations) {
+      later.stations.highlight(nd ? Number(nd.dataset.ntc) : null);
+      if (!nd) { const r = stage.getBoundingClientRect(); const lines = later.stations.hoverAt(ev.clientX - r.left, ev.clientY - r.top, el, (id) => FILINGS?.[id]?.name ?? `Filing ${id}`); if (lines) return showTip(ev, lines); }
+    }
+    if (terra && phase >= 3 && !nd) { const r = stage.getBoundingClientRect(); const lines = terra.hover(ev.clientX - r.left, ev.clientY - r.top); if (lines) { frame(); return showTip(ev, lines); } }
     if (nd && Number(nd.style.opacity) > 0.3) {
       tip.replaceChildren(...describeNotice(nd.dataset.ntc)); tip.hidden = false;
       const r = stage.getBoundingClientRect();
@@ -566,11 +736,22 @@ export function flowPage(id) {
   // is being read, the relevant tables once the check is done.
   function phaseReached(d) {
     const ev = d.events || [];
-    if (d.reach) return 4;
-    if (d.downlink) return 3;
+    const done = (CHAIN[d.result?.kind] ?? []).filter((id) => d.out?.[id]).length;
+    if (done) return 2 + done;
     if (d.result || ev.some((x) => x.step === "check" && x.state === "done")) return 2;
     if (ev.some((x) => x.step === "database" && (x.state === "progress" || x.state === "done"))) return 1;
     return 0;
+  }
+  let report = null;
+  function buildReport() {
+    const kind = current.result?.kind, id = kind === "terrestrial" ? "treport" : "report";
+    if (current.result && (current.result.check?.status !== "accepted" || !extras().includes(id))) { reportBox.hidden = true; return; }
+    reportBox.hidden = false;
+    if (!report) {
+      report = makeReport({ el, box: reportBox, fmt, kind: kind ?? "space", runId: () => current.id, guide: () => GUIDE, rulebooks: RB,
+        finland: FINLAND, region: REGION, skyAt: (r) => skyAt(r), get stations() { return STATIONS; }, get filings() { return FILINGS; } });
+    }
+    report.update(current);
   }
   function update(d) {
     current = d;
@@ -578,6 +759,9 @@ export function flowPage(id) {
     if (!built) build();
     if (!dl) buildDownlink();
     if (!rc) buildReach();
+    buildLater();
+    buildTerra();
+    buildReport();
     loadFilings();
     say(); light(); frame();
     if (follow) {

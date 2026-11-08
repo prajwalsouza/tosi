@@ -6,11 +6,13 @@ import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+// The sources a rulebook cites: its "method", "basis" and "*_basis" entries, in rulebook order. Every result carries them.
+const citesOf = (rules: Record<string, unknown>) => Object.fromEntries(Object.entries(rules).filter(([k]) => k === "method" || k === "basis" || k.endsWith("_basis")));
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const RULES_BYTES = readFileSync(join(root, "spec", "rulebook", "reach.json"));
 const RULES = JSON.parse(RULES_BYTES.toString("utf8"));
-const RULEBOOK = { version: RULES.version, sha256: createHash("sha256").update(RULES_BYTES).digest("hex") };
+const RULEBOOK = { version: RULES.version, sha256: createHash("sha256").update(RULES_BYTES).digest("hex"), cites: citesOf(RULES) };
 const emit = (step: string, state: string, fields: Record<string, unknown> = {}) => process.stderr.write(JSON.stringify({ event: "step", step, state, ...fields }) + "\n");
 
 // Shared with the other engines, exactly: degrees to radians and back, wrapping, rounding to two decimals.

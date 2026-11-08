@@ -1,6 +1,6 @@
 {
-  "about": "The guidebook: the principles, concerns, methods, data rules and known limits every finding is cited against, the concern ladder, and the steps of the algorithm with the entries they apply and the tables they need. Each entry states its basis; 'Administration policy' marks a choice the administration owns, not an external rule.",
-  "version": 1,
+  "about": "The guidebook: the principles, concerns, methods, data rules and known limits every finding is cited against, the concern ladder, and the steps of the algorithm with the entries they apply and the tables they need. Each entry states its basis; 'Administration policy' marks a choice the administration owns, not an external rule. Method definitions are numbered MD-1, MD-2 and so on, so they are never mistaken for Traficom's regulations, such as M4, the national frequency allocation table.",
+  "version": 2,
   "sections": [
     {
       "id": "P",
@@ -13,7 +13,7 @@
       "about": "What makes a filing something Finland should worry about."
     },
     {
-      "id": "M",
+      "id": "MD",
       "title": "Methods",
       "about": "How each number is worked out."
     },
@@ -165,8 +165,8 @@
       ]
     },
     {
-      "id": "M-1",
-      "section": "M",
+      "id": "MD-1",
+      "section": "MD",
       "title": "Assume the worst for satellites",
       "rule": "Tosi works out how much power from a satellite would arrive on each square metre of ground in Finland (called power flux density). It assumes the satellite's antenna is aimed straight at Finland at full strength, whatever the filing says about where it points. The result is an upper bound, not a forecast.",
       "why": "Public filings don't reliably say where a satellite's beams point, and satellites can change where they point. Assuming the worst can sometimes raise a false alarm, but it will never hide a real problem.",
@@ -179,8 +179,8 @@
       ]
     },
     {
-      "id": "M-2",
-      "section": "M",
+      "id": "MD-2",
+      "section": "MD",
       "title": "Which limits apply to satellites",
       "rule": "The limits on how much satellite power may arrive on the ground, which frequency bands they cover, and how they depend on the angle the signal arrives from, are taken from the international Radio Regulations, using the tables the ITU publishes.",
       "why": "These limits are agreed between countries, and using the ITU's own tables avoids copying mistakes. They depend on the angle of arrival because ground antennas mostly look towards the horizon, so signals arriving at a low angle do more harm.",
@@ -194,8 +194,8 @@
       ]
     },
     {
-      "id": "M-3",
-      "section": "M",
+      "id": "MD-3",
+      "section": "MD",
       "title": "Comparing power on the same footing",
       "rule": "Before comparing with a limit, the power stated in the filing is converted to the same slice of frequency the limit is written for, using the method in the ITU's technical annex.",
       "why": "Limits are written for a fixed slice of frequency, such as 4 kilohertz or 1 megahertz, while filings may give total power or power spread over a different width. Without converting, the two numbers can't be compared fairly.",
@@ -209,8 +209,8 @@
       ]
     },
     {
-      "id": "M-4",
-      "section": "M",
+      "id": "MD-4",
+      "section": "MD",
       "title": "Which ground stations are checked",
       "rule": "The check on stations on the ground covers land mobile radio only: base stations (class FB) and mobile stations (class ML), as listed in the ITU's terrestrial preface.",
       "why": "The European threshold used to decide when neighbours need to coordinate was written for land mobile radio. Applying it to other kinds of service would produce numbers that look precise but don't mean much.",
@@ -223,8 +223,8 @@
       ]
     },
     {
-      "id": "M-5",
-      "section": "M",
+      "id": "MD-5",
+      "section": "MD",
       "title": "How a signal travels over land and sea",
       "rule": "The strength of a signal from a foreign station is worked out with the ITU's standard method for this (Recommendation P.1546-6). It is calculated for the signal level reached 10% of the time, at half of all locations, for a receiving antenna 10 metres above the ground, without using a detailed map of the terrain.",
       "why": "Close to the ground, radio signals don't simply weaken with distance in a fixed way; they depend on the path, the land and the weather. P.1546 is the internationally agreed way to estimate this. Using the level reached 10% of the time captures the occasional strong conditions that actually cause interference.",
@@ -237,8 +237,8 @@
       ]
     },
     {
-      "id": "M-6",
-      "section": "M",
+      "id": "MD-6",
+      "section": "MD",
       "title": "When neighbours need to talk",
       "rule": "A foreign station is a concern if the signal it would put at the Finnish border is above the European trigger level for its frequency band (from recommendation T/R 25-08), adjusted for how wide its channel is.",
       "why": "This trigger level is what European countries have agreed: below it, neighbours don't need to coordinate. Wider channels pick up more power, so the level is adjusted for them.",
@@ -251,8 +251,8 @@
       ]
     },
     {
-      "id": "M-7",
-      "section": "M",
+      "id": "MD-7",
+      "section": "MD",
       "title": "Frequencies above 470 MHz",
       "rule": "Above 470 MHz, the trigger level the recommendation gives for frequencies above 400 MHz is used.",
       "why": "The recommendation's table stops at 470 MHz, but many land mobile filings use higher frequencies. Carrying the last value forward gives a consistent test instead of no test at all.",
@@ -266,8 +266,8 @@
       ]
     },
     {
-      "id": "M-8",
-      "section": "M",
+      "id": "MD-8",
+      "section": "MD",
       "title": "Where the signal is measured",
       "rule": "The signal from a foreign station is worked out at several points along Finland's land border and the outer edge of its territorial sea, and the highest value is kept. Finnish stations that use the same channel are also checked at their own location.",
       "why": "The strongest signal is not always at the closest point: a path over water carries much further than one over land. And the listed Finnish stations are where any harm would actually be felt.",
@@ -281,8 +281,8 @@
       ]
     },
     {
-      "id": "M-9",
-      "section": "M",
+      "id": "MD-9",
+      "section": "MD",
       "title": "When nothing can be calculated",
       "rule": "Three different outcomes are kept apart. A satellite that can never be seen from Finland is clear. A frequency band that has no applicable limit is recorded as having none. Only a filing that is missing the information needed is recorded as 'cannot calculate'.",
       "why": "These mean very different things and must not look the same. A satellite Finland can't see cannot interfere. No limit means the rule doesn't apply. Missing information means we simply don't know, and a person should look.",
@@ -333,6 +333,22 @@
       "effect": "The station stays in the check; only the impossible value is ignored.",
       "basis": [
         "Administration policy"
+      ],
+      "applies": [
+        "space",
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "D-4",
+      "section": "D",
+      "title": "Finnish use from the national frequency table",
+      "rule": "For every case over or near the level, Tosi lists the uses Finland's national frequency allocation table gives on the case's frequencies, and which of them are licence-exempt. The table is the annex to Traficom's Radio Frequency Regulation 4 (M4), taken from Traficom's open data.",
+      "why": "The list of stations to protect has no licence-exempt use, but being over the limit still matters where only licence-exempt equipment works. The table shows that use, so a person can judge the case.",
+      "effect": "The report cites the table's uses next to each case. The rung a case is on does not change.",
+      "basis": [
+        "Traficom Radio Frequency Regulation 4 (M4), annex: national frequency allocation table",
+        "Traficom, 7 November 2026: over the limit counts even with only licence-exempt use"
       ],
       "applies": [
         "space",
@@ -438,19 +454,19 @@
       "rung": "Cannot calculate",
       "means": "Information needed for the calculation is missing from the filing",
       "level": "none",
-      "cites": "M-9"
+      "cites": "MD-9"
     },
     {
       "rung": "No applicable limit",
       "means": "No limit applies to this frequency band and kind of station",
       "level": "none",
-      "cites": "M-9"
+      "cites": "MD-9"
     },
     {
       "rung": "Clear",
       "means": "Below every trigger, or never visible from Finland",
       "level": "none",
-      "cites": "M-9"
+      "cites": "MD-9"
     }
   ],
   "steps": [
@@ -537,7 +553,7 @@
         "a moving one must pass far enough north"
       ],
       "cites": [
-        "M-9"
+        "MD-9"
       ],
       "reads": [
         "geo",
@@ -560,8 +576,8 @@
         "and when it was filed"
       ],
       "cites": [
-        "M-2",
-        "M-9",
+        "MD-2",
+        "MD-9",
         "L-3"
       ],
       "reads": [
@@ -569,7 +585,7 @@
         "srv_cls"
       ],
       "exit": "No applicable limit",
-      "built": false
+      "built": true
     },
     {
       "id": "s4",
@@ -584,14 +600,14 @@
         "must all be filed"
       ],
       "cites": [
-        "M-9"
+        "MD-9"
       ],
       "reads": [
         "emiss",
         "s_beam"
       ],
       "exit": "Cannot calculate",
-      "built": false
+      "built": true
     },
     {
       "id": "s5",
@@ -606,15 +622,15 @@
         "per square metre of ground"
       ],
       "cites": [
-        "M-1",
-        "M-3"
+        "MD-1",
+        "MD-3"
       ],
       "reads": [
         "emiss",
         "s_beam"
       ],
       "exit": null,
-      "built": false
+      "built": true
     },
     {
       "id": "s6",
@@ -628,13 +644,13 @@
         "Checked at every angle the signal could arrive from"
       ],
       "cites": [
-        "M-2",
+        "MD-2",
         "C-1",
         "C-2"
       ],
       "reads": [],
       "exit": null,
-      "built": false
+      "built": true
     },
     {
       "id": "s7",
@@ -658,7 +674,7 @@
         "freq"
       ],
       "exit": null,
-      "built": false
+      "built": true
     },
     {
       "id": "s8",
@@ -693,13 +709,13 @@
         "filed by another country"
       ],
       "cites": [
-        "M-4"
+        "MD-4"
       ],
       "reads": [
         "fxm_terra"
       ],
       "exit": "Out of scope",
-      "built": false
+      "built": true
     },
     {
       "id": "t2",
@@ -714,14 +730,14 @@
         "between 30 and 4,000 MHz"
       ],
       "cites": [
-        "M-5"
+        "MD-5"
       ],
       "reads": [
         "fxm_terra",
         "fxm_geo"
       ],
       "exit": "Clear",
-      "built": false
+      "built": true
     },
     {
       "id": "t3",
@@ -740,7 +756,7 @@
         "fxm_ant"
       ],
       "exit": "Cannot calculate",
-      "built": false
+      "built": true
     },
     {
       "id": "t4",
@@ -755,8 +771,8 @@
         "keeping the strongest"
       ],
       "cites": [
-        "M-5",
-        "M-8",
+        "MD-5",
+        "MD-8",
         "L-1"
       ],
       "reads": [
@@ -764,7 +780,7 @@
         "fxm_geo"
       ],
       "exit": null,
-      "built": false
+      "built": true
     },
     {
       "id": "t5",
@@ -779,14 +795,14 @@
         "adjusted for channel width"
       ],
       "cites": [
-        "M-6",
-        "M-7"
+        "MD-6",
+        "MD-7"
       ],
       "reads": [
         "fxm_terra"
       ],
       "exit": null,
-      "built": false
+      "built": true
     },
     {
       "id": "t6",
@@ -800,12 +816,12 @@
         "The signal is worked out at each listed station"
       ],
       "cites": [
-        "M-8",
+        "MD-8",
         "C-4"
       ],
       "reads": [],
       "exit": null,
-      "built": false
+      "built": true
     },
     {
       "id": "t7",
@@ -836,12 +852,14 @@
       "short": "Ladder",
       "title": "How serious is it?",
       "lines": [
-        "Each filing is placed on the concern ladder.",
-        "Anything the ITU already says affects Finland is always kept"
+        "Each filing or station is placed on the first concern rung that is true, from the top.",
+        "Anything the ITU already says affects Finland is always kept",
+        "Where it is over or near the level, Finland's uses on its frequencies come from the national frequency table (M4), licence-exempt ones included"
       ],
       "cites": [
         "C-1",
-        "C-2"
+        "C-2",
+        "D-4"
       ],
       "reads": [
         "notice",
@@ -850,7 +868,7 @@
         "srv_area"
       ],
       "exit": null,
-      "built": false
+      "built": true
     },
     {
       "id": "out",
@@ -862,12 +880,13 @@
       "short": "Outputs",
       "title": "Write it up",
       "lines": [
-        "The notification, the report, draft letters and spreadsheets"
+        "The notification: every case that needs attention or is worth a look, in plain English, with what to do next",
+        "The full list as a spreadsheet, one row per filing or station"
       ],
       "cites": [],
       "reads": [],
       "exit": null,
-      "built": false
+      "built": true
     },
     {
       "id": "end",

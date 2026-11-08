@@ -1,0 +1,15 @@
+.git
+.env*
+**/.env*
+**/node_modules
+**/.venv
+**/target
+**/__pycache__
+dev/local.json
+runs*
+state
+library
+bench
+out
+dist
+.server.log

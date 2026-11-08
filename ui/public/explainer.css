@@ -1,0 +1,98 @@
+/* The Play demo: a film that plays over Tosi's own interface. Its own palette, the same in every theme: near-black
+   ground, one ink, the pastel purple accent, and red and amber only for concerns. */
+.xp {
+  --x-bg: #060608; --x-ink: #f3f1ec; --x-ink2: rgba(243, 241, 236, .68); --x-ink3: rgba(243, 241, 236, .38); --x-line: rgba(243, 241, 236, .12);
+  --x-acc: #b9a6f6; --x-acc-fill: #3b3260; --x-crit: #f08b7f; --x-warn: #f1c47c; --x-ok: #8fd3b0;
+  --x-ease: cubic-bezier(.2, .7, .1, 1);
+  position: fixed; inset: 0; z-index: 9000; pointer-events: none; font-family: Poppins, system-ui, sans-serif; color: var(--x-ink);
+}
+.xp * { box-sizing: border-box }
+.xp-veil { position: absolute; inset: 0; background: var(--x-bg); opacity: 0; transition: opacity .9s var(--x-ease) }
+.xp.dark .xp-veil { pointer-events: auto }
+
+/* The spotlight: a soft hole in the darkness around one part of the app */
+.xp-spot { position: absolute; left: 50%; top: 50%; width: 0; height: 0; border-radius: 18px; opacity: 0; pointer-events: none;
+  box-shadow: 0 0 0 200vmax rgba(6, 6, 8, .78), 0 0 60px 30px rgba(6, 6, 8, .55); transition: opacity .7s var(--x-ease) }
+.xp-spot::after { content: ""; position: absolute; inset: -2px; border-radius: inherit; box-shadow: 0 0 0 1.5px rgba(185, 166, 246, .55), 0 0 40px 2px rgba(185, 166, 246, .18) }
+.xp-note { position: absolute; max-width: 340px; padding: 10px 14px; border-radius: 12px; background: rgba(20, 18, 28, .92); color: var(--x-ink);
+  font-size: 14px; line-height: 1.45; opacity: 0; transform: translateY(6px); transition: opacity .5s var(--x-ease), transform .5s var(--x-ease); pointer-events: none }
+.xp-note.in { opacity: 1; transform: none }
+.xp-note b { color: var(--x-acc); font-weight: 500 }
+
+/* The drawn stage, for the scenes told in the dark */
+.xp-stage { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 132px); opacity: 0; transition: opacity .6s var(--x-ease); overflow: visible }
+.xp.dark .xp-stage { opacity: 1; pointer-events: auto }
+.xp-stage .xt { font-family: Poppins, system-ui, sans-serif }
+.xp-stage .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace }
+.xp-stage .x-hot { cursor: pointer }
+.xp-tip { position: absolute; max-width: 300px; padding: 9px 12px; border-radius: 10px; background: rgba(24, 22, 32, .95); font-size: 13px; line-height: 1.45;
+  color: var(--x-ink2); pointer-events: none; opacity: 0; transition: opacity .2s }
+.xp-tip.in { opacity: 1 }
+.xp-tip b { display: block; color: var(--x-ink); font-weight: 500; margin-bottom: 2px }
+
+/* The ghost cursor: Tosi's demo hand, moving to what it explains and pressing it */
+.xp-cursor { position: absolute; left: 0; top: 0; width: 26px; height: 26px; opacity: 0; transform: translate(50vw, 60vh);
+  transition: transform .85s cubic-bezier(.45, .05, .2, 1), opacity .4s; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .45)) }
+.xp-cursor svg { width: 26px; height: 26px; display: block }
+.xp-cursor .ring { position: absolute; left: -11px; top: -11px; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--x-acc); opacity: 0 }
+.xp-cursor.press .ring { animation: xpress .6s var(--x-ease) }
+@keyframes xpress { 0% { opacity: .9; transform: scale(.4) } 100% { opacity: 0; transform: scale(2.2) } }
+
+/* Titles: the scene's two-tone title, alone, centred */
+.xp-title { position: absolute; left: 0; right: 0; top: 42%; text-align: center; font-size: clamp(30px, 4.4vw, 64px); font-weight: 600; letter-spacing: -.04em;
+  line-height: 1.1; padding: 0 24px; opacity: 0; filter: blur(6px); transform: translateY(14px); transition: opacity .9s var(--x-ease), filter .9s var(--x-ease), transform .9s var(--x-ease) }
+.xp-title.in { opacity: 1; filter: none; transform: none }
+.xp-title em { font-style: normal; color: var(--x-acc) }
+
+/* The caption: one line at a time, under the picture */
+.xp-cap { position: absolute; left: 50%; bottom: 84px; width: min(880px, calc(100% - 32px)); transform: translateX(-50%); text-align: center;
+  font-size: clamp(16px, 1.6vw, 21px); line-height: 1.45; color: var(--x-ink); text-shadow: 0 1px 14px rgba(0, 0, 0, .9); min-height: 2.9em; pointer-events: none }
+.xp-cap > span { display: inline-block; opacity: 0; filter: blur(4px); transform: translateY(6px); transition: opacity .5s var(--x-ease), filter .5s, transform .5s var(--x-ease) }
+.xp-cap > span.in { opacity: 1; filter: none; transform: none }
+.xp-cap b { color: var(--x-acc); font-weight: 500 }
+.xp-cap .crit { color: var(--x-crit) } .xp-cap .warn { color: var(--x-warn) }
+.xp-cap .sk { display: inline-block; width: 320px; height: 14px; border-radius: 7px; background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.14), rgba(255,255,255,.06)); background-size: 200% 100%; animation: xsh 1.4s linear infinite }
+@keyframes xsh { to { background-position: -200% 0 } }
+
+/* Over the app, the caption floats on a soft fade from the bottom */
+.xp-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 230px; background: linear-gradient(to top, rgba(6,6,8,.94) 0%, rgba(6,6,8,.8) 45%, rgba(6,6,8,0) 100%);
+  opacity: 0; transition: opacity .8s var(--x-ease); pointer-events: none }
+.xp.app .xp-fade { opacity: 1 }
+
+/* The bar: play, the beats, the time, voice and leave. It rises from the bottom, and fades while the film plays. */
+.xp-bar { position: absolute; left: 50%; bottom: 22px; width: min(980px, calc(100% - 32px)); display: flex; align-items: center; gap: 14px; padding: 8px 12px 8px 8px;
+  border-radius: 999px; background: rgba(18, 17, 24, .82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); pointer-events: auto;
+  transform: translate(-50%, 90px); opacity: 0; transition: transform 1s var(--x-ease), opacity 1s var(--x-ease) }
+.xp.up .xp-bar { transform: translate(-50%, 0); opacity: 1 }
+.xp.up.quiet .xp-bar { opacity: .16 }
+.xp.up.quiet .xp-bar:hover { opacity: 1 }
+.xp-b { flex: none; width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; color: var(--x-ink2); cursor: pointer; padding: 0 }
+.xp-b:hover { color: var(--x-ink) }
+.xp-b.main { background: var(--x-acc); color: #17141f } .xp-b.main:hover { color: #000 }
+.xp-b.on { color: var(--x-acc) }
+.xp-b svg { width: 15px; height: 15px }
+.xp-b:focus-visible, .xp-seg:focus-visible { outline: 2px solid var(--x-acc); outline-offset: 2px }
+.xp-seek { flex: 1; display: flex; gap: 4px; align-items: center; height: 30px; cursor: pointer; min-width: 0; position: relative }
+.xp-seg { position: relative; height: 4px; border-radius: 2px; background: var(--x-line); overflow: hidden; opacity: 0; transform: scaleX(.3); transform-origin: left;
+  transition: opacity .5s var(--x-ease), transform .7s var(--x-ease), height .2s }
+.xp.up .xp-seg { opacity: 1; transform: none }
+.xp-seek:hover .xp-seg { height: 6px }
+.xp-seg i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--x-acc); border-radius: inherit }
+.xp-seg.ch { margin-left: 6px }
+.xp-hov { position: absolute; bottom: 26px; transform: translateX(-50%); padding: 4px 10px; border-radius: 8px; background: rgba(24, 22, 32, .95); color: var(--x-ink2);
+  font-size: 12px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s }
+.xp-seek:hover .xp-hov { opacity: 1 }
+.xp-time { flex: none; font-size: 12px; color: var(--x-ink3); font-variant-numeric: tabular-nums; min-width: 78px; text-align: right }
+.xp-chap { flex: none; font-size: 12px; color: var(--x-ink2); max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+
+/* The Play demo button on Home */
+.x-play { margin-top: var(--sp-5) }
+
+@media (max-width: 720px) {
+  .xp-chap, .xp-time { display: none }
+  .xp-bar { gap: 6px }
+  .xp-cap { bottom: 78px }
+}
+@media (prefers-reduced-motion: reduce) {
+  .xp-cursor, .xp-title, .xp-cap span, .xp-note, .xp-bar, .xp-seg { transition-duration: .01s !important }
+}

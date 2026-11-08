@@ -1,0 +1,42 @@
+{
+  "about": "Limit: which international power limits apply to each transmitting group of a satellite Finland can see. A group is matched against the ITU's limit tables (spec/tables/pfd.json) on frequency, kind of station, date, orbit and protected area. A filing with no applicable limit leaves: there is nothing to compare it with.",
+  "version": 1,
+  "kinds": ["space"],
+  "tables": "spec/tables/pfd.json",
+  "tables_basis": "ITU Radio Regulations Article 21 (Tables 21-4 and 21-5), Appendix 5 and related Resolutions, as tabulated by the Radiocommunication Bureau for its PFD examination (BR PFD Technical Annexes).",
+  "match": [
+    "Frequency: the limit's band and the group's span (lowest to highest filed frequency) overlap, ends excluded.",
+    "Kind of station: the group's station classes (srv_cls) and the limit's classes (CLASSES_OF_STN, read in two-letter codes) share at least one.",
+    "Date: the group's date of protection (grp.d_prot_eff), or the date the ITU received the filing when that is not set, lies within the limit's dates. With no date at all, every date matches (worst case).",
+    "Orbit, moving satellites only: the steepest tilt and the highest apogee lie within the limit's windows. With no orbit filed, every window matches (worst case); the Data step then stops the filing.",
+    "Area: the limit protects an area that includes Finland (the list below)."
+  ],
+  "areas_protecting_finland": [
+    "ALL WORLD",
+    "REGIONS 1 AND 3",
+    "REGION 1",
+    "REGIONS 1 AND 2",
+    "REGIONS 1 AND 3 EXCEPT J",
+    "ALL WORLD EXCEPT MEX AND USA",
+    "REGIONS 1 AND 3 AND PRU",
+    "ALL WORLD EXCEPT SERVICE AREA",
+    "ALL WORLD EXCEPT (KOR + 1000KM AND DELTA > 35)",
+    "ALL WORLD EXCEPT NATIONAL TERRITORY + 1500KM",
+    "ALL WORLD EXCEPT NATIONAL TERRITORY + 1000KM",
+    "REGIONS 1 AND 3 EXCEPT CTYS OF 5.342"
+  ],
+  "areas_basis": "Administration policy, from the Radio Regulations: Finland is in Region 1 and is not one of the countries these exceptions name. Areas that protect only countries named in a footnote are not applied (guidebook L-3).",
+  "named_countries_marker": "CTYS OF",
+  "skip_angle_type": "ORB_SEP",
+  "skip_basis": "Limits stated against orbital separation protect other satellites, not the ground.",
+  "outcomes": {
+    "limited": "At least one international limit applies to what it transmits.",
+    "no_frequency": "It files no frequency for what it transmits, so no limit can be matched.",
+    "named_countries_only": "The only limits for its frequencies protect countries named in a footnote of the Radio Regulations, and Finland is not one of them.",
+    "no_limit": "No international limit covers its frequencies, kind of station and dates in Finland's area."
+  },
+  "notes": [
+    "A filing goes on if at least one of its groups has a limit. Outcomes are tried in the order above.",
+    "Each matching pair of a group and a limit is one row; the rows go on to the Data step."
+  ]
+}

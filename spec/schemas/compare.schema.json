@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tosi/compare/1",
+  "title": "Compare result",
+  "description": "Whether the worst-case power arriving in Finland goes over the limit. See spec/stages/compare/README.md.",
+  "type": "object",
+  "required": [
+    "schema",
+    "rulebook",
+    "file",
+    "counts",
+    "notices",
+    "rows"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "compare/1"
+    },
+    "rulebook": {
+      "type": "object",
+      "required": [
+        "version",
+        "sha256",
+        "cites"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "cites": {
+          "type": "object",
+          "description": "The sources the stage's rulebook cites, copied from it: every entry named \"method\", \"basis\" or ending in \"_basis\", in rulebook order. Every result carries them, so a reader sees which guideline or policy set each number.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "file": {
+      "description": "SHA-256 of the IFIC file this came from, as intake recorded it",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "notices",
+        "how",
+        "rows",
+        "rows_kept",
+        "rows_without_angle"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "notices": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "how": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rows_kept": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rows_without_angle": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "notices": {
+      "type": "array",
+      "description": "In ascending ntc_id order",
+      "items": {
+        "type": "object",
+        "required": [
+          "ntc_id",
+          "type",
+          "outcome",
+          "excess",
+          "pfd",
+          "limit",
+          "angle",
+          "distance_km",
+          "grp_id",
+          "table",
+          "provision",
+          "provn",
+          "finding"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ntc_id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "over",
+              "near",
+              "under",
+              "no_result"
+            ]
+          },
+          "excess": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "dB over the limit (negative: under)"
+          },
+          "pfd": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Power-flux density at the worst angle, dB(W/m²) in the reference bandwidth"
+          },
+          "limit": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "The limit there"
+          },
+          "angle": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Arrival angle, degrees"
+          },
+          "distance_km": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Rounded to two decimals"
+          },
+          "grp_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "table": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "provision": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "provn": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The provision's name in the Radio Regulations"
+          },
+          "finding": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "rows": {
+      "type": "array",
+      "description": "Rows over or near the limit: [grp_id, ntc_id, table, exam row, provision, excess dB, lowest MHz, highest MHz shared with the limit's band]",
+      "items": {
+        "type": "array",
+        "minItems": 8,
+        "maxItems": 8
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "about": "Range: which foreign land mobile stations are near enough, and on a frequency, for the propagation method to apply.",
+  "version": 1,
+  "kinds": [
+    "terrestrial"
+  ],
+  "earth_radius_km": 6371.0,
+  "earth_radius_basis": "Mean Earth radius, for great-circle distances.",
+  "max_km": 1000,
+  "max_km_basis": "Recommendation ITU-R P.1546-6 applies to paths up to 1,000 km.",
+  "f_min_mhz": 30,
+  "f_max_mhz": 4000,
+  "frequency_basis": "Recommendation ITU-R P.1546-6 applies from 30 MHz to 4,000 MHz.",
+  "withdrawn_intent": "SUPPRESS",
+  "area_stations": "A station filed as a circle is measured from the edge of its circle nearest Finland (worst case).",
+  "reasons": {
+    "withdrawn": "The filing withdraws a station (SUPPRESS). A withdrawn station transmits nothing new.",
+    "too_far": "It is more than 1,000 km from Finland's outer limit, beyond the range of the propagation method.",
+    "out_of_band": "Its frequency is outside 30–4,000 MHz, where the propagation method does not apply."
+  },
+  "notes": [
+    "Distance is to the nearest point of Finland's outer limit (land border or 12-nautical-mile territorial sea, spec/tables/finland.json); 0 inside it.",
+    "A station without a position goes on; the Data step asks for it.",
+    "Reasons are tried in the order above."
+  ]
+}

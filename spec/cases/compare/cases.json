@@ -1,0 +1,53 @@
+{
+ "about": "Conformance cases for compare. Sample inputs are real files read from the local samples folder (never committed).",
+ "cases": [
+  {
+   "id": "space-3074",
+   "input": {
+    "sample": "ific3074.zip"
+   },
+   "expect": {
+    "counts": {
+     "notices": 111,
+     "how": {
+      "over": 62,
+      "near": 28,
+      "under": 21,
+      "no_result": 0
+     }
+    }
+   }
+  },
+  {
+   "id": "mask-50-at-40deg",
+   "input": {
+    "table": "G",
+    "mask_code": 50,
+    "angle": 40
+   },
+   "expect": {
+    "limit": -121
+   }
+  },
+  {
+   "id": "mask-50-at-10deg",
+   "input": {
+    "table": "G",
+    "mask_code": 50,
+    "angle": 10
+   },
+   "expect": {
+    "limit": -129
+   }
+  },
+  {
+   "id": "spreading-geostationary",
+   "input": {
+    "distance_km": 35786
+   },
+   "expect": {
+    "spreading_db": 162.07
+   }
+  }
+ ]
+}
