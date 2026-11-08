@@ -3,7 +3,9 @@
 Create a Render Docker Web Service from the Tosi deployment branch. Use the
 free instance for the supplied samples and set the health check path to
 `/healthz`. The Docker build downloads and verifies the two ITU sample
-archives. The hosted engine selector offers Rust. Node still serves the UI.
+archives. The hosted engine selector offers Rust and shows TypeScript and
+Python as unavailable. The Tests page has a saved local comparison and a
+separate view for hosted Rust timings. Node still serves the UI.
 
 Set these values in the service environment:
 

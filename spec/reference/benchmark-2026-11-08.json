@@ -1,0 +1,133 @@
+{
+  "at": "2026-11-08T03:55:35.431Z",
+  "machine": {
+    "cpu": "Apple M4",
+    "cores": 10,
+    "ram": 17179869184
+  },
+  "results": [
+    {
+      "engine": "ts",
+      "runs": 3,
+      "file": {
+        "name": "ific3074.zip",
+        "bytes": 60837631,
+        "dbBytes": 286654464
+      },
+      "state": "done",
+      "total": 13046,
+      "steps": {
+        "fingerprint": 1689,
+        "unpack": 7350,
+        "database-fingerprint": 126,
+        "database": 72,
+        "recognise": 0,
+        "check": 0,
+        "downlink": 64,
+        "start": 3745
+      }
+    },
+    {
+      "engine": "rust",
+      "runs": 3,
+      "file": {
+        "name": "ific3074.zip",
+        "bytes": 60837631,
+        "dbBytes": 286654464
+      },
+      "state": "done",
+      "total": 13819,
+      "steps": {
+        "fingerprint": 124,
+        "unpack": 11941,
+        "database-fingerprint": 538,
+        "database": 8,
+        "recognise": 0,
+        "check": 0,
+        "downlink": 60,
+        "start": 1148
+      }
+    },
+    {
+      "engine": "python",
+      "runs": 3,
+      "file": {
+        "name": "ific3074.zip",
+        "bytes": 60837631,
+        "dbBytes": 286654464
+      },
+      "state": "done",
+      "total": 21754,
+      "steps": {
+        "fingerprint": 1658,
+        "unpack": 5971,
+        "database-fingerprint": 176,
+        "database": 3280,
+        "recognise": 0,
+        "check": 0,
+        "downlink": 9251,
+        "start": 1418
+      }
+    },
+    {
+      "engine": "ts",
+      "runs": 3,
+      "file": {
+        "name": "brific3076.zip",
+        "bytes": 2406450,
+        "dbBytes": 25145344
+      },
+      "state": "done",
+      "total": 479,
+      "steps": {
+        "fingerprint": 3,
+        "unpack": 266,
+        "database-fingerprint": 80,
+        "database": 24,
+        "recognise": 0,
+        "check": 0,
+        "start": 106
+      }
+    },
+    {
+      "engine": "rust",
+      "runs": 3,
+      "file": {
+        "name": "brific3076.zip",
+        "bytes": 2406450,
+        "dbBytes": 25145344
+      },
+      "state": "done",
+      "total": 426,
+      "steps": {
+        "fingerprint": 4,
+        "unpack": 260,
+        "database-fingerprint": 79,
+        "database": 3,
+        "recognise": 0,
+        "check": 0,
+        "start": 80
+      }
+    },
+    {
+      "engine": "python",
+      "runs": 3,
+      "file": {
+        "name": "brific3076.zip",
+        "bytes": 2406450,
+        "dbBytes": 25145344
+      },
+      "state": "done",
+      "total": 866,
+      "steps": {
+        "fingerprint": 1,
+        "unpack": 321,
+        "database-fingerprint": 82,
+        "database": 428,
+        "recognise": 0,
+        "check": 0,
+        "start": 34
+      }
+    }
+  ]
+}

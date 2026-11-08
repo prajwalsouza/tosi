@@ -49,6 +49,9 @@ const runsDir = process.env.TOSI_RUNS ?? join(root, local.runs ?? "runs");
 const library = makeLibrary(root, local.library ?? "library");
 const runs = makeRuns(root, engines, runsDir, (run) => { try { library.add(run, JSON.parse(readFileSync(join(root, "spec", "rulebook", "intake.json"), "utf8"))); } catch (e) { console.error("library:", e); } });
 const tests = makeTests(root, engines, samples, (p, e) => runs.bench(p, e));
+const referenceBenchmarks = hosted
+  ? JSON.parse(readFileSync(join(root, "spec", "reference", "benchmark-2026-11-08.json"), "utf8"))
+  : null;
 const rulebook = makeRulebook(root);
 const proposals = makeProposals(root, rulebook.apply);
 const filings = makeFilings(root);
@@ -57,13 +60,16 @@ const MAX_UPLOAD = hosted ? 64 * 1024 * 1024 : 2_000_000_000;
 const EDITING = !hosted && local.editing === true;
 const LOCKED = JSON.stringify({ ok: false, error: "The algorithm is read-only. Editing will return with drafts and a Save button." });
 
-type Answer = { id: string; name: string; ok: boolean; ms: number; info?: unknown; error?: string; hint?: string };
+type Answer = { available?: boolean; id: string; name: string; ok: boolean; ms: number; info?: unknown; error?: string; hint?: string };
 
 // Fields every engine-info document must have (spec/schemas/engine-info.schema.json).
 const required = JSON.parse(readFileSync(join(root, "spec", "schemas", "engine-info.schema.json"), "utf8")).required as string[];
 
 function ask(e: Engine, command: string): Promise<Answer> {
   const base = { id: e.id, name: e.name };
+  if (hosted && e.id !== "rust") {
+    return Promise.resolve({ ...base, available: false, ok: false, ms: 0, error: "Unavailable on this deployment" });
+  }
   const cwd = join(root, e.cwd);
   const local = e.cmd.includes("/");
   if (local && !existsSync(join(cwd, e.cmd))) {
@@ -176,11 +182,11 @@ createServer(async (req, res) => {
     }
   }
   if (url.pathname === "/api/engines") {
-    return send(res, 200, JSON.stringify(await Promise.all(engines.map((e) => ask(e, "info")))));
+    return send(res, 200, JSON.stringify(await Promise.all(configuredEngines.map((e) => ask(e, "info")))));
   }
   if (url.pathname === "/api/about") {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-    return send(res, 200, JSON.stringify({ tosi: pkg.version, editing: EDITING, spec: readFileSync(join(root, "spec", "VERSION"), "utf8").trim(), server: `Node ${process.versions.node}`, engines: engines.map((e) => ({ id: e.id, name: e.name })) }));
+    return send(res, 200, JSON.stringify({ tosi: pkg.version, editing: EDITING, spec: readFileSync(join(root, "spec", "VERSION"), "utf8").trim(), server: `Node ${process.versions.node}`, engines: configuredEngines.map((e) => ({ id: e.id, name: e.name, available: engines.includes(e) })) }));
   }
   // Proposals: how anything but a person changes the rulebook. A person accepts or declines.
   const readBody = (cb: (v: any) => void) => { let b = ""; req.on("data", (d) => { b += d; if (b.length > 50000) req.destroy(); }); req.on("end", () => { try { cb(JSON.parse(b || "{}")); } catch { send(res, 400, JSON.stringify({ error: "Not valid JSON" })); } }); };
@@ -275,8 +281,8 @@ createServer(async (req, res) => {
     return existsSync(f) ? send(res, 200, readFileSync(f, "utf8")) : send(res, 404, JSON.stringify({ error: "No such rulebook" }));
   }
   // Tests: timed runs of every engine on the samples, kept on this computer.
-  if (url.pathname === "/api/tests" && req.method === "GET") return send(res, 200, JSON.stringify(tests.view()));
-  if (url.pathname === "/api/tests/run" && req.method === "POST") return send(res, 200, JSON.stringify(tests.start()));
+  if (url.pathname === "/api/tests" && req.method === "GET") return send(res, 200, JSON.stringify({ ...tests.view(), reference: referenceBenchmarks }));
+  if (url.pathname === "/api/tests/run" && req.method === "POST") return send(res, 200, JSON.stringify({ ...tests.start(), reference: referenceBenchmarks }));
   if (url.pathname === "/api/samples") {
     return send(res, 200, JSON.stringify(samples.map((p) => ({ name: p.split("/").pop(), bytes: statSync(p).size }))));
   }
@@ -346,7 +352,7 @@ createServer(async (req, res) => {
   }
   const m = url.pathname.match(/^\/api\/engines\/([a-z]+)\/info$/);
   if (m) {
-    const e = engines.find((x) => x.id === m[1]);
+    const e = configuredEngines.find((x) => x.id === m[1]);
     return e ? send(res, 200, JSON.stringify(await ask(e, "info"))) : send(res, 404, JSON.stringify({ error: "No such engine" }));
   }
   const file = join(root, "ui", "public", url.pathname === "/" ? "index.html" : url.pathname);
