@@ -113,7 +113,7 @@ function setTheme(id) {
 }
 
 let SAMPLES = null;
-function home() { return flow.homePage(SAMPLES); }
+function home() { return flow.homePage(SAMPLES, state.about?.demo); }
 
 function settings(pageId) {
   const page = SETTINGS.find((p) => p.id === pageId) ?? SETTINGS[0];
