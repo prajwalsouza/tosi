@@ -255,7 +255,8 @@ export function flowPage(id) {
       ...BUILT.map((m, i) => el("button", { class: "node" + (i === phase ? " on" : "") + (i < phase ? " past" : ""), onclick: () => jumpTo(i) },
         el("span", { class: "ic", html: icon(m.icon) }), el("span", { class: "label" }, m.label))),
       el("div", { class: "next-h" }, "Next"),
-      ...(next ? next.map((n) => el("div", { class: "node later" }, el("span", { class: "ic" }, el("i", { class: "pip" })), el("span", { class: "label" }, n)))
+      ...(current.result && current.result.check.status !== "accepted" ? [el("div", { class: "node later stop" }, el("span", { class: "ic", html: icon("circle-xmark") }), el("span", { class: "label" }, "Stops here: the file was turned away"))]
+        : next ? next.map((n) => el("div", { class: "node later" }, el("span", { class: "ic" }, el("i", { class: "pip" })), el("span", { class: "label" }, n)))
         : [0, 1, 2, 3].map(() => el("div", { class: "node later" }, el("span", { class: "ic" }, el("i", { class: "sk dot" })), el("span", { class: "sk line", style: "width:80px" })))));
   }
   function jumpTo(i) {

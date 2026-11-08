@@ -1,5 +1,7 @@
 /* Theme tokens: what each theme decides.
    Colour roles: --accent (pastel purple) marks what matters right now: the selection, the picked tables, the mark.
+   --accent-fill is the same hue at a lightness that carries text (--on-accent) with strong contrast:
+   very light in light themes with dark text, deep and muted in dark themes with light text.
    --bad (red) and --warn (amber) are kept for concerns only, so a highlight is never mistaken for a problem.
    Colours, surfaces, shadows, borders, skeleton colours.
    A theme is chosen with data-theme on <html> (or on any element, for previews).
@@ -17,6 +19,8 @@
   --accent: #b9abe8;
   --ok: #8fbfa6;
   --bad: #ef6f6c;
+  --accent-fill: color-mix(in srgb, var(--accent) 30%, var(--bg));
+  --on-accent: var(--ink);
   --warn: #e0b25c;
   --link: #9ea7d8;
   --sk-a: #212121;
@@ -42,6 +46,8 @@
   --accent: #c3b6f0;
   --ok: #7fb89a;
   --bad: #ff6b66;
+  --accent-fill: color-mix(in srgb, var(--accent) 30%, var(--bg));
+  --on-accent: var(--ink);
   --warn: #e8b85e;
   --link: #a3acdf;
   --sk-a: #0f0f0f;
@@ -67,6 +73,8 @@
   --accent: #9b89d8;
   --ok: #7fae98;
   --bad: #d9534f;
+  --accent-fill: color-mix(in srgb, var(--accent) 34%, #ffffff);
+  --on-accent: #2b2342;
   --warn: #c99634;
   --link: #5d6fb8;
   --sk-a: #ebe8e1;
@@ -93,6 +101,8 @@
   --accent: #8f7bd6;
   --ok: #3f9d6e;
   --bad: #e5484d;
+  --accent-fill: color-mix(in srgb, var(--accent) 34%, #ffffff);
+  --on-accent: #2b2342;
   --warn: #c48a20;
   --link: #4f5fae;
   --sk-a: #efe9db;
@@ -119,6 +129,8 @@
   --accent: #9c8bd8;
   --ok: #4f9f7d;
   --bad: #e05d5d;
+  --accent-fill: color-mix(in srgb, var(--accent) 34%, #ffffff);
+  --on-accent: #2b2342;
   --warn: #c4922f;
   --link: #5f6eb6;
   --sk-a: #dde1e7;
@@ -147,6 +159,8 @@
   --accent: #a690d4;
   --ok: #86b38f;
   --bad: #d4614f;
+  --accent-fill: color-mix(in srgb, var(--accent) 34%, #ffffff);
+  --on-accent: #2b2342;
   --warn: #c58a2b;
   --link: #6a74b8;
   --sk-a: #f2e4d5;
@@ -174,6 +188,8 @@
   --accent: #c9b9ec;
   --ok: #9cc6a2;
   --bad: #ef8a80;
+  --accent-fill: color-mix(in srgb, var(--accent) 30%, var(--bg));
+  --on-accent: var(--ink);
   --warn: #e2b46a;
   --link: #a7aede;
   --sk-a: #2d2521;

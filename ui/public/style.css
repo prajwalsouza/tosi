@@ -211,9 +211,9 @@ body.busy #busy { display: flex }
 .tile span { display: none; font-size: 10.5px; color: var(--bg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
 .tile.named span { display: flex }
 .tile.rel { z-index: 2 }
-.tile.lit { background: var(--accent); border-radius: 8px }
+.tile.lit { background: var(--accent-fill); border-radius: 8px }
 .tile span { display: none; align-items: baseline; gap: 8px }
-.tile.lit span { color: #241d38; font-size: 13px }
+.tile.lit span { color: var(--on-accent); font-size: 13px }
 .tile.lit .al { font-weight: var(--fw-bold) } .tile.lit .nm { font: 11px var(--font-mono); opacity: .8 }
 .tile.named:not(.lit) .al { display: none } .tile.named:not(.lit) .nm { font: inherit }
 .tile { cursor: pointer }
@@ -350,6 +350,7 @@ body.busy #busy { display: flex }
 .btn svg { width: 13px; height: 13px; color: var(--accent) }
 .btn:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent) }
 .btn:active { transform: translateY(1px) }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #241d38 }
-.btn.primary svg { color: #241d38 }
-.btn.primary:hover { background: color-mix(in srgb, var(--accent) 85%, #fff) }
+.btn.primary { background: var(--accent-fill); border-color: color-mix(in srgb, var(--accent) 60%, transparent); color: var(--on-accent) }
+.btn.primary svg { color: var(--on-accent) }
+.btn.primary:hover { border-color: var(--accent) }
+.node.later.stop { opacity: .9; color: var(--bad) } .node.later.stop svg { width: 12px; height: 12px }
