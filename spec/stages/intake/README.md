@@ -46,7 +46,9 @@ Decide the kind of filing from the tables present, using the marker tables in [`
 
 ### 5. Check
 
-Compare the tables and columns present with what later stages need for that kind, from the same rulebook file. Every missing table or column is listed.
+Compare the tables and columns present with what later stages need for that kind, from the same rulebook file. Only tables switched on (`"read": true`) are checked, and only the columns listed for them. Every missing table or column is listed, in rulebook order.
+
+The rulebook is edited in the guidebook. Each result records the rulebook's version and SHA-256 (`rulebook` in `intake.json`), so a result always says which rules decided it.
 
 - **Accepted:** nothing is missing.
 - **Refused:** something is missing; the reason names it.

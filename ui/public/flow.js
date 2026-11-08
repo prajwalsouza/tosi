@@ -71,13 +71,17 @@ function model(run) {
 const st = (m, k) => m.steps[k]?.state ?? "waiting";
 
 // What the rulebook says the later steps read, per kind of filing (spec/rulebook/intake.json, served by the server).
-let KIND_MARKERS = {}, REQUIRED = {}, KIND_LABEL = {}, TABLES = {};
+// Read fresh each time a Flow opens, because the guidebook can change it.
+let KIND_MARKERS = {}, REQUIRED = {}, KIND_LABEL = {}, TABLES = {}, RULE_VERSION = 0;
 async function loadRules() {
-  if (Object.keys(REQUIRED).length) return;
   const r = await fetch("/api/rulebook/intake").then((x) => x.json()).catch(() => null);
   if (!r) return;
-  for (const [k, v] of Object.entries(r.kinds)) { KIND_MARKERS[k] = v.markers; REQUIRED[k] = v.required; KIND_LABEL[k] = v.label; }
-  TABLES = r.tables ?? {};
+  RULE_VERSION = r.version ?? 0; TABLES = {};
+  for (const [k, v] of Object.entries(r.kinds)) {
+    KIND_MARKERS[k] = v.markers; KIND_LABEL[k] = v.label;
+    REQUIRED[k] = Object.fromEntries(Object.entries(v.tables).filter(([, t]) => t.read).map(([n, t]) => [n, t.columns ?? []]));
+    for (const [n, t] of Object.entries(v.tables)) TABLES[n] = { alias: t.alias, about: t.about };
+  }
 }
 
 /* ---------- pages ---------- */
@@ -256,6 +260,12 @@ export function flowPage(id) {
   }
 
   // The corner: which engine ran it, how long it has been running, then every engine's time and whether they agree.
+  function drawStale() {
+    const v = current.result?.rulebook?.version;
+    if (v == null || v === RULE_VERSION || current.state === "running") return null;
+    return el("button", { class: "stale", title: `This file was checked with rulebook version ${v}. The guidebook is now at version ${RULE_VERSION}.`,
+      onclick: async () => { const r = await fetch(`/api/runs/${current.id}/again?engine=${ctx.using()}`, { method: "POST" }).then((x) => x.json()); runs.set(r.id, r); ctx.go(`/flow/${r.id}`); }, html: icon("rotate-left") }, "Rulebook changed · run again");
+  }
   function drawAgree() {
     const names = { ts: "TypeScript", rust: "Rust", python: "Python" };
     const e = Object.entries(current.engines || {});
@@ -264,8 +274,8 @@ export function flowPage(id) {
     const times = e.map(([k, x]) => el("span", { class: "et" + (k === current.engine ? " me" : "") },
       names[k] ?? k, " ", x.state === "done" ? el("b", {}, secs(x.ms)) : x.state === "failed" ? el("b", { class: "bad" }, "failed")
         : x.state === "running" && x.started ? el("b", {}, secs(Date.now() - x.started)) : el("i", { class: "sk dot" })));
-    agree.replaceChildren(el("span", { class: "times" }, times),
-      done ? el("span", { class: "verdict" + (hashes.size === 1 ? "" : " bad"), html: icon(hashes.size === 1 ? "circle-check" : "circle-xmark"), title: hashes.size === 1 ? "All three engines wrote byte-identical results" : "The engines' results differ" }) : null);
+    agree.replaceChildren(...[drawStale(), el("span", { class: "times" }, times),
+      done ? el("span", { class: "verdict" + (hashes.size === 1 ? "" : " bad"), html: icon(hashes.size === 1 ? "circle-check" : "circle-xmark"), title: hashes.size === 1 ? "All three engines wrote byte-identical results" : "The engines' results differ" }) : null].filter(Boolean));
   }
   let clock = setInterval(() => { if (current.state === "running") drawAgree(); }, 100);
 

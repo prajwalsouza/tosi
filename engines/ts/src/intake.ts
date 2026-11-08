@@ -11,12 +11,15 @@ import { fileURLToPath } from "node:url";
 
 const MiB = 1 << 20;
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
-const RULES = JSON.parse(readFileSync(join(root, "spec", "rulebook", "intake.json"), "utf8"));
+const RULES_BYTES = readFileSync(join(root, "spec", "rulebook", "intake.json"));
+const RULES = JSON.parse(RULES_BYTES.toString("utf8"));
+const RULEBOOK = { version: RULES.version ?? 0, sha256: createHash("sha256").update(RULES_BYTES).digest("hex") };
 
 type Table = { name: string; rows: number; columns: string[] };
 type Entry = { name: string; bytes: number; packed: number; method: number; offset: number };
 type Result = {
   schema: "intake/1";
+  rulebook: { version: number; sha256: string };
   file: { name: string; bytes: number; sha256: string };
   archive: { entries: { name: string; bytes: number; packed: number }[] } | null;
   database: { name: string; bytes: number; sha256: string; rows: number; tables: Table[] } | null;
@@ -110,6 +113,7 @@ export async function intake(file: string, name: string, out: string): Promise<s
   mkdirSync(out, { recursive: true });
   const r: Result = {
     schema: "intake/1",
+    rulebook: RULEBOOK,
     file: { name, bytes: statSync(file).size, sha256: await sha256Of(file, "fingerprint") },
     archive: null, database: null, kind: "unknown", check: null,
   };
@@ -155,7 +159,9 @@ export async function intake(file: string, name: string, out: string): Promise<s
   emit("check", "start");
   if (kind === "unknown") { emit("check", "done", { status: "refused" }); return finish(refuse(r, "unknown_kind"), out); }
   const missing: string[] = [];
-  for (const [table, cols] of Object.entries(RULES.kinds[kind].required as Record<string, string[]>)) {
+  for (const [table, entry] of Object.entries(RULES.kinds[kind].tables as Record<string, { read: boolean; columns?: string[] }>)) {
+    if (!entry.read) continue;
+    const cols = entry.columns ?? [];
     const have = present.get(table);
     if (!have) missing.push(table);
     else for (const c of cols) if (!have.includes(c)) missing.push(`${table}.${c}`);

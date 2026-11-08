@@ -72,9 +72,9 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string) {
   return {
     list: () => [...runs.values()].map(summary),
     get: (id: string) => runs.get(id),
-    start(path: string, name: string, source: Run["file"]["source"], engine: string): Run {
+    start(path: string, name: string, source: Run["file"]["source"], engine: string, fresh = false): Run {
       // A sample already loaded (and not failed) is reused rather than processed twice.
-      if (source === "sample") { const same = [...runs.values()].find((r) => r.file.path === path && r.engine === engine && r.state !== "failed"); if (same) return same; }
+      if (source === "sample" && !fresh) { const same = [...runs.values()].find((r) => r.file.path === path && r.engine === engine && r.state !== "failed"); if (same) return same; }
       const id = randomBytes(5).toString("hex");
       const run: Run = {
         id, file: { name: name || basename(path), bytes: statSync(path).size, source, path },
@@ -85,6 +85,8 @@ export function makeRuns(root: string, engines: Engine[], runsDir: string) {
       process(run).catch((x) => { run.state = "failed"; run.events.push({ event: "error", error: String(x) }); });
       return run;
     },
+    // Process the same file again, for example after the rulebook changed. Always a fresh run.
+    again(r: Run, engine: string): Run { return this.start(r.file.path, r.file.name, r.file.source, engine, true); },
     clear() { runs.clear(); rmSync(runsDir, { recursive: true, force: true }); mkdirSync(runsDir, { recursive: true }); },
   };
 }
@@ -95,5 +97,6 @@ export function summary(r: Run) {
 
 // What the page sees: everything except the server's own file paths.
 export function view(r: Run, since = 0) {
+  // A dropped file is kept until the server stops, so it can be processed again.
   return { ...summary(r), stage: r.stage, events: r.events.slice(since), eventCount: r.events.length, result: r.result, engines: r.engines };
 }

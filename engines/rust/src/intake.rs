@@ -23,7 +23,9 @@ struct Database { name: String, bytes: u64, sha256: String, rows: u64, tables: V
 #[derive(Serialize)]
 struct Check { status: &'static str, missing: Vec<String>, reason: Option<String> }
 #[derive(Serialize)]
-struct Intake { schema: &'static str, file: FileInfo, archive: Option<Archive>, database: Option<Database>, kind: String, check: Option<Check> }
+struct Rulebook { version: u64, sha256: String }
+#[derive(Serialize)]
+struct Intake { schema: &'static str, rulebook: Rulebook, file: FileInfo, archive: Option<Archive>, database: Option<Database>, kind: String, check: Option<Check> }
 
 fn emit(step: &str, state: &str, fields: Value) {
     let mut m = Map::new();
@@ -34,9 +36,13 @@ fn emit(step: &str, state: &str, fields: Value) {
     eprintln!("{}", Value::Object(m));
 }
 
-fn rules() -> Value {
+fn rules() -> (Value, Rulebook) {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..").join("..");
-    serde_json::from_str(&fs::read_to_string(root.join("spec/rulebook/intake.json")).expect("spec/rulebook/intake.json")).expect("rulebook is JSON")
+    let bytes = fs::read(root.join("spec/rulebook/intake.json")).expect("spec/rulebook/intake.json");
+    let v: Value = serde_json::from_slice(&bytes).expect("rulebook is JSON");
+    let sha: String = Sha256::digest(&bytes).iter().map(|b| format!("{b:02x}")).collect();
+    let version = v["version"].as_u64().unwrap_or(0);
+    (v, Rulebook { version, sha256: sha })
 }
 
 fn sha256_of(path: &Path, step: &str) -> std::io::Result<String> {
@@ -87,12 +93,12 @@ fn catalogue(path: &Path) -> Result<Vec<Table>, String> {
 }
 
 pub fn run(file: &str, name: &str, out: &str) -> Result<String, String> {
-    let rules = rules();
+    let (rules, rulebook) = rules();
     let (file, out) = (Path::new(file), Path::new(out));
     fs::create_dir_all(out).map_err(|e| e.to_string())?;
     let bytes = fs::metadata(file).map_err(|e| e.to_string())?.len();
     let sha = sha256_of(file, "fingerprint").map_err(|e| e.to_string())?;
-    let mut r = Intake { schema: "intake/1", file: FileInfo { name: name.into(), bytes, sha256: sha }, archive: None, database: None, kind: "unknown".into(), check: None };
+    let mut r = Intake { schema: "intake/1", rulebook, file: FileInfo { name: name.into(), bytes, sha256: sha }, archive: None, database: None, kind: "unknown".into(), check: None };
 
     emit("unpack", "start", json!({}));
     let mut zip = match zip::ZipArchive::new(File::open(file).map_err(|e| e.to_string())?) {
@@ -146,7 +152,9 @@ pub fn run(file: &str, name: &str, out: &str) -> Result<String, String> {
     emit("check", "start", json!({}));
     let mut missing = Vec::new();
     if kind != "unknown" {
-        for (table, cols) in kinds[&kind]["required"].as_object().cloned().unwrap_or_default() {
+        for (table, entry) in kinds[&kind]["tables"].as_object().cloned().unwrap_or_default() {
+            if !entry["read"].as_bool().unwrap_or(false) { continue; }
+            let cols = entry["columns"].clone();
             match present(&table) {
                 None => missing.push(table.clone()),
                 Some(t) => for c in cols.as_array().cloned().unwrap_or_default() {

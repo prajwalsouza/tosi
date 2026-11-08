@@ -4,7 +4,7 @@
   "title": "Intake result",
   "description": "What intake found in one file. See spec/stages/intake/README.md.",
   "type": "object",
-  "required": ["schema", "file", "archive", "database", "kind", "check"],
+  "required": ["schema", "rulebook", "file", "archive", "database", "kind", "check"],
   "additionalProperties": false,
   "$defs": {
     "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
@@ -12,6 +12,11 @@
   },
   "properties": {
     "schema": { "const": "intake/1" },
+    "rulebook": {
+      "description": "Which rulebook decided this result: its version and the SHA-256 of spec/rulebook/intake.json as read.",
+      "type": "object", "required": ["version", "sha256"], "additionalProperties": false,
+      "properties": { "version": { "$ref": "#/$defs/count" }, "sha256": { "$ref": "#/$defs/sha256" } }
+    },
     "file": {
       "type": "object", "required": ["name", "bytes", "sha256"], "additionalProperties": false,
       "properties": { "name": { "type": "string" }, "bytes": { "$ref": "#/$defs/count" }, "sha256": { "$ref": "#/$defs/sha256" } }

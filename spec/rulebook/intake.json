@@ -1,5 +1,6 @@
 {
-  "about": "What intake needs to recognise a filing and to accept it. Each kind is recognised when all its marker tables are present; it is accepted when every required table and column is present.",
+  "about": "What intake reads. Each kind of filing is recognised when all its marker tables are present. Each table entry says whether the rules read it ('read'), which of its columns they need, and a plain name and description for people. Edit through the guidebook, which records every change in changes.jsonl.",
+  "version": 1,
   "kinds": {
     "space": {
       "label": "Space filing",
@@ -9,38 +10,68 @@
         "emiss",
         "s_beam"
       ],
-      "required": {
-        "notice": [
-          "ntc_id",
-          "adm",
-          "ntc_type",
-          "prov"
-        ],
-        "grp": [
-          "grp_id",
-          "ntc_id",
-          "emi_rcp",
-          "beam_name"
-        ],
-        "emiss": [
-          "grp_id",
-          "pep_max",
-          "pwr_ds_max",
-          "design_emi"
-        ],
-        "freq": [
-          "grp_id"
-        ],
-        "s_beam": [
-          "ntc_id",
-          "beam_name",
-          "gain"
-        ],
-        "provn": [
-          "grp_id",
-          "adm",
-          "coord_prov"
-        ]
+      "tables": {
+        "notice": {
+          "read": true,
+          "columns": [
+            "ntc_id",
+            "adm",
+            "ntc_type",
+            "prov"
+          ],
+          "alias": "Filings",
+          "about": "One row per notice: who filed it, under which provision, and when."
+        },
+        "grp": {
+          "read": true,
+          "columns": [
+            "grp_id",
+            "ntc_id",
+            "emi_rcp",
+            "beam_name"
+          ],
+          "alias": "Groups",
+          "about": "A notice's groups: each ties a set of frequencies and emissions to one beam."
+        },
+        "emiss": {
+          "read": true,
+          "columns": [
+            "grp_id",
+            "pep_max",
+            "pwr_ds_max",
+            "design_emi"
+          ],
+          "alias": "Emissions",
+          "about": "Emission class and power for each group."
+        },
+        "freq": {
+          "read": true,
+          "columns": [
+            "grp_id"
+          ],
+          "alias": "Frequencies",
+          "about": "The frequencies assigned to each group."
+        },
+        "s_beam": {
+          "read": true,
+          "columns": [
+            "ntc_id",
+            "beam_name",
+            "gain"
+          ],
+          "alias": "Satellite beams",
+          "about": "Each beam of the satellite, with its antenna gain."
+        },
+        "provn": {
+          "read": true,
+          "columns": [
+            "grp_id",
+            "adm",
+            "coord_prov"
+          ],
+          "alias": "Provisions",
+          "about": "The regulatory provisions and coordination that apply to each group."
+        }
       }
     },
     "terrestrial": {
@@ -48,28 +79,48 @@
       "markers": [
         "fxm_terra"
       ],
-      "required": {
-        "fxm_terra": [
-          "terrakey",
-          "adm",
-          "stn_cls",
-          "intent",
-          "stage",
-          "freq_assgn",
-          "geo_key"
-        ],
-        "fxm_ant": [
-          "terrakey"
-        ],
-        "fxm_geo": [
-          "geo_key",
-          "long_dec",
-          "lat_dec"
-        ],
-        "fxm_coord": [
-          "terrakey",
-          "adm"
-        ]
+      "tables": {
+        "fxm_terra": {
+          "read": true,
+          "columns": [
+            "terrakey",
+            "adm",
+            "stn_cls",
+            "intent",
+            "stage",
+            "freq_assgn",
+            "geo_key"
+          ],
+          "alias": "Assignments",
+          "about": "One row per terrestrial assignment: station class, frequency, status."
+        },
+        "fxm_ant": {
+          "read": true,
+          "columns": [
+            "terrakey"
+          ],
+          "alias": "Antennas",
+          "about": "Antenna height, gain and direction for each assignment."
+        },
+        "fxm_geo": {
+          "read": true,
+          "columns": [
+            "geo_key",
+            "long_dec",
+            "lat_dec"
+          ],
+          "alias": "Locations",
+          "about": "Where each station is: longitude and latitude."
+        },
+        "fxm_coord": {
+          "read": true,
+          "columns": [
+            "terrakey",
+            "adm"
+          ],
+          "alias": "Coordination",
+          "about": "Which administrations an assignment has been coordinated with."
+        }
       }
     }
   },
@@ -83,48 +134,6 @@
   "notes": [
     "The first .mdb entry in stored order is the database.",
     "In 'missing', {missing} is the missing items joined with ', '.",
-    "'tables' gives a plain name and a one-line description for each table the rules read; it is shown in the interface and does not change any result."
-  ],
-  "tables": {
-    "notice": {
-      "alias": "Filings",
-      "about": "One row per notice: who filed it, under which provision, and when."
-    },
-    "grp": {
-      "alias": "Groups",
-      "about": "A notice's groups: each ties a set of frequencies and emissions to one beam."
-    },
-    "emiss": {
-      "alias": "Emissions",
-      "about": "Emission class and power for each group."
-    },
-    "freq": {
-      "alias": "Frequencies",
-      "about": "The frequencies assigned to each group."
-    },
-    "s_beam": {
-      "alias": "Satellite beams",
-      "about": "Each beam of the satellite, with its antenna gain."
-    },
-    "provn": {
-      "alias": "Provisions",
-      "about": "The regulatory provisions and coordination that apply to each group."
-    },
-    "fxm_terra": {
-      "alias": "Assignments",
-      "about": "One row per terrestrial assignment: station class, frequency, status."
-    },
-    "fxm_ant": {
-      "alias": "Antennas",
-      "about": "Antenna height, gain and direction for each assignment."
-    },
-    "fxm_geo": {
-      "alias": "Locations",
-      "about": "Where each station is: longitude and latitude."
-    },
-    "fxm_coord": {
-      "alias": "Coordination",
-      "about": "Which administrations an assignment has been coordinated with."
-    }
-  }
+    "Only tables with read: true are checked and picked; their 'columns' must all be present. alias and about are for people and never change a result."
+  ]
 }

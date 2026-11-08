@@ -1,6 +1,7 @@
 // Tosi interface shell: a floating sidebar, simple hash routes, and the settings pages.
 import { icon } from "./icons.js";
 import * as flow from "./flow.js";
+import * as guidebook from "./guidebook.js";
 
 const $ = (id) => document.getElementById(id);
 const store = {
@@ -54,6 +55,7 @@ const dotClass = (a) => (!a ? "sk dot" : "dot " + (a.ok ? "ok" : "bad"));
 const NAV = [
   { route: "/", label: "Home", icon: "house" },
   { route: "/flow", label: "Flow", icon: "route" },
+  { route: "/guidebook", label: "Guidebook", icon: "book" },
 ];
 
 function setShut(shut) {
@@ -193,11 +195,11 @@ function render() {
   // The Flow manages its own live updates; only rebuild it when the route changes.
   if (parts[0] === "flow" && page?.route === r) return;
   page?.cleanup?.();
-  page = parts[0] === "settings" ? settings(parts[1]) : parts[0] === "flow" ? flow.flowPage(parts[1]) : home();
+  page = parts[0] === "settings" ? settings(parts[1]) : parts[0] === "flow" ? flow.flowPage(parts[1]) : parts[0] === "guidebook" ? guidebook.guidebookPage() : home();
   page.route = r;
   $("main").replaceChildren(...[].concat(page));
   if (parts[0] === "flow") scrollTo(0, 0);
-  document.title = parts[0] === "settings" ? "Settings · Tosi" : parts[0] === "flow" ? "Flow · Tosi" : "Tosi";
+  document.title = { settings: "Settings · Tosi", flow: "Flow · Tosi", guidebook: "Guidebook · Tosi" }[parts[0]] ?? "Tosi";
 }
 
 /* ---------- drop a file anywhere ---------- */
@@ -226,9 +228,11 @@ addEventListener("keydown", (e) => {
   if (e.key === "[" && !e.target.closest("input, textarea, [contenteditable]")) setShut(!document.body.classList.contains("shut"));
 });
 $("tog").addEventListener("click", () => setShut(!document.body.classList.contains("shut")));
+document.querySelector(".brand").addEventListener("click", (e) => { if (document.body.classList.contains("shut")) { e.preventDefault(); setShut(false); } });
 
 setShut(store.get("tosi.side", "open") === "shut");
 $("drop").querySelector(".ic").innerHTML = icon("arrow-up-from-bracket");
+guidebook.init({ el, toast });
 flow.init({ el, store, using: () => state.using || "ts", go: (r) => { location.hash = `#${r}`; }, busy, toast });
 render();
 // Samples: shown on Home, and loaded automatically the first time this session opens with nothing loaded.

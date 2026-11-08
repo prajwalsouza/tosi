@@ -4,6 +4,7 @@ import { createServer } from "node:http";
 import { readFileSync, existsSync, statSync, mkdirSync, createWriteStream } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { makeRuns, view } from "./runs.ts";
+import { makeRulebook } from "./rulebook.ts";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join, extname } from "node:path";
@@ -19,6 +20,7 @@ const local = existsSync(join(root, "dev", "local.json")) ? JSON.parse(readFileS
 const samples: string[] = (local.samples ?? []).filter((p: string) => existsSync(p));
 const runsDir = join(root, local.runs ?? "runs");
 const runs = makeRuns(root, engines, runsDir);
+const rulebook = makeRulebook(root);
 runs.clear();
 const MAX_UPLOAD = 2_000_000_000;
 
@@ -80,6 +82,22 @@ createServer(async (req, res) => {
   if (url.pathname === "/api/about") {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
     return send(res, 200, JSON.stringify({ tosi: pkg.version, spec: readFileSync(join(root, "spec", "VERSION"), "utf8").trim(), server: `Node ${process.versions.node}`, engines: engines.map((e) => ({ id: e.id, name: e.name })) }));
+  }
+  if (url.pathname === "/api/rulebook/intake/changes") return send(res, 200, JSON.stringify(rulebook.changes()));
+  if (url.pathname === "/api/rulebook/intake" && req.method === "POST") {
+    let body = "";
+    req.on("data", (d) => { body += d; if (body.length > 20000) req.destroy(); });
+    req.on("end", () => {
+      try { const out = rulebook.apply(JSON.parse(body)); send(res, out.ok ? 200 : 400, JSON.stringify(out)); }
+      catch { send(res, 400, JSON.stringify({ ok: false, error: "Not a valid change" })); }
+    });
+    return;
+  }
+  const again = url.pathname.match(/^\/api\/runs\/([0-9a-f]+)\/again$/);
+  if (again && req.method === "POST") {
+    const r = runs.get(again[1]);
+    req.resume();
+    return r ? send(res, 200, JSON.stringify(view(runs.again(r, url.searchParams.get("engine") ?? r.engine)))) : send(res, 404, JSON.stringify({ error: "No such run" }));
   }
   const rb = url.pathname.match(/^\/api\/rulebook\/([a-z-]+)$/);
   if (rb) {

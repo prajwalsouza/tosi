@@ -12,7 +12,9 @@ from pathlib import Path
 
 CHUNK = 1 << 20  # 1 MiB
 ROOT = Path(__file__).resolve().parents[3]
-RULES = json.loads((ROOT / "spec" / "rulebook" / "intake.json").read_text())
+RULES_BYTES = (ROOT / "spec" / "rulebook" / "intake.json").read_bytes()
+RULES = json.loads(RULES_BYTES)
+RULEBOOK = {"version": RULES.get("version", 0), "sha256": hashlib.sha256(RULES_BYTES).hexdigest()}
 
 
 def emit(step, state, **fields):
@@ -61,6 +63,7 @@ def run(file, name, out):
     out.mkdir(parents=True, exist_ok=True)
     result = {
         "schema": "intake/1",
+        "rulebook": RULEBOOK,
         "file": {"name": name, "bytes": file.stat().st_size, "sha256": sha256_of(file, "fingerprint")},
         "archive": None,
         "database": None,
@@ -113,7 +116,10 @@ def run(file, name, out):
         emit("check", "done", status="refused")
         return finish(refuse(result, "unknown_kind"), out)
     missing = []
-    for table, cols in RULES["kinds"][kind]["required"].items():
+    for table, entry in RULES["kinds"][kind]["tables"].items():
+        if not entry.get("read"):
+            continue
+        cols = entry.get("columns", [])
         if table not in present:
             missing.append(table)
         else:

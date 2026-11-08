@@ -67,3 +67,9 @@ New decisions are added at the end. A changed decision gets a new entry that nam
 **Decision:** each engine reads Access databases with a different, pure library: `mdb-reader` (TypeScript), `jetdb` (Rust), `access-parser` (Python). Rust also uses `zip`, `sha2`, `serde` and `serde_json` (with `preserve_order`, so rulebook order is kept). TypeScript reads zips with its own small reader on `node:zlib`; Python uses its standard library.
 **Why:** the engines must not share an implementation, or their agreement proves nothing. The three readers are by different authors; on Space 3074 and Terrestrial 3076 they agree on every table, row count and column.
 **Consequence:** the Python engine runs from its own virtual environment (`engines/python/.venv`, from `requirements.txt`). The mdbtools command-line programs are not used, because all three engines would then share one reader.
+
+## D-012 The guidebook edits the rulebook, and every result names its rulebook
+
+**Decision:** the guidebook is an editor over `spec/rulebook/intake.json`. Each table has a `read` switch, the columns the rules need, and a plain name and description. Every change bumps the rulebook's version and is appended, with its reason, to `spec/rulebook/changes.jsonl`. Every intake result records the rulebook version and the SHA-256 of the rulebook file it read.
+**Why:** what Tosi reads must be changeable by experts without code, and a result must stay traceable to the exact rules that produced it.
+**Consequence:** marker tables (how a kind is recognised) cannot be switched off in the guidebook. A file processed under an older rulebook is marked in the Flow, with a way to run it again.
