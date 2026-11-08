@@ -19,7 +19,7 @@ fn emit(state: &str, fields: J) {
 }
 
 #[derive(Serialize)]
-struct Rulebook { version: u64, sha256: String }
+struct Rulebook { version: u64, sha256: String, cites: serde_json::Value }
 #[derive(Serialize)]
 struct Notice { ntc_id: i64, #[serde(rename = "type")] kind: String, kept: bool, reason: Option<String>, transmit: u64, receive: u64 }
 #[derive(Serialize)]
@@ -50,7 +50,7 @@ pub fn run(folder: &str) -> Result<String, String> {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..").join("..");
     let bytes = fs::read(root.join("spec/rulebook/downlink.json")).map_err(|e| e.to_string())?;
     let rules: J = serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
-    let rulebook = Rulebook { version: rules["version"].as_u64().unwrap_or(0), sha256: Sha256::digest(&bytes).iter().map(|b| format!("{b:02x}")).collect() };
+    let rulebook = Rulebook { version: rules["version"].as_u64().unwrap_or(0), sha256: Sha256::digest(&bytes).iter().map(|b| format!("{b:02x}")).collect(), cites: crate::space_common::cites_of(&rules) };
     let (tx_code, rx_code) = (rules["transmit"].as_str().unwrap_or("E"), rules["receive"].as_str().unwrap_or("R"));
 
     emit("start", json!({}));

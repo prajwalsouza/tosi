@@ -1,0 +1,41 @@
+{
+ "about": "Conformance cases for tstations. Sample inputs are real files read from the local samples folder (never committed).",
+ "cases": [
+  {
+   "id": "terrestrial-3076",
+   "input": {
+    "sample": "brific3076.zip",
+    "stations": "local list, 873 stations"
+   },
+   "expect": {
+    "counts": {
+     "notices": 57,
+     "how": {
+      "exposed": 3,
+      "not_exposed": 27,
+      "no_station": 27,
+      "no_list": 0
+     }
+    }
+   }
+  },
+  {
+   "id": "no-list",
+   "input": {
+    "sample": "brific3076.zip",
+    "stations": null
+   },
+   "expect": {
+    "counts": {
+     "notices": 57,
+     "how": {
+      "exposed": 0,
+      "not_exposed": 0,
+      "no_station": 0,
+      "no_list": 57
+     }
+    }
+   }
+  }
+ ]
+}

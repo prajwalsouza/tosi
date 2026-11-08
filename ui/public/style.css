@@ -181,6 +181,10 @@ body.busy #busy { display: flex }
 .agree .et b.bad { color: var(--bad) }
 .agree .verdict svg { color: var(--ok) } .agree .verdict.bad svg { color: var(--bad) }
 .flow-body { display: grid; grid-template-columns: 190px minmax(0, 1fr); column-gap: var(--sp-6) }
+.flow.compact .flow-body { grid-template-columns: 40px minmax(0, 1fr) }
+.flow.compact .diagram .label, .flow.compact .next-h { display: none }
+.fold { display: grid; place-items: center; width: 28px; height: 28px; margin-left: var(--sp-2); border: 0; border-radius: 8px; background: transparent; color: var(--ink3); cursor: pointer; transition: color .15s }
+.fold:hover { color: var(--ink) } .fold svg { width: 14px; height: 14px; fill: currentColor }
 
 /* the module diagram */
 .diagram-col { position: relative }
@@ -233,7 +237,10 @@ body.busy #busy { display: flex }
 .ri-rows { color: var(--ink2); width: 110px; font-variant-numeric: tabular-nums }
 .ri-cols { display: flex; gap: 4px 10px; flex-wrap: wrap; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--ink3) }
 .ri-cols i { font-style: normal } .ri-cols i.miss { color: var(--bad) }
-.msg { position: absolute; left: 0; right: 0; bottom: 0; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--ink3); font-size: 15px }
+.msg { position: absolute; left: 0; right: 0; bottom: 0; min-height: 40px; display: flex; align-items: center; justify-content: center; color: var(--ink3); font-size: 15px }
+.msg > span { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center }
+.msg .say { display: block }
+.msg .cite { font-size: 12px; color: var(--ink3); opacity: .8; max-width: 70ch; cursor: help }
 .msg b { color: var(--ink); font-weight: var(--fw-medium) }
 .msg.in { animation: msgin .5s var(--ease) }
 @keyframes msgin { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
@@ -348,18 +355,18 @@ body.busy #busy { display: flex }
 
 /* ---------- calls to action: clear buttons, icon and words ---------- */
 .btn { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: var(--r-md); font-size: var(--fs-sm); font-weight: var(--fw-medium);
-  color: var(--ink); border: 1.5px solid color-mix(in srgb, var(--accent) 55%, transparent); background: transparent; box-shadow: var(--raised-shadow); transition: background var(--dur), border-color var(--dur), transform .1s }
+  color: var(--ink); border: 0; background: color-mix(in srgb, var(--accent) 8%, var(--surface)); box-shadow: var(--raised-shadow); transition: background var(--dur), transform .1s }   /* no borders on buttons: fill and colour only */
 .btn svg { width: 13px; height: 13px; color: var(--accent) }
-.btn:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent) }
+.btn:hover { background: color-mix(in srgb, var(--accent) 14%, var(--surface)) }
 .btn:active { transform: translateY(1px) }
-.btn.primary { background: var(--accent-fill); border-color: color-mix(in srgb, var(--accent) 60%, transparent); color: var(--on-accent) }
+.btn.primary { background: var(--accent-fill); color: var(--on-accent) }
 .btn.primary svg { color: var(--on-accent) }
-.btn.primary:hover { border-color: var(--accent) }
+.btn.primary:hover { background: color-mix(in srgb, var(--accent) 42%, var(--bg)) }
 .node.later.stop { opacity: .9; color: var(--bad) } .node.later.stop svg { width: 12px; height: 12px }
 .kl.concern svg { color: var(--bad) }
 
 /* Downlink: one dot per filing */
-.ndot { position: absolute; left: 0; top: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--ink3); opacity: 0; cursor: pointer; transition: background .2s }
+.ndot { position: absolute; left: 0; top: 0; width: var(--nd, 12px); height: var(--nd, 12px); border-radius: 50%; background: var(--ink3); opacity: 0; cursor: pointer; transition: background .2s }
 .ndot.kept { background: var(--accent) }
 .ndot:hover { background: var(--ink) }
 .nleft { position: absolute; display: flex; align-items: baseline; gap: var(--sp-3); opacity: 0; font-size: var(--fs-sm); color: var(--ink2); white-space: nowrap }
@@ -438,3 +445,39 @@ body.busy #busy { display: flex }
 .rview button { display: grid; place-items: center; width: 30px; height: 24px; border: 0; border-radius: 7px; background: transparent; color: var(--ink3); cursor: pointer; transition: color .15s, background .15s }
 .rview button:hover { color: var(--ink) }
 .rview button.on { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--ink) }
+
+/* Space charts and the station map: thin lines, quiet ticks; red and amber only where a concern begins. */
+.schart { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; opacity: 0 }
+.sc-axis { fill: none; stroke: color-mix(in srgb, var(--ink) 22%, transparent); stroke-width: 1 }
+.sc-grid { stroke: color-mix(in srgb, var(--ink) 6%, transparent); stroke-width: 1 }
+.sc-ref { fill: none; stroke: color-mix(in srgb, var(--accent) 35%, transparent); stroke-width: 1; stroke-dasharray: 2 4 }
+.sc-tick { fill: var(--ink3); font: 11px var(--font) }
+.sc-limit { stroke: var(--bad); stroke-width: 1.2 }
+.sc-lim { fill: var(--bad) }
+.sc-over { fill: color-mix(in srgb, var(--bad) 6%, transparent) }
+.sc-near { fill: color-mix(in srgb, var(--warn) 16%, transparent) }
+.sm-land { fill: color-mix(in srgb, var(--accent) 12%, transparent); stroke: color-mix(in srgb, var(--accent) 40%, transparent); stroke-width: 1 }
+.sm-st { fill: color-mix(in srgb, var(--ink) 30%, transparent) }
+.sm-st.hit.over { fill: var(--bad) } .sm-st.hit.near { fill: var(--warn) } .sm-st.hit.under { fill: var(--accent) }
+
+/* links out to the ITU: the accent colour, no underline until hovered */
+a.ext { color: var(--accent); text-decoration: none; transition: color var(--dur) } a.ext:hover { text-decoration: underline; text-underline-offset: 3px }
+
+/* a scene's line under its title wraps inside the left column, never under the groups at the right */
+.nsub.wrap { white-space: normal; line-height: 1.45 }
+.lede.why p { margin: 0 0 8px; max-width: 68ch } .lede.why p:last-child { margin-bottom: 0 }
+
+/* a satellite that cannot be calculated keeps its place with a ring: not knowing is not the same as clear */
+.ndot.unknown { background: transparent !important; box-shadow: inset 0 0 0 2px var(--ink3) }
+/* beams from satellites down to Finland, and lines between satellites and stations */
+.sb { stroke: var(--accent); stroke-linecap: round } .sb.over { stroke: var(--bad) } .sb.near { stroke: var(--warn) }
+.sb-ground { fill: var(--accent) }
+.sm-l { stroke-width: 1; stroke-opacity: .7 } .sm-l.over { stroke: var(--bad) } .sm-l.near { stroke: var(--warn) }
+.sc-nearl { fill: var(--warn) }
+.tt-bad { margin-top: 4px; color: var(--bad); font-size: var(--fs-xs) } .tt-warn { margin-top: 4px; color: var(--warn); font-size: var(--fs-xs) }
+.tmap { position: absolute; left: 0; top: 0; pointer-events: none; opacity: 0 }
+.tside { position: absolute; display: flex; flex-direction: column; gap: 10px; opacity: 0; pointer-events: none }
+.tside .nleft { position: static; opacity: 1; white-space: normal }
+.tside-h { margin-top: 10px; color: var(--ink2); font-size: var(--fs-xs); font-weight: var(--fw-medium) }
+.tside-level { color: var(--ink3); font-size: var(--fs-xs) } .tside-level b { color: var(--ink); font-weight: var(--fw-medium) }
+.tside-note { color: var(--ink3); font-size: var(--fs-xs); line-height: 1.45 }

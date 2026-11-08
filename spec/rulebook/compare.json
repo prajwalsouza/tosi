@@ -1,0 +1,28 @@
+{
+  "about": "Compare: whether the worst-case power arriving in Finland goes over the limit. The e.i.r.p. from the Power step spreads over the distance to Finland; the limit depends on the angle the signal arrives from. Every angle at which the satellite can appear from Finland is tried, and the one where it comes closest to the limit is kept (guidebook MD-2).",
+  "version": 2,
+  "kinds": ["space"],
+  "earth_radius_km": 6378.14,
+  "geostationary_radius_km": 42164.2,
+  "radius_basis": "As in spec/rulebook/reach.json (Recommendation ITU-R S.1257).",
+  "geometry": {
+    "fixed": "From each test point in Finland and each point on its outer limit (spec/tables/finland.json: test_points, a 0.5° grid inside Finland, then border, about every 10 km along the land border and the territorial-sea limit) where the satellite is at or above the horizon: arrival angle = elevation, distance = slant range. If Reach saw the satellite but no test point does, the highest test point is used with the signal arriving at the horizon.",
+    "moving": "Arrival angles from 0° to 90° in steps of ngso_angle_step_deg, at the lowest perigee of its orbits (closest approach, worst case): distance = −R sin δ + √((R sin δ)² + 2Rh + h²)."
+  },
+  "ngso_angle_step_deg": 0.5,
+  "spreading": "Power-flux density = e.i.r.p. − 10·log10(4π d²), d in metres.",
+  "mask": "The limit at arrival angle δ from the limit's mask: in each part, C1 + C2·f(δ + C3), with f the logarithm, the square or the angle itself as the part says, or C1 alone; a part stored from 0° to 0° holds at every angle; where parts meet, the later one holds. Parts needing the NGSO tables' C4 or C5 are not used.",
+  "excess": "Excess = e.i.r.p. − the smallest (limit + spreading) over the geometry. Above zero, the limit is broken at that angle.",
+  "near_db": 3,
+  "near_basis": "Administration policy: within 3 dB of the limit is a near miss, worth a look (Traficom: near-limit cases count as concerns).",
+  "outcomes": {
+    "over": "In the worst case, the power arriving in Finland is over the limit.",
+    "near": "In the worst case, it comes within 3 dB of the limit without breaking it.",
+    "under": "Even in the worst case, it stays more than 3 dB under the limit.",
+    "no_result": "None of its limits gives a value at any angle it arrives from."
+  },
+  "notes": [
+    "Each filing keeps its worst pair of a group and a limit; on a tie, the lowest grp_id, then fixed before moving tables, then the lowest exam row, then the lowest provision.",
+    "Pairs over or near the limit are kept with the frequencies they share with the limit's band, for the Stations step."
+  ]
+}

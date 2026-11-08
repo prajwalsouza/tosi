@@ -12,3 +12,6 @@ state/
 target/
 .server.log
 bench/
+.env
+.env.*
+runs-*/

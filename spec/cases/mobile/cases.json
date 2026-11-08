@@ -1,0 +1,22 @@
+{
+ "about": "Conformance cases for mobile. Sample inputs are real files read from the local samples folder (never committed).",
+ "cases": [
+  {
+   "id": "terrestrial-3076",
+   "input": {
+    "sample": "brific3076.zip"
+   },
+   "expect": {
+    "counts": {
+     "notices": 4057,
+     "kept": 1858,
+     "left": {
+      "recorded": 576,
+      "finnish": 4,
+      "not_land_mobile": 1619
+     }
+    }
+   }
+  }
+ ]
+}

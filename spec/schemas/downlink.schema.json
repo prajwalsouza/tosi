@@ -9,8 +9,9 @@
   "$defs": { "count": { "type": "integer", "minimum": 0 }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } },
   "properties": {
     "schema": { "const": "downlink/1" },
-    "rulebook": { "type": "object", "required": ["version", "sha256"], "additionalProperties": false,
-      "properties": { "version": { "$ref": "#/$defs/count" }, "sha256": { "$ref": "#/$defs/sha256" } } },
+    "rulebook": { "type": "object", "required": ["version", "sha256", "cites"], "additionalProperties": false,
+      "properties": { "version": { "$ref": "#/$defs/count" }, "sha256": { "$ref": "#/$defs/sha256" },
+        "cites": { "type": "object", "description": "The sources the stage's rulebook cites, copied from it: every entry named \"method\", \"basis\" or ending in \"_basis\", in rulebook order. Every result carries them, so a reader sees which guideline or policy set each number.", "additionalProperties": { "type": "string" } } } },
     "file": { "description": "SHA-256 of the IFIC file this came from, as intake recorded it", "$ref": "#/$defs/sha256" },
     "counts": { "type": "object", "required": ["notices", "kept", "left", "groups", "groups_kept"], "additionalProperties": false,
       "properties": {

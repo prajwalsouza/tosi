@@ -1,0 +1,121 @@
+/* The Flow's last two scenes: the concern ladder (in the scroll story) and the report (below it, read like a page). */
+
+/* ---------- the ladder: one row per rung ---------- */
+.lad-rung { position: absolute; opacity: 0; display: flex; flex-direction: column; gap: 2px; pointer-events: none; font-size: var(--fs-sm); color: var(--ink2) }
+.lad-top { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; height: 20px }
+.lad-top b { font-weight: var(--fw-medium); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0 }
+.lad-rung.none .lad-top b { color: var(--ink2) }
+.lad-rung.nil .lad-top b, .lad-rung.nil .lad-n { color: var(--ink3) }
+.lad-n { color: var(--ink3); font-variant-numeric: tabular-nums; flex: none }
+.lad-lv { flex: none; width: 8px; height: 8px; border-radius: 50%; background: color-mix(in srgb, var(--ink3) 70%, transparent) }
+.lad-lv.crit { background: var(--bad) } .lad-lv.warn { background: var(--warn) }
+.lad-cite { flex: none; margin-left: auto; padding-left: var(--sp-2); font-size: 11px; color: var(--ink3); opacity: .75; cursor: help; pointer-events: auto; white-space: nowrap; transition: color var(--dur), opacity var(--dur) }
+.lad-cite:hover { color: var(--ink); opacity: 1 }
+.lad-means { padding-left: 16px; font-size: var(--fs-xs); color: var(--ink3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+
+/* ---------- the right column: the scroll story, then the report ---------- */
+.flow-main { min-width: 0 }
+.rp { --flowhead: calc(var(--gap) + var(--sp-3) + var(--row) + var(--sp-5)); padding: 64px 0 var(--sp-8); scroll-margin-top: var(--flowhead) }
+.rp[hidden] { display: none }
+.rp-sk { display: flex; flex-direction: column; gap: 4px }
+.rp-skrow { display: flex; align-items: center; gap: var(--sp-3); height: 34px }
+
+.rp-head { display: flex; align-items: flex-start; gap: var(--sp-6); flex-wrap: wrap }
+.rp-title { flex: 1 1 340px; min-width: 0 }
+.rp-title h2 { margin: 0; font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-xl); letter-spacing: -.02em }
+.rp-title p { margin: 6px 0 0; color: var(--ink3); font-size: var(--fs-sm) } .rp-title p b { color: var(--ink); font-weight: var(--fw-medium) }
+.rp-tools { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap }
+.rp-tools .btn { text-decoration: none; height: 34px; padding: 0 14px }
+.rp-views { display: flex; gap: 2px; margin-right: var(--sp-3) }
+.rp-vb { display: grid; place-items: center; width: 32px; height: 32px; border: 0; background: none; color: var(--ink3); cursor: pointer; transition: color var(--dur) }
+.rp-vb svg { width: 14px; height: 14px; fill: currentColor }
+.rp-vb:hover { color: var(--ink) } .rp-vb.on { color: var(--accent) }
+.rp-basis { margin: var(--sp-3) 0 var(--sp-5); color: var(--ink3); font-size: var(--fs-xs); max-width: 90ch }
+.rp-none { padding: var(--sp-5) 0; color: var(--ink3); font-size: var(--fs-sm) }
+
+/* ---------- the outliner: chevrons, pastel level dots, indentation; no guide lines ---------- */
+.rp-outline { display: flex; flex-direction: column; max-width: 1100px }
+.rp-row { display: flex; align-items: center; gap: var(--sp-2); width: 100%; min-height: 34px; padding: 3px 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: var(--fs-sm); text-align: left; cursor: pointer }
+.rp-row.leaf { cursor: default }
+.rp-row .chev { flex: none; width: 16px; height: 16px; display: grid; place-items: center; color: var(--ink3); transition: transform var(--dur), color var(--dur) }
+.rp-row .chev svg { width: 9px; height: 9px; fill: currentColor } .rp-row .chev.open { transform: rotate(90deg) }
+.rp-row:hover .chev { color: var(--ink) }
+.rp-row:hover .rp-text b { color: var(--accent) }
+.rp-dot { flex: none; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: color-mix(in srgb, var(--ink3) 60%, transparent) }
+.rp-dot.crit { background: color-mix(in srgb, var(--bad) 80%, var(--bg)) } .rp-dot.warn { background: color-mix(in srgb, var(--warn) 80%, var(--bg)) }
+.rp-text { flex: 1 1 auto; min-width: 0; line-height: 1.45 }
+.rp-text b { font-weight: var(--fw-medium); transition: color var(--dur) }
+.rp-count { color: var(--ink3); font-variant-numeric: tabular-nums; margin-left: 4px }
+.rp-kids { margin-left: 24px }
+.rp-kids[hidden] { display: none }
+.rp-node.lvl > .rp-row { min-height: 40px; font-size: var(--fs-md) }
+.rp-node.lvl > .rp-row b { font-weight: var(--fw-bold) }
+.rp-node.rung > .rp-row .rp-rn { color: var(--ink) }
+.rp-means { margin-left: var(--sp-3); color: var(--ink3); font-size: var(--fs-xs) }
+.rp-ctry { margin-left: var(--sp-2); color: var(--ink3) }
+.rp-hl { display: block; color: var(--ink2) }
+.rp-end { flex: none; display: inline-flex; align-items: center; gap: var(--sp-3); padding-left: var(--sp-4) }
+.rp-x { width: 66px; text-align: right; color: var(--ink2); font-variant-numeric: tabular-nums; font-size: var(--fs-xs) }
+.rp-cite { margin-left: var(--sp-2); font-size: 11px; color: var(--ink3); cursor: help; white-space: nowrap; transition: color var(--dur) }
+.rp-cite:hover { color: var(--ink) }
+.rp-node.case.flash > .rp-row .rp-text b { animation: rpflash 1.6s var(--ease) }
+@keyframes rpflash { 0%, 60% { color: var(--accent) } 100% { color: inherit } }
+
+/* a case, opened */
+.rp-node.case > .rp-kids { padding: 2px 0 12px }
+.rp-line { display: flex; align-items: baseline; gap: var(--sp-3); padding: 5px 0 5px 18px; font-size: var(--fs-sm); color: var(--ink2); line-height: 1.5 }
+.rp-line.in { padding: 0; flex: 1 }
+.rp-row .rp-line.in { color: var(--ink2) }
+.rp-lab { flex: none; width: 108px; color: var(--ink3); font-size: var(--fs-xs) }
+.rp-say { flex: 1 1 auto; min-width: 0; max-width: 78ch }
+.rp-say.dim { color: var(--ink3) }
+.rp-sub { margin-top: 4px; color: var(--ink2) }
+.rp-next { color: var(--ink) }
+.rp-node.case .rp-node > .rp-row { min-height: 30px; padding-left: 0; margin-left: -6px; width: calc(100% + 6px) }
+.rp-node.case .rp-node > .rp-kids { margin-left: 146px }
+.rp-uses { display: flex; flex-wrap: wrap; gap: 6px 8px; padding: 4px 0 8px; max-width: 80ch }
+.rp-use { display: inline-flex; align-items: baseline; gap: 6px; padding: 3px 9px; border-radius: var(--r-round); background: color-mix(in srgb, var(--ink3) 12%, transparent); color: var(--ink2); font-size: var(--fs-xs) }
+.rp-use.ex { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--ink) }
+.rp-use small { color: var(--accent); font-size: 10.5px }
+.rp-kv { display: grid; grid-template-columns: max-content 1fr; gap: 3px 16px; margin: 4px 0 8px; font-size: var(--fs-xs) }
+.rp-kv dt { color: var(--ink3) } .rp-kv dd { margin: 0; color: var(--ink2); font-variant-numeric: tabular-nums }
+
+/* how far over: a track with the limit marked */
+.rp-bar { position: relative; display: inline-block; flex: none; width: 90px; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--ink3) 16%, transparent) }
+.rp-bar.big { display: block; width: min(360px, 100%); height: 8px; margin: 6px 0 20px }
+.rp-bar.none { opacity: .4 }
+.rp-fill { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: var(--ink3) }
+.rp-bar.crit .rp-fill { background: color-mix(in srgb, var(--bad) 85%, var(--bg)) } .rp-bar.warn .rp-fill { background: color-mix(in srgb, var(--warn) 85%, var(--bg)) }
+.rp-zero { position: absolute; top: -3px; bottom: -3px; width: 1.5px; margin-left: -.75px; background: var(--ink2) }
+.rp-zl { position: absolute; top: 12px; transform: translateX(-50%); font-size: 10.5px; color: var(--ink3); white-space: nowrap }
+
+/* ---------- the table ---------- */
+.rp-chips { display: flex; gap: var(--sp-4); margin-bottom: var(--sp-3) }
+.rp-chip { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 4px 0; font: inherit; font-size: var(--fs-sm); color: var(--ink3); cursor: pointer; transition: color var(--dur) }
+.rp-chip span { font-variant-numeric: tabular-nums; opacity: .8 }
+.rp-chip:hover { color: var(--ink) } .rp-chip.on { color: var(--ink); font-weight: var(--fw-medium) }
+.rp-tw { max-height: 70vh; overflow: auto; border-radius: var(--r-md); background: color-mix(in srgb, var(--surface) 70%, transparent) }
+.rp-table { border-collapse: collapse; font-size: var(--fs-xs); color: var(--ink2); white-space: nowrap }
+.rp-table th { position: sticky; top: 0; z-index: 1; background: var(--surface); color: var(--ink); font-weight: var(--fw-medium); text-align: left; padding: 8px 12px }
+.rp-table td { padding: 5px 12px; max-width: 340px; overflow: hidden; text-overflow: ellipsis }
+.rp-table tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--ink3) 5%, transparent) }
+.rp-table td.n { text-align: right; font-variant-numeric: tabular-nums }
+.rp-table td.lv .rp-dot { margin-right: 6px; vertical-align: 0 }
+.rp-tsk { display: flex; flex-direction: column; gap: 12px; padding: var(--sp-3) 0 } .rp-tsk .sk { width: min(900px, 100%) }
+.rp-more { margin-top: var(--sp-3) }
+
+/* ---------- the map, at the bottom, fading softly to its edges ---------- */
+.rp-maph { margin-top: var(--sp-8) }
+.rp-maph h3 { margin: 0; font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-lg) }
+.rp-maph p { margin: 6px 0 0; color: var(--ink3); font-size: var(--fs-sm); max-width: 80ch }
+.rp-map { position: relative; height: min(620px, 78vh); margin-top: var(--sp-3); overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent), linear-gradient(to bottom, transparent, #000 7%, #000 93%, transparent);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent), linear-gradient(to bottom, transparent, #000 7%, #000 93%, transparent); mask-composite: intersect }
+.rp-map.sky { cursor: grab } .rp-map.turning { cursor: grabbing; user-select: none }
+.rp-map .rglobe { opacity: 1 }
+.rp-map .ttip { pointer-events: none }
+.rp-sat { position: absolute; left: 0; top: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--ink3); transition: background var(--dur), box-shadow var(--dur); cursor: default }
+.rp-sat.crit, .rp-sat.warn { width: 11px; height: 11px; cursor: pointer }
+.rp-sat.crit { background: var(--bad); box-shadow: 0 0 0 4px color-mix(in srgb, var(--bad) 22%, transparent) }
+.rp-sat.warn { background: var(--warn); box-shadow: 0 0 0 4px color-mix(in srgb, var(--warn) 22%, transparent) }
+.rp-sat.lit, .rp-sat:hover { background: var(--ink) }

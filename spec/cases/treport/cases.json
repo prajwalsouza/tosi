@@ -1,0 +1,25 @@
+{
+  "about": "Conformance cases for treport.",
+  "cases": [
+    {
+      "id": "terrestrial-3076",
+      "input": {
+        "sample": "brific3076.zip"
+      },
+      "expect": {
+        "counts": {
+          "notices": 4057,
+          "items": 6,
+          "crit": 1,
+          "warn": 5
+        },
+        "csv_rows": 4057,
+        "first": {
+          "terrakey": 93075637,
+          "site": "KRL LYASKELYA",
+          "country": "Russian Federation"
+        }
+      }
+    }
+  ]
+}

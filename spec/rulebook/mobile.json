@@ -1,0 +1,22 @@
+{
+  "about": "Land mobile: which terrestrial filings are new foreign land mobile stations, the only kind this screen covers.",
+  "version": 1,
+  "kinds": [
+    "terrestrial"
+  ],
+  "notice_stage": "NOTICE",
+  "own_administration": "FIN",
+  "classes": {
+    "FB": "Base station in the land mobile service",
+    "ML": "Land mobile station"
+  },
+  "classes_basis": "Traficom, 7 November 2026: land mobile only, classes as listed in the BR IFIC terrestrial preface; fixed stations stay out.",
+  "reasons": {
+    "recorded": "It is already in the Master Register (stage RECORDED), not a new notice in this issue.",
+    "finnish": "It is Finland's own filing.",
+    "not_land_mobile": "It is not a land mobile station (class {class}). This screen covers base stations (FB) and land mobile stations (ML) only."
+  },
+  "notes": [
+    "Reasons are tried in the order above; a filing gets the first that is true."
+  ]
+}

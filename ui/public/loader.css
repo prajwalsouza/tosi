@@ -1,0 +1,6 @@
+/* The loading screen: a small globe with satellites on tilted orbits, shown before the app is ready. */
+#loader { position: fixed; inset: 0; z-index: 9999; background: var(--bg); display: grid; place-items: center; transition: opacity .45s ease, visibility .45s; }
+#loader canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#loader .lw { position: absolute; left: 50%; bottom: 9vh; transform: translateX(-50%); font: var(--fw-medium) var(--fs-sm)/1 var(--font); letter-spacing: .32em; text-indent: .32em; text-transform: uppercase; color: var(--ink3); opacity: .8; user-select: none; }
+#loader.out { opacity: 0; visibility: hidden; pointer-events: none; }
+html.loading, html.loading body { overflow: hidden; }

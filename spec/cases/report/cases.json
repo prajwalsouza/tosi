@@ -1,0 +1,25 @@
+{
+  "about": "Conformance cases for report.",
+  "cases": [
+    {
+      "id": "space-3074",
+      "input": {
+        "sample": "ific3074.zip"
+      },
+      "expect": {
+        "counts": {
+          "notices": 196,
+          "items": 91,
+          "crit": 51,
+          "warn": 40
+        },
+        "csv_rows": 196,
+        "first": {
+          "ntc_id": 124545403,
+          "name": "CSN-SSO",
+          "country": "China"
+        }
+      }
+    }
+  ]
+}

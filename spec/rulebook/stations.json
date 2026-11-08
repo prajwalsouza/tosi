@@ -1,0 +1,22 @@
+{
+  "about": "Stations: which listed Finnish stations a satellite over or near the limit could affect. A station counts if one of its frequencies overlaps what the satellite transmits inside the limit's band, and it can see the satellite. Finnish use does not decide whether a satellite is a concern (Traficom: over the limit counts even with no listed station); it tells who would be hit, for the Ladder.",
+  "version": 1,
+  "kinds": ["space"],
+  "list": "state/reference/stations.json",
+  "list_basis": "Traficom's list of Finnish stations to protect, cleaned by dev/tools/tables.py: a blank licence class is MUUT, and the smaller of channel and transmission width is used (guidebook D-1, D-2). Kept on this computer only. When the list is missing, every filing gets 'no_list' and nothing fails.",
+  "bands": "Each station protects its receive frequency and, when different, its transmit frequency too, because someone in Finland receives it (guidebook C-4); each plus and minus half its width (bw_mhz; zero when not given).",
+  "same_frequency_mhz": 0.000000001,
+  "overlap": "A band counts when it touches the frequencies the satellite transmits inside the limit's band, ends included, for any of its pairs over or near the limit.",
+  "earth_radius_km": 6378.14,
+  "geostationary_radius_km": 42164.2,
+  "horizon_deg": 0,
+  "visibility": "A satellite fixed in the sky must be at or above the station's horizon. A moving satellite, or a station with no position, is taken to see it (worst case).",
+  "outcomes": {
+    "stations": "Listed Finnish stations use these frequencies and can see it.",
+    "no_station": "No listed Finnish station uses these frequencies where it can see it. It still counts if it is over the limit.",
+    "no_list": "Traficom's station list is not on this computer, so stations were not checked."
+  },
+  "notes": [
+    "Only filings over or near the limit are checked. Station numbers are listed in ascending order."
+  ]
+}

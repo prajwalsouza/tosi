@@ -121,7 +121,7 @@ pub fn run(folder: &str) -> Result<String, String> {
     groups.sort();
     let (total, seen) = (notices.len(), seen_ids.len());
     let result = json!({
-        "schema": "reach/1", "rulebook": { "version": rules["version"].as_u64().unwrap_or(0), "sha256": sha }, "file": intake["file"]["sha256"],
+        "schema": "reach/1", "rulebook": { "version": rules["version"].as_u64().unwrap_or(0), "sha256": sha, "cites": crate::space_common::cites_of(&rules) }, "file": intake["file"]["sha256"],
         "counts": { "notices": total, "seen": seen, "clear": total - seen, "how": J::Object(how), "groups": all.len(), "groups_kept": groups.len() },
         "notices": notices, "groups": groups
     });

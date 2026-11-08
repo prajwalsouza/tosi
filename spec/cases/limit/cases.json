@@ -1,0 +1,28 @@
+{
+ "about": "Conformance cases for limit. Sample inputs are real files read from the local samples folder (never committed).",
+ "cases": [
+  {
+   "id": "space-3074",
+   "input": {
+    "sample": "ific3074.zip"
+   },
+   "expect": {
+    "counts": {
+     "notices": 138,
+     "limited": 120,
+     "left": 18,
+     "how": {
+      "limited": 120,
+      "no_frequency": 0,
+      "named_countries_only": 0,
+      "no_limit": 18
+     },
+     "groups": 15162,
+     "groups_limited": 10598,
+     "rows": 13839,
+     "named_countries_rows": 1159
+    }
+   }
+  }
+ ]
+}

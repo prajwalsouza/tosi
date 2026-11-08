@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tosi/stations/1",
+  "title": "Stations result",
+  "description": "Which listed Finnish stations a satellite over or near the limit could affect. See spec/stages/stations/README.md.",
+  "type": "object",
+  "required": [
+    "schema",
+    "rulebook",
+    "file",
+    "counts",
+    "notices",
+    "list"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "stations/1"
+    },
+    "rulebook": {
+      "type": "object",
+      "required": [
+        "version",
+        "sha256",
+        "cites"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "cites": {
+          "type": "object",
+          "description": "The sources the stage's rulebook cites, copied from it: every entry named \"method\", \"basis\" or ending in \"_basis\", in rulebook order. Every result carries them, so a reader sees which guideline or policy set each number.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "file": {
+      "description": "SHA-256 of the IFIC file this came from, as intake recorded it",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "notices",
+        "how",
+        "stations_hit"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "notices": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "how": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "stations_hit": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "notices": {
+      "type": "array",
+      "description": "In ascending ntc_id order",
+      "items": {
+        "type": "object",
+        "required": [
+          "ntc_id",
+          "type",
+          "outcome",
+          "how",
+          "stations",
+          "over",
+          "near",
+          "at_over",
+          "at_near"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ntc_id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "over",
+              "near"
+            ]
+          },
+          "how": {
+            "type": "string"
+          },
+          "stations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Station numbers, ascending"
+          },
+          "over": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Stations on a transmission over the limit, ascending"
+          },
+          "near": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Stations only on transmissions near the limit, ascending"
+          },
+          "at_over": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "grp_id",
+                  "excess",
+                  "lo_mhz",
+                  "hi_mhz",
+                  "stations"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "grp_id": {
+                    "type": "integer"
+                  },
+                  "excess": {
+                    "type": "number",
+                    "description": "This transmission's margin over the limit, dB (negative: under)"
+                  },
+                  "lo_mhz": {
+                    "type": "number"
+                  },
+                  "hi_mhz": {
+                    "type": "number",
+                    "description": "The transmission's band within the limit's band, MHz"
+                  },
+                  "stations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Listed stations on this transmission's frequencies, ascending"
+                  }
+                },
+                "description": "The strongest transmission over the limit that reaches a listed station (the first, if equal)"
+              }
+            ]
+          },
+          "at_near": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "grp_id",
+                  "excess",
+                  "lo_mhz",
+                  "hi_mhz",
+                  "stations"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "grp_id": {
+                    "type": "integer"
+                  },
+                  "excess": {
+                    "type": "number",
+                    "description": "This transmission's margin over the limit, dB (negative: under)"
+                  },
+                  "lo_mhz": {
+                    "type": "number"
+                  },
+                  "hi_mhz": {
+                    "type": "number",
+                    "description": "The transmission's band within the limit's band, MHz"
+                  },
+                  "stations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Listed stations on this transmission's frequencies, ascending"
+                  }
+                },
+                "description": "The strongest transmission near the limit that reaches a listed station (the first, if equal)"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "list": {
+      "type": "object",
+      "required": [
+        "present",
+        "sha256",
+        "stations"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "present": {
+          "type": "boolean"
+        },
+        "sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stations": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "about": "The stages after intake, in order, for each kind of accepted filing. The server and compare/agree.py both read this. A stage is listed once all three engines pass its conformance cases and agree on the samples.",
+  "space": [
+    "downlink",
+    "reach",
+    "limit",
+    "data",
+    "power",
+    "compare",
+    "stations",
+    "ladder",
+    "report"
+  ],
+  "terrestrial": [
+    "mobile",
+    "range",
+    "tdata",
+    "field",
+    "threshold",
+    "tstations",
+    "tladder",
+    "treport"
+  ]
+}

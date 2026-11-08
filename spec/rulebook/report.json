@@ -1,0 +1,31 @@
+{
+  "about": "Report: the notification for a space file. The filings on crit and warn rungs of the ladder, each with what it is, whether Finland can see it, which listed stations it touches, why it is on its rung and by how much, and what a person should do next. Also every filing as one row of report.csv, and a short report.md. Names of administrations come from spec/reference/administrations.json; the wording of rungs from spec/rulebook/ladder.json.",
+  "version": 2,
+  "kinds": ["space"],
+  "levels_reported": ["crit", "warn"],
+  "stations_listed": 5,
+  "uses_listed": 4,
+  "uses_basis": "Finland's use on a case's frequencies comes from the national frequency allocation table, the annex to Traficom Radio Frequency Regulation 4 (M4), as the ladder found it.",
+  "next": {
+    "exceeds_station": "Check the filing's power and beams against the listed stations, and decide within the comment period whether to comment to the filing administration.",
+    "antenna": "Check the Finnish antenna's pointing against the satellite's position.",
+    "itu_names_finland": "Read what the ITU records for Finland in this filing, and decide whether Finland needs to respond.",
+    "near_station": "Look at the margin and the listed stations, and decide whether to watch the filing or comment.",
+    "near_frequency": "Check whether the Finnish use next to these frequencies could be affected.",
+    "exceeds_no_station": "Check the Finnish uses the frequency table (M4) lists on these frequencies, licence-exempt ones first: an exceedance counts even with no listed station."
+  },
+  "words": {
+    "fixed": "Fixed in the sky over {longitude}",
+    "moving": "Moving, orbit tilted {tilt}°, up to {apogee} km up",
+    "tilt_basis": "The orbit tilt shown is the largest inclination the filing gives, as filed (not folded to 90°).",
+    "moving_unknown": "Moving, orbit not filed in full",
+    "beyond": "Travels around {body}",
+    "seen": "Can be seen from Finland",
+    "clear": "Cannot be seen from Finland"
+  },
+  "bodies": { "L": "the Moon", "S": "the Sun", "J": "Jupiter", "M": "Mars", "V": "Venus" },
+  "notes": [
+    "report.json lists the reported filings in ladder order. report.csv has every filing that entered the screen, in ascending ntc_id order. report.md is the short notification.",
+    "CSV: a header row, comma-separated, RFC 4180 quoting, \\n line endings, numbers in shortest form, empty for none."
+  ]
+}

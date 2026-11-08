@@ -1,0 +1,37 @@
+{
+  "about": "Conformance cases for ladder.",
+  "cases": [
+    {
+      "id": "space-3074",
+      "input": {
+        "sample": "ific3074.zip"
+      },
+      "expect": {
+        "counts": {
+          "notices": 196,
+          "levels": {
+            "crit": 51,
+            "warn": 40,
+            "none": 105
+          },
+          "rungs": {
+            "exceeds_station": 46,
+            "antenna": 0,
+            "itu_names_finland": 5,
+            "near_station": 23,
+            "near_frequency": 7,
+            "exceeds_no_station": 10,
+            "cannot_calculate": 9,
+            "no_limit": 17,
+            "clear": 79
+          }
+        },
+        "first": {
+          "ntc_id": 124545403,
+          "rung": "exceeds_station",
+          "excess": 42.76
+        }
+      }
+    }
+  ]
+}

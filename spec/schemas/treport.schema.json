@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tosi/treport/1",
+  "title": "Terrestrial report result",
+  "description": "The terrestrial notification. See spec/stages/treport/README.md.",
+  "type": "object",
+  "required": [
+    "schema",
+    "rulebook",
+    "uses",
+    "file",
+    "name",
+    "counts",
+    "files",
+    "items"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "stamp": {
+      "type": "object",
+      "required": [
+        "version",
+        "sha256",
+        "cites"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "cites": {
+          "type": "object",
+          "description": "The sources the stage's rulebook cites, copied from it: every entry named \"method\", \"basis\" or ending in \"_basis\", in rulebook order. Every result carries them, so a reader sees which guideline or policy set each number.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "num": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Rounded to two decimals; null when it does not apply"
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "notices",
+        "levels",
+        "rungs"
+      ],
+      "properties": {
+        "notices": {
+          "$ref": "#/$defs/count"
+        },
+        "levels": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/count"
+          }
+        },
+        "rungs": {
+          "type": "object",
+          "description": "Filings per rung, in ladder order",
+          "additionalProperties": {
+            "$ref": "#/$defs/count"
+          }
+        }
+      }
+    }
+  },
+  "properties": {
+    "schema": {
+      "const": "treport/1"
+    },
+    "rulebook": {
+      "$ref": "#/$defs/stamp"
+    },
+    "uses": {
+      "type": "object",
+      "properties": {
+        "tladder": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "file": {
+      "$ref": "#/$defs/sha256"
+    },
+    "name": {
+      "type": "string"
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "notices",
+        "items",
+        "crit",
+        "warn",
+        "rungs"
+      ]
+    },
+    "files": {
+      "type": "object",
+      "required": [
+        "csv",
+        "md"
+      ]
+    },
+    "items": {
+      "type": "array",
+      "description": "Stations on crit and warn rungs, in ladder order",
+      "items": {
+        "type": "object",
+        "required": [
+          "terrakey",
+          "administration",
+          "country",
+          "site",
+          "class",
+          "f_mhz",
+          "distance_km",
+          "field",
+          "power",
+          "coordination",
+          "stations",
+          "finnish_use",
+          "why",
+          "next"
+        ]
+      }
+    }
+  }
+}

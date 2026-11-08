@@ -1,0 +1,23 @@
+{
+ "about": "Conformance cases for stations. Sample inputs are real files read from the local samples folder (never committed).",
+ "cases": [
+  {
+   "id": "space-3074",
+   "input": {
+    "sample": "ific3074.zip"
+   },
+   "expect": {
+    "counts": {
+     "notices": 90,
+     "how": {
+      "stations": 69,
+      "no_station": 21,
+      "no_list": 0
+     },
+     "stations_hit": 386
+    }
+   },
+   "note": "Needs Traficom's station list on this computer (state/reference/stations.json, sha256 d6b146c4…)."
+  }
+ ]
+}

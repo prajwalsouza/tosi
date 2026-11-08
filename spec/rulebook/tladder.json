@@ -1,0 +1,26 @@
+{
+  "about": "Terrestrial ladder: every station in a terrestrial file is placed on exactly one rung. Rungs are tried in order; the first that applies wins. Within a rung, the worst excess over the trigger level comes first, then the lowest terrakey.",
+  "version": 2,
+  "kinds": ["terrestrial"],
+  "rungs": [
+    { "key": "exceeds", "rung": "Exceeds at the border", "means": "Its signal at Finland's border or territorial-sea limit is over the trigger level", "level": "crit", "cites": ["MD-5", "MD-6"],
+      "test": "Threshold: over (not coordinated)." },
+    { "key": "station_exposed", "rung": "Listed station exposed", "means": "Its signal is over the trigger level at a listed Finnish station on its channel", "level": "crit", "cites": ["C-4", "MD-8"],
+      "test": "Stations: exposed, and Threshold not 'over but coordinated'." },
+    { "key": "near_threshold", "rung": "Near the trigger level", "means": "Its signal at the border is just under the trigger level", "level": "warn", "cites": ["MD-6"],
+      "test": "Threshold: near." },
+    { "key": "exceeds_coordinated", "rung": "Exceeds, but coordinated: to verify", "means": "Over the trigger level, but Finland has completed coordination for it; Traficom asks for this to be verified, not closed", "level": "warn", "cites": ["MD-6"],
+      "test": "Threshold: over but coordinated." },
+    { "key": "cannot_calculate", "rung": "Cannot calculate", "means": "Information needed for the calculation is missing from the filing", "level": "none", "cites": ["MD-9"],
+      "test": "Data: it left." },
+    { "key": "out_of_scope", "rung": "Out of scope", "means": "Not a new foreign land mobile station, which is what this screen covers", "level": "none", "cites": ["MD-4"],
+      "test": "Land mobile: it left." },
+    { "key": "clear", "rung": "Clear", "means": "Too far from Finland, outside the method's band, withdrawn, or under the trigger level", "level": "none", "cites": ["MD-5"],
+      "test": "Range: it left; or Threshold: under." }
+  ],
+  "frequency_table": "spec/tables/m4.json",
+  "frequency_table_basis": "Traficom Radio Frequency Regulation 4 (M4), annex: Finland's national frequency allocation table, from Traficom's open data. For every case over or near the level, each Finnish use whose sub-band touches what the station transmits on is listed once, in table order, and the licence-exempt ones again on their own. Traficom, 7 November 2026: being over the limit is a concern even where only licence-exempt use exists, and the report cites the table's use.",
+  "notes": [
+    "The stage that decided each station is recorded: mobile, range, tdata, threshold or tstations."
+  ]
+}

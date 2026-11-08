@@ -4,6 +4,26 @@ use std::{env, fs, path::{Path, PathBuf}, process::exit};
 mod downlink;
 mod intake;
 mod reach;
+mod space_common;
+mod limit;
+mod data;
+mod power;
+mod compare;
+mod stations;
+mod terra_common;
+mod p1546;
+mod mobile;
+mod range;
+mod tdata;
+mod field;
+mod threshold;
+mod tstations;
+mod ladder;
+mod report;
+mod tladder;
+mod treport;
+mod report_common;
+mod m4;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -16,7 +36,7 @@ fn info() -> Result<String, String> {
     let runtime = format!("Rust {} ({}-{})", option_env!("TOSI_RUSTC").unwrap_or("compiled"), env::consts::ARCH, env::consts::OS);
     Ok(serde_json::json!({
         "schema": "engine-info/1", "engine": "rust", "language": "Rust", "version": VERSION,
-        "runtime": runtime, "spec": spec_version()?, "stages": ["intake", "downlink", "reach"]
+        "runtime": runtime, "spec": spec_version()?, "stages": ["intake", "downlink", "reach", "limit", "data", "power", "compare", "stations", "mobile", "range", "tdata", "field", "threshold", "tstations", "ladder", "report", "tladder", "treport"]
     }).to_string())
 }
 
@@ -34,6 +54,21 @@ fn main() {
         Some("info") => info(),
         Some("downlink") => downlink::run(&arg(&args, "--in")),
         Some("reach") => reach::run(&arg(&args, "--in")),
+        Some("limit") => limit::run(&arg(&args, "--in")),
+        Some("data") => data::run(&arg(&args, "--in")),
+        Some("power") => power::run(&arg(&args, "--in")),
+        Some("compare") => compare::run(&arg(&args, "--in")),
+        Some("stations") => stations::run(&arg(&args, "--in")),
+        Some("mobile") => mobile::run(&arg(&args, "--in")),
+        Some("range") => range::run(&arg(&args, "--in")),
+        Some("tdata") => tdata::run(&arg(&args, "--in")),
+        Some("field") => field::run(&arg(&args, "--in")),
+        Some("threshold") => threshold::run(&arg(&args, "--in")),
+        Some("tstations") => tstations::run(&arg(&args, "--in")),
+        Some("ladder") => ladder::run(&arg(&args, "--in")),
+        Some("report") => report::run(&arg(&args, "--in")),
+        Some("tladder") => tladder::run(&arg(&args, "--in")),
+        Some("treport") => treport::run(&arg(&args, "--in")),
         Some("intake") => {
             let file = arg(&args, "--file");
             let name = if args.iter().any(|a| a == "--name") { arg(&args, "--name") } else {
@@ -42,7 +77,7 @@ fn main() {
             intake::run(&file, &name, &arg(&args, "--out"))
         }
         other => {
-            eprintln!("{}", serde_json::json!({ "error": "unknown command", "command": other, "known": ["info", "intake", "downlink", "reach"] }));
+            eprintln!("{}", serde_json::json!({ "error": "unknown command", "command": other, "known": ["info", "intake", "downlink", "reach", "limit", "data", "power", "compare", "stations", "mobile", "range", "tdata", "field", "threshold", "tstations", "ladder", "report", "tladder", "treport"] }));
             exit(2);
         }
     };

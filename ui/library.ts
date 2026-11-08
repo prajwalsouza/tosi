@@ -39,6 +39,7 @@ export function makeLibrary(root: string, dir = "library") {
       stages: run.stages ?? {},
       downlink: run.downlink ? { counts: run.downlink.counts, rulebook: run.downlink.rulebook } : null,
       reach: run.reach ? { counts: run.reach.counts, rulebook: run.reach.rulebook } : null,
+      out: Object.fromEntries(Object.entries(run.out ?? {}).map(([k, v]: any) => [k, { counts: v.counts, rulebook: v.rulebook }])),
       result: r ?? null,
     };
     writeFileSync(join(base, `${run.id}.json`), JSON.stringify(record, null, 2) + "\n");

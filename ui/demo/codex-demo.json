@@ -1,0 +1,496 @@
+{
+ "about": "A recorded session of Codex CLI using Tosi's MCP server in test-run mode (TOSI_TEST_RUN=1). Replayed by the interface as a demo run. Nothing in it was saved: the MCP server checked each proposal against a scratch copy and wrote nothing under spec/. The agent's messages, tool calls and results are as recorded (trimmed, private paths removed). Added by the recorder, not by the agent: 'target' on each tool event (where the replay shows it, derived from the tool call and Tosi's step map; entries marked by_hand are a display choice) and 'what'/'where' on proposals (the MCP server returns these itself since this recording).",
+ "recorded_at": "2026-11-08T06:12:09Z",
+ "finished_at": "2026-11-08T06:12:50Z",
+ "duration_ms": 37672,
+ "agent": "codex-cli 0.159.2",
+ "model": "gpt-6.1-sol",
+ "reasoning_effort": "medium",
+ "mcp": {
+  "server": "tosi",
+  "mode": "test-run",
+  "sandbox": "read-only; shell disabled, so the agent could only use Tosi's tools"
+ },
+ "command": "TOSI_URL=http://127.0.0.1:5172 (a Tosi server on a spare port)\ncodex exec --json --ephemeral --ignore-user-config --skip-git-repo-check -s read-only -C <empty folder> -m gpt-6.1-sol -c model_reasoning_effort=\"medium\" --disable apps --disable plugins --disable remote_plugin --disable memories --disable browser_use --disable computer_use --disable multi_agent --disable image_generation --disable tool_suggest --disable skill_search --disable shell_tool --disable unified_exec -c 'mcp_servers.tosi.command=\"node\"' -c 'mcp_servers.tosi.startup_timeout_sec=60' -c 'mcp_servers.tosi.args=[\"<tosi>/mcp/server.ts\"]' -c 'mcp_servers.tosi.env={TOSI_TEST_RUN=\"1\",TOSI_URL=\"http://127.0.0.1:5172\",TOSI_TEST_LOG=\"<log>\"}' \"<prompt>\" < /dev/null",
+ "prompt": "Using Tosi's tools, read the terrestrial algorithm, the parameters of its steps and the guidebook entries they apply. Then propose three small changes to terrestrial parameters, one at a time, each as the next version: start with the near-miss margin in the Threshold step. Give each a reason a radio engineer would accept and cite the guidebook entry or published source it rests on. This is a test run, so nothing is saved. Finish with a short summary of the versions you proposed.",
+ "usage": {
+  "input_tokens": 185620,
+  "cached_input_tokens": 149120,
+  "cache_write_input_tokens": 0,
+  "output_tokens": 1123,
+  "reasoning_output_tokens": 104
+ },
+ "steps": [
+  {
+   "t": 3568,
+   "kind": "message",
+   "text": "I’ll use Tosi’s tools to read the algorithm, step parameters, and linked guidebook entries, then propose three successive versions without saving anything."
+  },
+  {
+   "t": 7040,
+   "kind": "tool",
+   "id": "item_1",
+   "server": "tosi",
+   "tool": "tosi_get_parameters",
+   "args": {},
+   "target": {
+    "page": "algorithm",
+    "kind": "terrestrial",
+    "steps": [
+     "t1",
+     "t2",
+     "t3",
+     "t4",
+     "t5",
+     "t6"
+    ],
+    "params": true,
+    "label": "the terrestrial steps' parameters",
+    "by_hand": "the tool read every step; the replay shows the terrestrial steps the prompt asks about"
+   }
+  },
+  {
+   "t": 7413,
+   "kind": "tool",
+   "id": "item_2",
+   "server": "tosi",
+   "tool": "tosi_get_algorithm",
+   "args": {
+    "kind": "terrestrial"
+   },
+   "target": {
+    "page": "algorithm",
+    "kind": "terrestrial",
+    "steps": [
+     "tables",
+     "t1",
+     "t2",
+     "t3",
+     "t4",
+     "t5",
+     "t6",
+     "t7"
+    ],
+    "label": "the terrestrial steps"
+   }
+  },
+  {
+   "t": 7557,
+   "kind": "tool",
+   "id": "item_3",
+   "server": "tosi",
+   "tool": "tosi_get_guidebook",
+   "args": {},
+   "target": {
+    "page": "guidebook",
+    "entries": [
+     "MD-4",
+     "MD-5",
+     "MD-8",
+     "L-1",
+     "MD-6",
+     "MD-7",
+     "C-4"
+    ],
+    "label": "the entries the terrestrial steps apply",
+    "by_hand": "the tool read the whole guidebook; the replay shows the entries the terrestrial steps apply"
+   }
+  },
+  {
+   "t": 7869,
+   "kind": "tool_done",
+   "id": "item_3",
+   "server": "tosi",
+   "tool": "tosi_get_guidebook",
+   "args": {},
+   "ok": true,
+   "result": "{\n  \"version\": 2,\n  \"entries\": [\n    {\n      \"id\": \"P-1\",\n      \"section\": \"P\",\n      \"title\": \"Nothing is made up\",\n      \"rule\": \"Every number Tosi shows comes from one of three places: something written in the filing itself, a value in a published table, or a calculation whose formula is written down. No language model, and no system that learns from examples, is involved in producing any result.\",\n      \"why\": \"When Finland raises a concern with another country, that country's engineers will check every number. If a number came from a model that guesses, nobody could explain where it came from, and the concern would fall apart. A number that comes from a stated formula can be checked step by step by anyone.\",\n      \"effect\": \"Anything Tosi reports can be opened up to show where it came from: the row in the filing, the limit in the published table, or the formula that was used.\",\n      \"basis\": [\n        \"Administration policy\"\n      ],\n      \"applies\": [\n        \"space\",\n        \"terrestrial\"\n      ]\n    },\n    {\n      \"id\": \"P-2\",\n      \"section\": \"P\",\n      \"title\": \"The same file always gives the same answer\",\n      \"rule\": \"If the same file is processed twice, with the same rules, Tosi gives exactly the same result both times. Every result also records a fingerprint of the file it came from, a short code computed from the file's contents.\",\n      \"why\": \"If two runs of the same file could disagree, nobody would know which one to trust. The fingerprint also proves, lon\n… (21160 more characters, trimmed)",
+   "error": null,
+   "summary": "Guidebook version 2, 26 entries",
+   "target": {
+    "page": "guidebook",
+    "entries": [
+     "MD-4",
+     "MD-5",
+     "MD-8",
+     "L-1",
+     "MD-6",
+     "MD-7",
+     "C-4"
+    ],
+    "label": "the entries the terrestrial steps apply",
+    "by_hand": "the tool read the whole guidebook; the replay shows the entries the terrestrial steps apply"
+   }
+  },
+  {
+   "t": 7909,
+   "kind": "tool_done",
+   "id": "item_2",
+   "server": "tosi",
+   "tool": "tosi_get_algorithm",
+   "args": {
+    "kind": "terrestrial"
+   },
+   "ok": true,
+   "result": "[\n  {\n    \"step\": \"file\",\n    \"name\": \"File\",\n    \"asks\": \"A file arrives\",\n    \"built\": true,\n    \"applies\": [\n      \"P-2\"\n    ],\n    \"exit\": null,\n    \"needs\": []\n  },\n  {\n    \"step\": \"tables\",\n    \"name\": \"Tables\",\n    \"asks\": \"What tables does it contain?\",\n    \"built\": true,\n    \"applies\": [],\n    \"exit\": null,\n    \"needs\": []\n  },\n  {\n    \"step\": \"relevant\",\n    \"name\": \"Relevant tables\",\n    \"asks\": \"Pick out the tables the rules need\",\n    \"built\": true,\n    \"applies\": [\n      \"P-5\"\n    ],\n    \"exit\": null,\n    \"needs\": []\n  },\n  {\n    \"step\": \"t1\",\n    \"name\": \"Land mobile\",\n    \"asks\": \"Is it a foreign mobile radio station?\",\n    \"built\": false,\n    \"applies\": [\n      \"MD-4\"\n    ],\n    \"exit\": \"Out of scope\",\n    \"needs\": [\n      {\n        \"table\": \"fxm_terra\",\n        \"read_by_intake\": true\n      }\n    ]\n  },\n  {\n    \"step\": \"t2\",\n    \"name\": \"Range\",\n    \"asks\": \"Is it close enough to matter?\",\n    \"built\": false,\n    \"applies\": [\n      \"MD-5\"\n    ],\n    \"exit\": \"Clear\",\n    \"needs\": [\n      {\n        \"table\": \"fxm_terra\",\n        \"read_by_intake\": true\n      },\n      {\n        \"table\": \"fxm_geo\",\n        \"read_by_intake\": true\n      }\n    ]\n  },\n  {\n    \"step\": \"t3\",\n    \"name\": \"Data\",\n    \"asks\": \"Is all the information there?\",\n    \"built\": false,\n    \"applies\": [],\n    \"exit\": \"Cannot calculate\",\n    \"needs\": [\n      {\n        \"table\": \"fxm_terra\",\n        \"read_by_intake\": true\n      },\n      {\n        \"table\": \"fxm_ant\",\n        \"read_by_intake\": true\n     \n… (1988 more characters, trimmed)",
+   "error": null,
+   "summary": "13 steps for terrestrial filings, 5 built",
+   "target": {
+    "page": "algorithm",
+    "kind": "terrestrial",
+    "steps": [
+     "tables",
+     "t1",
+     "t2",
+     "t3",
+     "t4",
+     "t5",
+     "t6",
+     "t7"
+    ],
+    "label": "the terrestrial steps"
+   }
+  },
+  {
+   "t": 9298,
+   "kind": "tool_done",
+   "id": "item_1",
+   "server": "tosi",
+   "tool": "tosi_get_parameters",
+   "args": {},
+   "ok": true,
+   "result": "{\n  \"test_run\": true,\n  \"stages\": [\n    {\n      \"stage\": \"reach\",\n      \"step\": \"s2\",\n      \"kind\": \"space\",\n      \"about\": \"Reach: which transmitting satellites can ever be seen from Finland. A satellite that never rises above the horizon anywhere in Finland cannot send it anything, so it is clear. Every choice leans to the worst case: when in doubt, the satellite is treated as seen.\",\n      \"version\": 1,\n      \"saved_version\": 1,\n      \"parameters\": [\n        {\n          \"parameter\": \"geostationary_radius_km\",\n          \"value\": 42164.2,\n          \"fixed\": true,\n          \"basis\": \"Recommendation ITU-R S.1257: radius of the geostationary orbit\"\n        },\n        {\n          \"parameter\": \"horizon_deg\",\n          \"value\": 0,\n          \"fixed\": false,\n          \"basis\": \"Administration policy: a satellite counts as seen if it is at or above the horizon (0 degrees) at any point in the box.\"\n        }\n      ],\n      \"step_name\": \"Reach\",\n      \"step_asks\": \"Can it be seen from Finland?\",\n      \"step_applies\": [\n        \"MD-9\"\n      ]\n    },\n    {\n      \"stage\": \"power\",\n      \"step\": \"s5\",\n      \"kind\": \"space\",\n      \"about\": \"Power: the most power each group could send towards Finland, in the reference bandwidth of each limit that applies to it. The power in that bandwidth plus the full gain of the transmitting antenna, as if the antenna pointed straight at Finland (worst case, as Traficom ruled: no beam shapes).\",\n      \"version\": 1,\n      \"saved_version\": 1,\n      \"paramete\n… (7849 more characters, trimmed)",
+   "error": null,
+   "summary": "9 steps with parameters, 20 that can change",
+   "target": {
+    "page": "algorithm",
+    "kind": "terrestrial",
+    "steps": [
+     "t1",
+     "t2",
+     "t3",
+     "t4",
+     "t5",
+     "t6"
+    ],
+    "params": true,
+    "label": "the terrestrial steps' parameters",
+    "by_hand": "the tool read every step; the replay shows the terrestrial steps the prompt asks about"
+   }
+  },
+  {
+   "t": 14236,
+   "kind": "message",
+   "text": "The terrestrial calculation steps are marked as not yet built, so these proposals can test parameter versioning but cannot demonstrate changes to screening results. I’ll start with a 3 → 4 dB near-miss margin, then propose two small increases in border sampling. The guidebook supports those aims; the exact new values are trial engineering choices."
+  },
+  {
+   "t": 17605,
+   "kind": "tool",
+   "id": "item_5",
+   "server": "tosi",
+   "tool": "tosi_propose_parameter",
+   "args": {
+    "by": "Codex",
+    "stage": "threshold",
+    "parameter": "near_db",
+    "value": 4,
+    "test_run": true,
+    "cites": [
+     "C-1",
+     "C-2",
+     "MD-6"
+    ],
+    "why": "Trial a 4 dB near-miss margin instead of 3 dB to send cases one additional decibel below the coordination trigger for engineering review. C-2 identifies filing changes and calculation uncertainty as reasons for an administration-set margin; C-1 treats near-limit cases as concerns. This changes the review buffer, not the ECC trigger defined by MD-6, and 4 dB is a proposed policy sensitivity test rather than a value prescribed by ECC or a quantified propagation uncertainty."
+   },
+   "target": {
+    "page": "guidebook",
+    "entries": [
+     "C-1",
+     "C-2",
+     "MD-6"
+    ],
+    "cite": true,
+    "label": "C-1, C-2, MD-6"
+   }
+  },
+  {
+   "t": 17620,
+   "kind": "tool_done",
+   "id": "item_5",
+   "server": "tosi",
+   "tool": "tosi_propose_parameter",
+   "args": {
+    "by": "Codex",
+    "stage": "threshold",
+    "parameter": "near_db",
+    "value": 4,
+    "test_run": true,
+    "cites": [
+     "C-1",
+     "C-2",
+     "MD-6"
+    ],
+    "why": "Trial a 4 dB near-miss margin instead of 3 dB to send cases one additional decibel below the coordination trigger for engineering review. C-2 identifies filing changes and calculation uncertainty as reasons for an administration-set margin; C-1 treats near-limit cases as concerns. This changes the review buffer, not the ECC trigger defined by MD-6, and 4 dB is a proposed policy sensitivity test rather than a value prescribed by ECC or a quantified propagation uncertainty."
+   },
+   "ok": true,
+   "result": "{\n  \"id\": \"test-1\",\n  \"at\": \"2026-11-08T06:12:29.873Z\",\n  \"test_run\": true,\n  \"stage\": \"threshold\",\n  \"step\": \"t5\",\n  \"step_name\": \"Threshold\",\n  \"parameter\": \"near_db\",\n  \"from\": 3,\n  \"to\": 4,\n  \"why\": \"Trial a 4 dB near-miss margin instead of 3 dB to send cases one additional decibel below the coordination trigger for engineering review. C-2 identifies filing changes and calculation uncertainty as reasons for an administration-set margin; C-1 treats near-limit cases as concerns. This changes the review buffer, not the ECC trigger defined by MD-6, and 4 dB is a proposed policy sensitivity test rather than a value prescribed by ECC or a quantified propagation uncertainty.\",\n  \"cites\": [\n    {\n      \"id\": \"C-1\",\n      \"title\": \"What counts as a concern\"\n    },\n    {\n      \"id\": \"C-2\",\n      \"title\": \"How close counts as close\"\n    },\n    {\n      \"id\": \"MD-6\",\n      \"title\": \"When neighbours need to talk\"\n    }\n  ],\n  \"source\": null,\n  \"stage_version\": {\n    \"from\": 1,\n    \"to\": 2\n  },\n  \"test_version\": {\n    \"from\": 1,\n    \"to\": 2\n  },\n  \"by\": \"Codex\",\n  \"saved\": false,\n  \"note\": \"Test run: threshold would go from version 1 to 2. Nothing was saved; in a real run a person would now accept or decline this.\"\n}",
+   "error": null,
+   "summary": null,
+   "proposal": {
+    "id": "test-1",
+    "stage": "threshold",
+    "step": "t5",
+    "step_name": "Threshold",
+    "parameter": "near_db",
+    "from": 3,
+    "to": 4,
+    "why": "Trial a 4 dB near-miss margin instead of 3 dB to send cases one additional decibel below the coordination trigger for engineering review. C-2 identifies filing changes and calculation uncertainty as reasons for an administration-set margin; C-1 treats near-limit cases as concerns. This changes the review buffer, not the ECC trigger defined by MD-6, and 4 dB is a proposed policy sensitivity test rather than a value prescribed by ECC or a quantified propagation uncertainty.",
+    "cites": [
+     {
+      "id": "C-1",
+      "title": "What counts as a concern"
+     },
+     {
+      "id": "C-2",
+      "title": "How close counts as close"
+     },
+     {
+      "id": "MD-6",
+      "title": "When neighbours need to talk"
+     }
+    ],
+    "source": null,
+    "stage_version": {
+     "from": 1,
+     "to": 2
+    },
+    "test_version": {
+     "from": 1,
+     "to": 2
+    },
+    "saved": false,
+    "what": "Threshold step, near_db: 3 → 4",
+    "where": {
+     "page": "Algorithm",
+     "step": "t5",
+     "step_name": "Threshold",
+     "section": "Parameters",
+     "rulebook": "spec/rulebook/threshold.json",
+     "parameter": "near_db",
+     "added_by": "recorder"
+    }
+   },
+   "target": {
+    "page": "algorithm",
+    "kind": "terrestrial",
+    "step": "t5",
+    "stage": "threshold",
+    "parameter": "near_db",
+    "label": "Threshold, near_db"
+   }
+  },
+  {
+   "t": 24331,
+   "kind": "tool",
+   "id": "item_6",
+   "server": "tosi",
+   "tool": "tosi_propose_parameter",
+   "args": {
+    "by": "Codex",
+    "stage": "field",
+    "parameter": "nearest_points",
+    "value": 6,
+    "test_run": true,
+    "cites": [
+     "MD-8",
+     "MD-5"
+    ],
+    "why": "Trial six candidate border points instead of five to reduce dependence on a sparse selection when looking for the strongest border field. MD-8 explains that the nearest path need not give the highest field because a sea path can carry further than a land path; one extra candidate is a modest increase in calculation work. Six is a trial numerical choice, extending MD-8's current five-point policy, not a requirement of P.1546 or ECC. Keep the MD-5 propagation assumptions unchanged and assess convergence when the calculation is implemented."
+   },
+   "target": {
+    "page": "guidebook",
+    "entries": [
+     "MD-8",
+     "MD-5"
+    ],
+    "cite": true,
+    "label": "MD-8, MD-5"
+   }
+  },
+  {
+   "t": 24374,
+   "kind": "tool_done",
+   "id": "item_6",
+   "server": "tosi",
+   "tool": "tosi_propose_parameter",
+   "args": {
+    "by": "Codex",
+    "stage": "field",
+    "parameter": "nearest_points",
+    "value": 6,
+    "test_run": true,
+    "cites": [
+     "MD-8",
+     "MD-5"
+    ],
+    "why": "Trial six candidate border points instead of five to reduce dependence on a sparse selection when looking for the strongest border field. MD-8 explains that the nearest path need not give the highest field because a sea path can carry further than a land path; one extra candidate is a modest increase in calculation work. Six is a trial numerical choice, extending MD-8's current five-point policy, not a requirement of P.1546 or ECC. Keep the MD-5 propagation assumptions unchanged and assess convergence when the calculation is implemented."
+   },
+   "ok": true,
+   "result": "{\n  \"id\": \"test-2\",\n  \"at\": \"2026-11-08T06:12:36.639Z\",\n  \"test_run\": true,\n  \"stage\": \"field\",\n  \"step\": \"t4\",\n  \"step_name\": \"Field strength\",\n  \"parameter\": \"nearest_points\",\n  \"from\": 5,\n  \"to\": 6,\n  \"why\": \"Trial six candidate border points instead of five to reduce dependence on a sparse selection when looking for the strongest border field. MD-8 explains that the nearest path need not give the highest field because a sea path can carry further than a land path; one extra candidate is a modest increase in calculation work. Six is a trial numerical choice, extending MD-8's current five-point policy, not a requirement of P.1546 or ECC. Keep the MD-5 propagation assumptions unchanged and assess convergence when the calculation is implemented.\",\n  \"cites\": [\n    {\n      \"id\": \"MD-8\",\n      \"title\": \"Where the signal is measured\"\n    },\n    {\n      \"id\": \"MD-5\",\n      \"title\": \"How a signal travels over land and sea\"\n    }\n  ],\n  \"source\": null,\n  \"stage_version\": {\n    \"from\": 1,\n    \"to\": 2\n  },\n  \"test_version\": {\n    \"from\": 2,\n    \"to\": 3\n  },\n  \"by\": \"Codex\",\n  \"saved\": false,\n  \"note\": \"Test run: field would go from version 1 to 2. Nothing was saved; in a real run a person would now accept or decline this.\"\n}",
+   "error": null,
+   "summary": null,
+   "proposal": {
+    "id": "test-2",
+    "stage": "field",
+    "step": "t4",
+    "step_name": "Field strength",
+    "parameter": "nearest_points",
+    "from": 5,
+    "to": 6,
+    "why": "Trial six candidate border points instead of five to reduce dependence on a sparse selection when looking for the strongest border field. MD-8 explains that the nearest path need not give the highest field because a sea path can carry further than a land path; one extra candidate is a modest increase in calculation work. Six is a trial numerical choice, extending MD-8's current five-point policy, not a requirement of P.1546 or ECC. Keep the MD-5 propagation assumptions unchanged and assess convergence when the calculation is implemented.",
+    "cites": [
+     {
+      "id": "MD-8",
+      "title": "Where the signal is measured"
+     },
+     {
+      "id": "MD-5",
+      "title": "How a signal travels over land and sea"
+     }
+    ],
+    "source": null,
+    "stage_version": {
+     "from": 1,
+     "to": 2
+    },
+    "test_version": {
+     "from": 2,
+     "to": 3
+    },
+    "saved": false,
+    "what": "Field strength step, nearest_points: 5 → 6",
+    "where": {
+     "page": "Algorithm",
+     "step": "t4",
+     "step_name": "Field strength",
+     "section": "Parameters",
+     "rulebook": "spec/rulebook/field.json",
+     "parameter": "nearest_points",
+     "added_by": "recorder"
+    }
+   },
+   "target": {
+    "page": "algorithm",
+    "kind": "terrestrial",
+    "step": "t4",
+    "stage": "field",
+    "parameter": "nearest_points",
+    "label": "Field strength, nearest_points"
+   }
+  },
+  {
+   "t": 29261,
+   "kind": "tool",
+   "id": "item_7",
+   "server": "tosi",
+   "tool": "tosi_propose_parameter",
+   "args": {
+    "by": "Codex",
+    "stage": "field",
+    "parameter": "samples",
+    "value": 72,
+    "test_run": true,
+    "cites": [
+     "MD-8",
+     "L-1"
+    ],
+    "why": "Trial a modest increase in the field step's sampling budget from 60 to 72 (20%) to check sensitivity of the reported maximum to sampling resolution. MD-8 requires retaining the strongest border field and explains why different land/sea paths matter, motivating a denser numerical search. The exact count 72 is an engineering trial, not a guidebook-prescribed value or evidence of convergence. L-1 remains applicable: more samples do not correct the approximate territorial-sea boundary, and any case depending on it still needs the official boundary checked."
+   },
+   "target": {
+    "page": "guidebook",
+    "entries": [
+     "MD-8",
+     "L-1"
+    ],
+    "cite": true,
+    "label": "MD-8, L-1"
+   }
+  },
+  {
+   "t": 29263,
+   "kind": "tool_done",
+   "id": "item_7",
+   "server": "tosi",
+   "tool": "tosi_propose_parameter",
+   "args": {
+    "by": "Codex",
+    "stage": "field",
+    "parameter": "samples",
+    "value": 72,
+    "test_run": true,
+    "cites": [
+     "MD-8",
+     "L-1"
+    ],
+    "why": "Trial a modest increase in the field step's sampling budget from 60 to 72 (20%) to check sensitivity of the reported maximum to sampling resolution. MD-8 requires retaining the strongest border field and explains why different land/sea paths matter, motivating a denser numerical search. The exact count 72 is an engineering trial, not a guidebook-prescribed value or evidence of convergence. L-1 remains applicable: more samples do not correct the approximate territorial-sea boundary, and any case depending on it still needs the official boundary checked."
+   },
+   "ok": true,
+   "result": "{\n  \"id\": \"test-3\",\n  \"at\": \"2026-11-08T06:12:41.528Z\",\n  \"test_run\": true,\n  \"stage\": \"field\",\n  \"step\": \"t4\",\n  \"step_name\": \"Field strength\",\n  \"parameter\": \"samples\",\n  \"from\": 60,\n  \"to\": 72,\n  \"why\": \"Trial a modest increase in the field step's sampling budget from 60 to 72 (20%) to check sensitivity of the reported maximum to sampling resolution. MD-8 requires retaining the strongest border field and explains why different land/sea paths matter, motivating a denser numerical search. The exact count 72 is an engineering trial, not a guidebook-prescribed value or evidence of convergence. L-1 remains applicable: more samples do not correct the approximate territorial-sea boundary, and any case depending on it still needs the official boundary checked.\",\n  \"cites\": [\n    {\n      \"id\": \"MD-8\",\n      \"title\": \"Where the signal is measured\"\n    },\n    {\n      \"id\": \"L-1\",\n      \"title\": \"The edge of the territorial sea is approximate\"\n    }\n  ],\n  \"source\": null,\n  \"stage_version\": {\n    \"from\": 2,\n    \"to\": 3\n  },\n  \"test_version\": {\n    \"from\": 3,\n    \"to\": 4\n  },\n  \"by\": \"Codex\",\n  \"saved\": false,\n  \"note\": \"Test run: field would go from version 2 to 3. Nothing was saved; in a real run a person would now accept or decline this.\"\n}",
+   "error": null,
+   "summary": null,
+   "proposal": {
+    "id": "test-3",
+    "stage": "field",
+    "step": "t4",
+    "step_name": "Field strength",
+    "parameter": "samples",
+    "from": 60,
+    "to": 72,
+    "why": "Trial a modest increase in the field step's sampling budget from 60 to 72 (20%) to check sensitivity of the reported maximum to sampling resolution. MD-8 requires retaining the strongest border field and explains why different land/sea paths matter, motivating a denser numerical search. The exact count 72 is an engineering trial, not a guidebook-prescribed value or evidence of convergence. L-1 remains applicable: more samples do not correct the approximate territorial-sea boundary, and any case depending on it still needs the official boundary checked.",
+    "cites": [
+     {
+      "id": "MD-8",
+      "title": "Where the signal is measured"
+     },
+     {
+      "id": "L-1",
+      "title": "The edge of the territorial sea is approximate"
+     }
+    ],
+    "source": null,
+    "stage_version": {
+     "from": 2,
+     "to": 3
+    },
+    "test_version": {
+     "from": 3,
+     "to": 4
+    },
+    "saved": false,
+    "what": "Field strength step, samples: 60 → 72",
+    "where": {
+     "page": "Algorithm",
+     "step": "t4",
+     "step_name": "Field strength",
+     "section": "Parameters",
+     "rulebook": "spec/rulebook/field.json",
+     "parameter": "samples",
+     "added_by": "recorder"
+    }
+   },
+   "target": {
+    "page": "algorithm",
+    "kind": "terrestrial",
+    "step": "t4",
+    "stage": "field",
+    "parameter": "samples",
+    "label": "Field strength, samples"
+   }
+  },
+  {
+   "t": 37668,
+   "kind": "message",
+   "text": "Read the terrestrial algorithm, its parameters, and the applicable guidebook entries using Tosi. Submitted three proposals sequentially, each building on the previous scratch version. **Nothing was saved or applied.**\n\n| Scratch version | Proposed change | Engineering reason and citation |\n|---|---|---|\n| **v2** | Threshold `near_db`: **3 → 4 dB** | Adds 1 dB of review margin for filing changes and calculation uncertainty, without changing the coordination trigger. **C-1, C-2, MD-6**. |\n| **v3** | Field `nearest_points`: **5 → 6** | Tests one extra border candidate because the strongest signal can follow a sea path rather than the shortest path. **MD-8, MD-5**. |\n| **v4** | Field `samples`: **60 → 72** | Increases sampling by 20% to test whether the reported maximum depends on numerical resolution. **MD-8**; **L-1** still requires checking the official sea boundary where relevant. |\n\nThese exact values are trial engineering choices, not prescribed standards. Tosi checked and numbered the proposals, but the terrestrial calculation steps are marked unbuilt, so their effect on results remains untested.\n\nThe proposed sequence is **v2: wider review margin → v3: extra border candidate → v4: denser sampling**."
+  }
+ ]
+}

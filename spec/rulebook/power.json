@@ -1,0 +1,22 @@
+{
+  "about": "Power: the most power each group could send towards Finland, in the reference bandwidth of each limit that applies to it. The power in that bandwidth plus the full gain of the transmitting antenna, as if the antenna pointed straight at Finland (worst case, as Traficom ruled: no beam shapes).",
+  "version": 1,
+  "kinds": ["space"],
+  "transmit": "E",
+  "mhz_to_hz": 1000000,
+  "power_in_reference_bandwidth": [
+    "A limit on total power (reference bandwidth 0): the peak power (emiss.pep_max).",
+    "Otherwise, with D the power density (emiss.pwr_ds_max, dBW/Hz) times the reference bandwidth B, P the peak power and b the emission's bandwidth (from its designation, e.g. 14M0 = 14 MHz):",
+    "only D filed: D. Only P filed, or b unknown: P (when P is filed) or D.",
+    "the averaging bandwidth A is 4 kHz below 15 GHz and 1 MHz above;",
+    "if A = B: D. If A < B: the smaller of D and P when b ≥ B, else P. If A > B: P when b < B, else D."
+  ],
+  "power_basis": "Recommendation ITU-R SF.675, as the Radiocommunication Bureau applies it in its GSO PFD technical annex (updated 4 April 2024).",
+  "averaging": { "below_mhz": 15000, "below_hz": 4000, "above_hz": 1000000 },
+  "frequency": "The middle of the group's filed span (lowest to highest frequency).",
+  "gain": "The highest gain filed for the group's transmitting beam (s_beam.gain).",
+  "keep": "For each pair of a group and a limit, the emission giving the most power.",
+  "notes": [
+    "The number kept is the e.i.r.p. in the limit's reference bandwidth, dBW, rounded to two decimals. The Compare step spreads it over the distance to Finland."
+  ]
+}

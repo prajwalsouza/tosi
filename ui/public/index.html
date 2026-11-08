@@ -10,9 +10,15 @@
 <link rel="stylesheet" href="/design-tokens.css">
 <link rel="stylesheet" href="/theme-tokens.css">
 <link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/loader.css">
+<link rel="stylesheet" href="/home3d.css">
+<link rel="stylesheet" href="/demo.css">
+<link rel="stylesheet" href="/report.css">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("tosi.theme")||"matte"}catch(e){document.documentElement.dataset.theme="matte"}</script>
 </head>
 <body>
+<div id="loader" aria-hidden="true"><canvas></canvas><span class="lw">Tosi</span></div>
+<script src="/loader.js"></script>
 <aside id="side" aria-label="Sidebar">
   <div class="top">
     <a class="brand" href="#/" aria-label="Tosi, home"><span class="ic"><svg viewBox="0 3.3 24 24" fill="none" aria-hidden="true"><path d="M4 16.5C6.2 9.6 17.8 9.6 20 16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M2.5 20h19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="12.1" r="2.5" fill="var(--accent)" stroke="none"/></svg></span><span class="word label">Tosi</span></a>

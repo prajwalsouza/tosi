@@ -1,0 +1,27 @@
+{
+ "about": "Conformance cases for data. Sample inputs are real files read from the local samples folder (never committed).",
+ "cases": [
+  {
+   "id": "space-3074",
+   "input": {
+    "sample": "ific3074.zip"
+   },
+   "expect": {
+    "counts": {
+     "notices": 120,
+     "complete": 111,
+     "left": 9,
+     "how": {
+      "complete": 111,
+      "no_orbit": 9,
+      "no_gain": 0,
+      "no_power": 0,
+      "needs_xy": 0
+     },
+     "rows": 13839,
+     "rows_ok": 13765
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,70 @@
+{
+ "about": "Conformance cases for power. Sample inputs are real files read from the local samples folder (never committed).",
+ "cases": [
+  {
+   "id": "space-3074",
+   "input": {
+    "sample": "ific3074.zip"
+   },
+   "expect": {
+    "counts": {
+     "notices": 111,
+     "rows": 13765,
+     "rows_without_power": 0
+    }
+   }
+  },
+  {
+   "id": "sf675-total-power",
+   "input": {
+    "pep": 10,
+    "dens": -50,
+    "b_hz": 1000000.0,
+    "f_mhz": 12000,
+    "bref_hz": 0
+   },
+   "expect": {
+    "power_dbw": 10
+   }
+  },
+  {
+   "id": "sf675-density-only",
+   "input": {
+    "pep": null,
+    "dens": -50,
+    "b_hz": 1000000.0,
+    "f_mhz": 12000,
+    "bref_hz": 4000
+   },
+   "expect": {
+    "power_dbw": -13.98
+   }
+  },
+  {
+   "id": "sf675-equal-averaging",
+   "input": {
+    "pep": 10,
+    "dens": -50,
+    "b_hz": 36000000.0,
+    "f_mhz": 12000,
+    "bref_hz": 4000
+   },
+   "expect": {
+    "power_dbw": -13.98
+   }
+  },
+  {
+   "id": "sf675-narrow-emission",
+   "input": {
+    "pep": 10,
+    "dens": -50,
+    "b_hz": 2000,
+    "f_mhz": 20000,
+    "bref_hz": 4000
+   },
+   "expect": {
+    "power_dbw": 10
+   }
+  }
+ ]
+}

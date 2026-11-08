@@ -4,6 +4,8 @@ import * as flow from "./flow.js";
 import * as guidebook from "./guidebook.js";
 import * as library from "./library.js";
 import { testsPage } from "./tests.js";
+import * as demo from "./demo.js";
+import * as assistant from "./assistant.js";
 
 const $ = (id) => document.getElementById(id);
 const store = {
@@ -238,22 +240,24 @@ document.querySelector(".brand").addEventListener("click", (e) => { if (document
 setShut(store.get("tosi.side", "open") === "shut");
 $("drop").querySelector(".ic").innerHTML = icon("arrow-up-from-bracket");
 guidebook.init({ el, toast });
+demo.init({ el, toast });          // the demo run and the assistant's button, on the Algorithm and Guidebook pages
+assistant.init({ el });
 library.init({ el, toast, using: () => state.using || "ts", go: (r) => { location.hash = `#${r}`; } });
 flow.init({ el, store, using: () => state.using || "ts", go: (r) => { location.hash = `#${r}`; }, busy, toast });
 render();
+const engineList = askAll();
 // Samples: shown on Home, and loaded automatically the first time this session opens with nothing loaded.
 (async () => {
+  await engineList;
   SAMPLES = await fetch("/api/samples").then((r) => r.json()).catch(() => []);
   const existing = await flow.loadRuns();
   if (route().startsWith("/flow")) { page?.cleanup?.(); page = null; render(); }
   let auto = false;
   try { auto = !sessionStorage.getItem("tosi.autoload"); sessionStorage.setItem("tosi.autoload", "1"); } catch {}
   if (auto && !existing.length && SAMPLES.length && route() === "/") {
-    await new Promise((r) => setTimeout(r, 400));           // let the engine list settle so the chosen engine is used
     const ids = [];
     for (const s of SAMPLES) ids.push(await flow.startSample(s.name));
     location.hash = `#/flow/${ids[0]}`;
   } else if (route() === "/") render();
-})();
+})().finally(() => window.tosiLoaded?.());       // the loading screen leaves once the first page is ready
 fetch("/api/about").then((r) => r.json()).then((a) => { state.about = a; render(); });
-askAll();

@@ -1,0 +1,37 @@
+{
+  "about": "Ladder: every space filing that entered the screen is placed on exactly one rung of the concern ladder (guidebook 'ladder'). Rungs are tried in order; the first that applies wins. Within a rung, the worst excess comes first, then the lowest ntc_id.",
+  "version": 2,
+  "kinds": ["space"],
+  "rungs": [
+    { "key": "exceeds_station", "rung": "Exceeds at a listed station", "means": "Above the limit, assuming the worst, on a frequency a listed Finnish station uses", "level": "crit", "cites": ["C-1"],
+      "test": "Stations: a transmission that is over the limit is on the frequencies of at least one listed station (at_over). The same transmission must carry both: an exceedance on one band and stations on another do not make this rung." },
+    { "key": "antenna", "rung": "Raised by a Finnish antenna", "means": "A powerful Finnish antenna points straight at the satellite", "level": "crit", "cites": ["C-3"],
+      "test": "Not applied yet: the Antennas step is not built, so this rung stays empty." },
+    { "key": "itu_names_finland", "rung": "ITU names Finland", "means": "The ITU's own records already list Finland as affected", "level": "crit", "cites": ["C-1"],
+      "test": "The filing's own records name Finland: a coordination provision with administration FIN (provn), an affected Finnish network (tr_aff_ntw), or Finland in a declared service area (srv_area)." },
+    { "key": "near_station", "rung": "Near limit at a listed station", "means": "Just under the limit, on a frequency a listed Finnish station uses", "level": "warn", "cites": ["C-2"],
+      "test": "Stations: a transmission near the limit (within 3 dB under) is on the frequencies of at least one listed station (at_near), whether or not another transmission of the filing is over the limit. Its own margin and band are reported, apart from the worst one." },
+    { "key": "near_frequency", "rung": "Near frequency", "means": "Just under the limit, very close to a frequency Finland uses", "level": "warn", "cites": ["C-1"],
+      "test": "Compare: over or near. No listed station on its frequencies, but one within the guard band: the larger of the station's width and the minimum guard." },
+    { "key": "exceeds_no_station", "rung": "Exceeds, no listed station", "means": "Above the limit, but no listed Finnish station uses that frequency", "level": "warn", "cites": ["C-1"],
+      "test": "Compare: over. No listed station on or near its frequencies." },
+    { "key": "cannot_calculate", "rung": "Cannot calculate", "means": "Information needed for the calculation is missing from the filing", "level": "none", "cites": ["MD-9"],
+      "test": "Data: it left (something needed is not filed), or Compare found no result." },
+    { "key": "no_limit", "rung": "No applicable limit", "means": "No limit applies to this frequency band and kind of station", "level": "none", "cites": ["MD-9"],
+      "test": "Limit: it left." },
+    { "key": "clear", "rung": "Clear", "means": "Below every trigger, or never visible from Finland", "level": "none", "cites": ["MD-9"],
+      "test": "Everything else: it left at Downlink or Reach, or Compare found it under the limit, or near with no station on or near its frequencies." }
+  ],
+  "near_frequency_min_mhz": 1.0,
+  "same_frequency_mhz": 1e-9,
+  "same_frequency_basis": "As in spec/rulebook/stations.json: a station's transmit frequency counts as separate from its receive frequency when they differ by more than this.",
+  "near_frequency_basis": "Administration policy: a listed station counts as near in frequency when its band comes within the larger of its own width and 1 MHz of what the satellite transmits within the limit's band.",
+  "geostationary": { "earth_radius_km": 6378.14, "geostationary_radius_km": 42164.2, "horizon_deg": 0, "basis": "As in spec/rulebook/stations.json: a fixed satellite is near a station only if it is above that station's horizon." },
+  "itu_finland": { "administration": "FIN", "basis": "The filing's records in the IFIC database: provn.adm, tr_aff_ntw.adm and srv_area.ctry equal to FIN." },
+  "frequency_table": "spec/tables/m4.json",
+  "frequency_table_basis": "Traficom Radio Frequency Regulation 4 (M4), annex: Finland's national frequency allocation table, from Traficom's open data. For every case over or near the level, each Finnish use whose sub-band touches what the satellite transmits is listed once, in table order, and the licence-exempt ones again on their own. Traficom, 7 November 2026: being over the limit is a concern even where only licence-exempt use exists, and the report cites the table's use.",
+  "notes": [
+    "Filings that left at Downlink or Reach are Clear; the stage they left at is recorded.",
+    "ITU names Finland is tried for every filing that reached Limit, so a filing with no applicable limit that the ITU names Finland for still rises to that rung."
+  ]
+}

@@ -17,7 +17,7 @@ def info() -> dict:
         "version": __version__,
         "runtime": f"Python {platform.python_version()}",
         "spec": (ROOT / "spec" / "VERSION").read_text().strip(),
-        "stages": ["intake", "downlink", "reach"],
+        "stages": ["intake", "downlink", "reach", "limit", "data", "power", "compare", "stations", "mobile", "range", "tdata", "field", "threshold", "tstations", "ladder", "report", "tladder", "treport"],
     }
 
 
@@ -45,7 +45,82 @@ def reach():
     return run(arg("--in"))
 
 
-COMMANDS = {"info": info, "intake": intake, "downlink": downlink, "reach": reach}
+def stage_limit():
+    from .limit import run
+    return run(arg("--in"))
+
+
+def stage_data():
+    from .data import run
+    return run(arg("--in"))
+
+
+def stage_power():
+    from .power import run
+    return run(arg("--in"))
+
+
+def stage_compare():
+    from .compare import run
+    return run(arg("--in"))
+
+
+def stage_stations():
+    from .stations import run
+    return run(arg("--in"))
+
+
+def stage_mobile():
+    from .mobile import run
+    return run(arg("--in"))
+
+
+def stage_range():
+    from .range import run
+    return run(arg("--in"))
+
+
+def stage_tdata():
+    from .tdata import run
+    return run(arg("--in"))
+
+
+def stage_field():
+    from .field import run
+    return run(arg("--in"))
+
+
+def stage_threshold():
+    from .threshold import run
+    return run(arg("--in"))
+
+
+def stage_tstations():
+    from .tstations import run
+    return run(arg("--in"))
+
+
+def stage_ladder():
+    from .ladder import run
+    return run(arg("--in"))
+
+
+def stage_report():
+    from .report import run
+    return run(arg("--in"))
+
+
+def stage_tladder():
+    from .tladder import run
+    return run(arg("--in"))
+
+
+def stage_treport():
+    from .treport import run
+    return run(arg("--in"))
+
+
+COMMANDS = {"info": info, "intake": intake, "downlink": downlink, "reach": reach, "limit": stage_limit, "data": stage_data, "power": stage_power, "compare": stage_compare, "stations": stage_stations, "mobile": stage_mobile, "range": stage_range, "tdata": stage_tdata, "field": stage_field, "threshold": stage_threshold, "tstations": stage_tstations, "ladder": stage_ladder, "report": stage_report, "tladder": stage_tladder, "treport": stage_treport}
 
 
 def main() -> None:

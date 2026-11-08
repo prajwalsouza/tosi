@@ -11,9 +11,14 @@ from pathlib import Path
 
 from .intake import emit, ROOT
 
+
+def cites_of(rules):
+    """The sources a rulebook cites: its "method", "basis" and "*_basis" entries, in rulebook order. Every result carries them."""
+    return {k: v for k, v in rules.items() if k == "method" or k == "basis" or k.endswith("_basis")}
+
 RULES_BYTES = (ROOT / "spec" / "rulebook" / "reach.json").read_bytes()
 RULES = json.loads(RULES_BYTES)
-RULEBOOK = {"version": RULES["version"], "sha256": hashlib.sha256(RULES_BYTES).hexdigest()}
+RULEBOOK = {"version": RULES["version"], "sha256": hashlib.sha256(RULES_BYTES).hexdigest(), "cites": cites_of(RULES)}
 
 # Shared with the other engines, exactly: degrees to radians and back, wrapping, rounding to two decimals.
 RAD, DEG = math.pi / 180, 180 / math.pi

@@ -1,0 +1,51 @@
+{
+  "about": "Threshold: whether the field strength at Finland's outer limit is over the trigger level of ECC T/R 25-08 for the station's band.",
+  "version": 1,
+  "kinds": [
+    "terrestrial"
+  ],
+  "bands": [
+    {
+      "from_mhz": 29.7,
+      "to_mhz": 47,
+      "dbuvm": 0
+    },
+    {
+      "from_mhz": 47,
+      "to_mhz": 108,
+      "dbuvm": 6
+    },
+    {
+      "from_mhz": 108,
+      "to_mhz": 380,
+      "dbuvm": 12
+    },
+    {
+      "from_mhz": 380,
+      "to_mhz": 400,
+      "dbuvm": 18
+    },
+    {
+      "from_mhz": 400,
+      "to_mhz": 470,
+      "dbuvm": 20
+    },
+    {
+      "from_mhz": 470,
+      "to_mhz": 4000,
+      "dbuvm": 20
+    }
+  ],
+  "bands_basis": "ECC Recommendation T/R 25-08 (amended 6 June 2025), Annex 1, A1.2.3: co-channel trigger levels at the border, 10% of time, 50% of locations, 10 m receiving antenna, in a 25 kHz reference bandwidth. Above 470 MHz the level for 400–470 MHz is used, as Traficom said on 7 November 2026.",
+  "reference_khz": 25,
+  "bandwidth_correction": "10·log10(bandwidth / 25 kHz) is added for a channel wider than 25 kHz (T/R 25-08).",
+  "near_db": 3,
+  "near_basis": "Administration policy: within 3 dB under the trigger level is a near miss.",
+  "coordinated": "Finland has completed coordination (fxm_coord with adm FIN, a status containing COMPLETED and none containing REQUIRED).",
+  "outcomes": {
+    "over": "Its signal at Finland's border is over the trigger level.",
+    "over_coordinated": "Its signal is over the trigger level, but Finland has completed coordination for it. This is a case to verify, not a closed one.",
+    "near": "Its signal is under the trigger level, but within 3 dB of it.",
+    "under": "Its signal at Finland's border is under the trigger level by more than 3 dB."
+  }
+}

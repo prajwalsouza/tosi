@@ -1,0 +1,18 @@
+{
+  "about": "Stations: which listed Finnish stations each foreign station could affect, worked out at each station.",
+  "version": 1,
+  "kinds": [
+    "terrestrial"
+  ],
+  "list": "state/reference/stations.json, cleaned from Traficom's list of stations to protect (dev/tools/tables.py). Kept on this computer only.",
+  "protects": "A station's receive frequency, and its transmit frequency when different, because whatever it transmits is received by someone in Finland (guidebook C-4). Each is a band of the station's width (the smaller of channel and transmission width, guidebook D-1) centred on the frequency.",
+  "max_km": 1000,
+  "receiver_height_m": 10,
+  "basis": "The same method, parameters and trigger level as the Field strength and Threshold steps, with the receiver at the Finnish station instead of the border.",
+  "outcomes": {
+    "exposed": "Its signal is over the trigger level at one or more listed Finnish stations on its channel.",
+    "not_exposed": "Listed Finnish stations share its channel, but its signal is under the trigger level at all of them.",
+    "no_station": "No listed Finnish station within 1,000 km shares its channel.",
+    "no_list": "This computer has no list of Finnish stations, so no station could be checked."
+  }
+}
