@@ -1,0 +1,892 @@
+{
+  "about": "The guidebook: the principles, concerns, methods, data rules and known limits every finding is cited against, the concern ladder, and the steps of the algorithm with the entries they apply and the tables they need. Each entry states its basis; 'Administration policy' marks a choice the administration owns, not an external rule.",
+  "version": 1,
+  "sections": [
+    {
+      "id": "P",
+      "title": "Principles",
+      "about": "How Tosi works, whatever the filing."
+    },
+    {
+      "id": "C",
+      "title": "Concerns",
+      "about": "What makes a filing a concern for the country."
+    },
+    {
+      "id": "M",
+      "title": "Methods",
+      "about": "How each value is worked out."
+    },
+    {
+      "id": "D",
+      "title": "Data handling",
+      "about": "How doubtful or missing data is treated."
+    },
+    {
+      "id": "L",
+      "title": "Known limits",
+      "about": "What Tosi does not yet cover, said plainly."
+    }
+  ],
+  "entries": [
+    {
+      "id": "P-1",
+      "section": "P",
+      "title": "No generated facts",
+      "rule": "Every value comes from a filed record, a published table or a stated formula. No language model or learned model takes part in any result.",
+      "why": "A concern raised with another country has to survive its engineers checking it. A model can produce a fluent number nobody can trace. A formula can be checked line by line.",
+      "effect": "Every line in a brief expands back to a table row, a limit or a formula.",
+      "basis": [
+        "Administration policy"
+      ],
+      "applies": [
+        "space",
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "P-2",
+      "section": "P",
+      "title": "Same input, same result",
+      "rule": "Rerunning the same files gives the same findings, and every result records the fingerprints of its inputs.",
+      "why": "If two runs disagree, nobody knows which to trust. Fingerprints also prove which file a result came from, long after the fact.",
+      "effect": "Reruns are compared byte by byte, and each result records the hashes of its inputs.",
+      "basis": [
+        "Administration policy"
+      ],
+      "applies": [
+        "space",
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "P-3",
+      "section": "P",
+      "title": "People decide",
+      "rule": "The system proposes and shows its evidence. An expert decides, and nothing is sent automatically.",
+      "why": "Coordination is a judgement between administrations. Software can find and measure, but it can't carry that responsibility.",
+      "effect": "Letters are always drafts, and the system stops at the expert.",
+      "basis": [
+        "Administration policy"
+      ],
+      "applies": [
+        "space",
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "P-4",
+      "section": "P",
+      "title": "Secondary review stays outside results",
+      "rule": "AI review may run separately to look for anything missed. Its output is a list of suggestions for people. It cannot create, change or rank a finding.",
+      "why": "Rules only catch what someone thought to write down, so a separate review can find gaps. That review can also be wrong, so it must never touch a result directly.",
+      "effect": "A suggestion goes on a review list. It only matters once a person accepts it as a new or changed rule.",
+      "basis": [
+        "Administration policy"
+      ],
+      "applies": [
+        "space",
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "P-5",
+      "section": "P",
+      "title": "Rules change by review",
+      "rule": "A rule changes only as a proposal that is tested on past issues, approved by a person and given a new guidebook version. Nothing rewrites live rules on its own.",
+      "why": "Regulations and data change, so rules must change too. But a rule that changes silently would make old and new results impossible to compare.",
+      "effect": "Each change is tested on past issues first, so its effect on real findings is visible before anyone approves it.",
+      "basis": [
+        "Administration policy"
+      ],
+      "applies": [
+        "space",
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "C-1",
+      "section": "C",
+      "title": "What counts as a concern",
+      "rule": "An exceedance of the applicable limit is a concern. So is a result close to the limit, or a high level close to a protected frequency.",
+      "why": "A limit is pass or fail, but interference isn't. A filing just under a limit is one small modification from breaching it, and a strong signal just outside a Finnish band can still reach a receiver. So the net is wider than the hard limit.",
+      "effect": "Cases are placed on the concern ladder, with clear exceedances at the top and near misses below them.",
+      "basis": [
+        "ITU Radio Regulations, Article 21",
+        "Administration policy"
+      ],
+      "applies": [
+        "space",
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "C-2",
+      "section": "C",
+      "title": "Near-limit margin",
+      "rule": "A result within 3 dB of the limit is treated as near the limit.",
+      "why": "3 dB is a factor of two in power. Filings get modified, and every calculation carries some uncertainty, so a result this close shouldn't be treated as safely clear.",
+      "effect": "This value is a choice, not a regulation, so it can be changed in one place and its effect tested.",
+      "basis": [
+        "Administration policy"
+      ],
+      "applies": [
+        "space",
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "C-3",
+      "section": "C",
+      "title": "High-gain receivers in line with a source",
+      "rule": "The trigger is lowered by 6 dB for a directional station of at least 20 dBi whose beam includes a geostationary source.",
+      "why": "A high-gain antenna collects far more energy from where it points. A satellite sitting in that beam can cause harm even when its PFD is within the limit. Geostationary satellites stay in one place, so this can be worked out exactly.",
+      "effect": "The angle from each directional station to the satellite is compared with the antenna's beamwidth. Moving satellites aren't tested, because they don't stay in any beam.",
+      "basis": [
+        "Administration policy"
+      ],
+      "applies": [
+        "space"
+      ]
+    },
+    {
+      "id": "C-4",
+      "section": "C",
+      "title": "What is protected",
+      "rule": "Receive frequencies are protected. Transmit frequencies are protected too, because every transmission is received somewhere in Finland. Broadcasting is protected across its coverage area.",
+      "why": "Finnish use isn't only where a receiver is listed. Radio listeners, television viewers and the far end of a radio link are all receivers, even when the register lists just the transmitter.",
+      "effect": "A station is matched on both its receive and transmit frequencies.",
+      "basis": [
+        "Administration policy"
+      ],
+      "applies": [
+        "space",
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "M-1",
+      "section": "M",
+      "title": "Worst case for satellites",
+      "rule": "PFD is calculated with peak antenna gain toward Finland, whatever the filed beam. The result is a ceiling, not a prediction.",
+      "why": "Public filings don't reliably say where a beam points, and satellites can change their pointing. Assuming the peak lands on Finland can raise a false alarm, but it won't hide a real problem.",
+      "effect": "A filing that passes here passes anywhere. One that fails may still be fine, so an expert looks at it.",
+      "basis": [
+        "Administration policy"
+      ],
+      "applies": [
+        "space"
+      ]
+    },
+    {
+      "id": "M-2",
+      "section": "M",
+      "title": "PFD limits",
+      "rule": "Limits, bands and arrival-angle masks are those of the Radio Regulations, as held in the ITU BR PFD tables.",
+      "why": "These limits are agreed internationally, and taking them from ITU's own tables avoids copying errors. They vary with arrival angle because ground antennas look at the horizon, so low-angle signals do more harm.",
+      "effect": "The limit is evaluated at the angle that gives the smallest margin.",
+      "basis": [
+        "ITU Radio Regulations, Article 21",
+        "ITU BR PFD Technical Annexes"
+      ],
+      "applies": [
+        "space"
+      ]
+    },
+    {
+      "id": "M-3",
+      "section": "M",
+      "title": "Power in the reference bandwidth",
+      "rule": "Filed power is converted to the limit's reference bandwidth by the rule in the technical annex.",
+      "why": "Limits are stated per 4 kHz or per 1 MHz, but filings give total power or a density. Without conversion the two numbers aren't comparable.",
+      "effect": "The filed power is converted first, then compared.",
+      "basis": [
+        "ITU BR PFD Technical Annexes",
+        "Recommendation ITU-R SF.675"
+      ],
+      "applies": [
+        "space"
+      ]
+    },
+    {
+      "id": "M-4",
+      "section": "M",
+      "title": "Land-mobile scope",
+      "rule": "Terrestrial screening covers base stations (FB) and land mobile stations (ML).",
+      "why": "The coordination threshold was written for land-mobile systems. Applying it to other services would give numbers that look exact but mean little.",
+      "effect": "Fixed and other services are left out of this screening, and the reason is recorded.",
+      "basis": [
+        "BR IFIC Preface"
+      ],
+      "applies": [
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "M-5",
+      "section": "M",
+      "title": "Propagation",
+      "rule": "Field strength uses P.1546-6 at 10% time and 50% locations with a 10 m receiving height, without a terrain profile.",
+      "why": "Near the ground, radio doesn't follow a simple distance law. P.1546 is the agreed statistical model. The 10% time figure captures the occasional strong conditions that actually cause interference.",
+      "effect": "The model is run for each border point, using the filed power and height.",
+      "basis": [
+        "Recommendation ITU-R P.1546-6"
+      ],
+      "applies": [
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "M-6",
+      "section": "M",
+      "title": "Coordination threshold",
+      "rule": "The trigger field strength is the T/R 25-08 value for the band, with its bandwidth correction.",
+      "why": "This is the European trigger level. Below it, neighbours don't need to coordinate. The correction allows for wider channels, which pick up more power.",
+      "effect": "The calculated field is compared with the threshold for that band.",
+      "basis": [
+        "ECC/CEPT Recommendation T/R 25-08, Annex 1, A1.2.3"
+      ],
+      "applies": [
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "M-7",
+      "section": "M",
+      "title": "Above 470 MHz",
+      "rule": "Above 470 MHz, the T/R 25-08 value for above 400 MHz is applied.",
+      "why": "The recommendation stops at 470 MHz, yet many land-mobile filings are higher. Extending the last value gives a consistent test instead of no test.",
+      "effect": "Results above 470 MHz are labelled, so a reviewer knows the rule was extended.",
+      "basis": [
+        "ECC/CEPT Recommendation T/R 25-08, Annex 1, A1.2.3",
+        "Administration policy"
+      ],
+      "applies": [
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "M-8",
+      "section": "M",
+      "title": "Where field strength is assessed",
+      "rule": "Field strength is assessed at several points on the land borders and the outer limit of the territorial sea, and the highest value is kept. Listed stations sharing the channel are assessed at their own location.",
+      "why": "The strongest field isn't always at the nearest point, because a path over sea carries further than one over land. Listed stations matter too, since that is where harm would be felt.",
+      "effect": "Five spaced points are tested per station, and the highest value is kept.",
+      "basis": [
+        "ECC/CEPT Recommendation T/R 25-08, Annex 1, A1.2.3",
+        "Administration policy"
+      ],
+      "applies": [
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "M-9",
+      "section": "M",
+      "title": "When no value can be calculated",
+      "rule": "A satellite that cannot see Finland is clear. A band with no applicable limit is recorded as such. Only missing data counts as cannot calculate.",
+      "why": "These are three different facts and shouldn't look alike. A satellite that can't see Finland can't interfere. No limit means the rule doesn't apply. Missing data means we don't know, and a person should look.",
+      "effect": "Each outcome has its own place on the ladder.",
+      "basis": [
+        "Administration policy"
+      ],
+      "applies": [
+        "space"
+      ]
+    },
+    {
+      "id": "D-1",
+      "section": "D",
+      "title": "Conflicting bandwidths",
+      "rule": "When channel and transmission bandwidth disagree, the smaller is used.",
+      "why": "A mismatch is usually a data error. One fixed rule keeps results consistent and stops a typing error from creating false overlaps.",
+      "effect": "The mismatch is flagged, and the smaller value is used.",
+      "basis": [
+        "Administration policy"
+      ],
+      "applies": [
+        "space",
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "D-2",
+      "section": "D",
+      "title": "Missing licence class",
+      "rule": "A blank class is recorded as other (MUUT). Radio parameters decide the result, not the class.",
+      "why": "A blank class shouldn't remove a station from protection. What matters is what it transmits and receives.",
+      "effect": "The station stays in the analysis, recorded as other.",
+      "basis": [
+        "Administration policy"
+      ],
+      "applies": [
+        "space",
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "D-3",
+      "section": "D",
+      "title": "Implausible values",
+      "rule": "Antenna gains above 60 dBi are not used. Stations outside the national outline are kept and flagged.",
+      "why": "One impossible value shouldn't drive a result. Dropping the value is safer than guessing a replacement.",
+      "effect": "The station stays in the analysis, and only the bad value is ignored.",
+      "basis": [
+        "Administration policy"
+      ],
+      "applies": [
+        "space",
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "L-1",
+      "section": "L",
+      "title": "Territorial-sea limit",
+      "rule": "The limit is approximated as a 12 nautical mile offset of the coastline, cut at the median line. It is not the official boundary.",
+      "why": "The official boundary follows baselines that aren't in our data. In places it is narrower than our offset, so results near the sea limit are approximate.",
+      "effect": "A case that depends on this limit should be checked against the official boundary.",
+      "basis": [
+        "Administration policy"
+      ],
+      "applies": [
+        "terrestrial"
+      ]
+    },
+    {
+      "id": "L-2",
+      "section": "L",
+      "title": "Plan appendices",
+      "rule": "Appendices 30, 30A and 30B are not assessed, because their plans are published outside the IFIC file.",
+      "why": "These plans have their own rules and are published separately, so a clean result here doesn't cover them.",
+      "effect": "Filings under these appendices need separate checking for now.",
+      "basis": [
+        "ITU Radio Regulations"
+      ],
+      "applies": [
+        "space"
+      ]
+    },
+    {
+      "id": "L-3",
+      "section": "L",
+      "title": "Footnote country lists",
+      "rule": "Limits that apply only to countries listed in a footnote are not applied.",
+      "why": "Some limits apply only to countries named in a footnote, and those lists aren't fully structured yet.",
+      "effect": "If Finland is named in such a footnote, the limit won't be applied automatically.",
+      "basis": [
+        "ITU Radio Regulations"
+      ],
+      "applies": [
+        "space"
+      ]
+    },
+    {
+      "id": "L-4",
+      "section": "L",
+      "title": "Regulation text",
+      "rule": "Rules are cited by reference. The clause text itself is not shown.",
+      "why": "A rule is cited by its number, but its wording isn't shown yet.",
+      "effect": "A reader who needs the exact words has to open the Radio Regulations.",
+      "basis": [
+        "ITU Radio Regulations"
+      ],
+      "applies": [
+        "space",
+        "terrestrial"
+      ]
+    }
+  ],
+  "ladder": [
+    {
+      "rung": "Exceeds at a listed station",
+      "means": "Over the limit at worst case, in a band a listed station uses",
+      "level": "crit",
+      "cites": "C-1"
+    },
+    {
+      "rung": "Raised by a Finnish antenna",
+      "means": "A high-gain station points at the source",
+      "level": "crit",
+      "cites": "C-3"
+    },
+    {
+      "rung": "ITU names Finland",
+      "means": "ITU's own tables list Finland as affected",
+      "level": "crit",
+      "cites": "C-1"
+    },
+    {
+      "rung": "Near limit at a listed station",
+      "means": "Within the margin, in a listed station's band",
+      "level": "warn",
+      "cites": "C-2"
+    },
+    {
+      "rung": "Near frequency",
+      "means": "Near the limit, close to a listed frequency",
+      "level": "warn",
+      "cites": "C-1"
+    },
+    {
+      "rung": "Exceeds, no listed station",
+      "means": "Over the limit, but no listed station in the band",
+      "level": "warn",
+      "cites": "C-1"
+    },
+    {
+      "rung": "Cannot calculate",
+      "means": "Filed data is missing",
+      "level": "none",
+      "cites": "M-9"
+    },
+    {
+      "rung": "No applicable limit",
+      "means": "No limit applies to this band and class",
+      "level": "none",
+      "cites": "M-9"
+    },
+    {
+      "rung": "Clear",
+      "means": "Below every trigger, or not visible",
+      "level": "none",
+      "cites": "M-9"
+    }
+  ],
+  "steps": [
+    {
+      "id": "file",
+      "family": [
+        "space",
+        "terrestrial"
+      ],
+      "kind": "step",
+      "short": "File",
+      "title": "A file arrives",
+      "lines": [
+        "Fingerprinted before anything else"
+      ],
+      "cites": [
+        "P-2"
+      ],
+      "reads": [],
+      "built": true
+    },
+    {
+      "id": "tables",
+      "family": [
+        "space",
+        "terrestrial"
+      ],
+      "kind": "step",
+      "short": "Tables",
+      "title": "Read the table catalogue",
+      "lines": [
+        "Every table, its rows and columns"
+      ],
+      "cites": [],
+      "reads": [],
+      "built": true
+    },
+    {
+      "id": "relevant",
+      "family": [
+        "space",
+        "terrestrial"
+      ],
+      "kind": "ask",
+      "short": "Relevant tables",
+      "title": "Pick the tables the rules read",
+      "lines": [
+        "Refuse the file if any is missing"
+      ],
+      "cites": [
+        "P-5"
+      ],
+      "reads": [],
+      "built": true
+    },
+    {
+      "id": "s1",
+      "family": [
+        "space"
+      ],
+      "kind": "step",
+      "short": "Downlink",
+      "title": "Keep satellite downlinks",
+      "lines": [
+        "Only emitting beams matter"
+      ],
+      "cites": [],
+      "reads": [
+        "grp"
+      ],
+      "exit": null,
+      "built": false
+    },
+    {
+      "id": "s2",
+      "family": [
+        "space"
+      ],
+      "kind": "ask",
+      "short": "Reach",
+      "title": "Can it reach Finland?",
+      "lines": [
+        "GSO above the horizon, or an",
+        "orbit reaching Finland's latitude"
+      ],
+      "cites": [
+        "M-9"
+      ],
+      "reads": [
+        "geo",
+        "non_geo",
+        "orbit"
+      ],
+      "exit": "Clear",
+      "built": false
+    },
+    {
+      "id": "s3",
+      "family": [
+        "space"
+      ],
+      "kind": "ask",
+      "short": "Limit",
+      "title": "Does a limit apply?",
+      "lines": [
+        "For this band, station class",
+        "and date of filing"
+      ],
+      "cites": [
+        "M-2",
+        "M-9",
+        "L-3"
+      ],
+      "reads": [
+        "freq",
+        "srv_cls"
+      ],
+      "exit": "No applicable limit",
+      "built": false
+    },
+    {
+      "id": "s4",
+      "family": [
+        "space"
+      ],
+      "kind": "ask",
+      "short": "Data",
+      "title": "Is the data complete?",
+      "lines": [
+        "Power, gain and orbit",
+        "are all filed"
+      ],
+      "cites": [
+        "M-9"
+      ],
+      "reads": [
+        "emiss",
+        "s_beam"
+      ],
+      "exit": "Cannot calculate",
+      "built": false
+    },
+    {
+      "id": "s5",
+      "family": [
+        "space"
+      ],
+      "kind": "step",
+      "short": "Power",
+      "title": "Calculate worst-case PFD",
+      "lines": [
+        "Peak gain toward Finland, power",
+        "in the reference bandwidth"
+      ],
+      "cites": [
+        "M-1",
+        "M-3"
+      ],
+      "reads": [
+        "emiss",
+        "s_beam"
+      ],
+      "exit": null,
+      "built": false
+    },
+    {
+      "id": "s6",
+      "family": [
+        "space"
+      ],
+      "kind": "step",
+      "short": "Compare",
+      "title": "Compare with the limit",
+      "lines": [
+        "At every arrival angle"
+      ],
+      "cites": [
+        "M-2",
+        "C-1",
+        "C-2"
+      ],
+      "reads": [],
+      "exit": null,
+      "built": false
+    },
+    {
+      "id": "s7",
+      "family": [
+        "space"
+      ],
+      "kind": "step",
+      "short": "Stations",
+      "title": "Match protected stations",
+      "lines": [
+        "In a band at or near the limit,",
+        "and the station can see it"
+      ],
+      "cites": [
+        "C-4",
+        "D-1",
+        "D-2",
+        "D-3"
+      ],
+      "reads": [
+        "freq"
+      ],
+      "exit": null,
+      "built": false
+    },
+    {
+      "id": "s8",
+      "family": [
+        "space"
+      ],
+      "kind": "step",
+      "short": "Antennas",
+      "title": "Check antennas in line",
+      "lines": [
+        "High-gain stations only"
+      ],
+      "cites": [
+        "C-3"
+      ],
+      "reads": [
+        "geo"
+      ],
+      "exit": null,
+      "built": false
+    },
+    {
+      "id": "t1",
+      "family": [
+        "terrestrial"
+      ],
+      "kind": "ask",
+      "short": "Land mobile",
+      "title": "Foreign land mobile?",
+      "lines": [
+        "Base or mobile station",
+        "from another country"
+      ],
+      "cites": [
+        "M-4"
+      ],
+      "reads": [
+        "fxm_terra"
+      ],
+      "exit": "Out of scope",
+      "built": false
+    },
+    {
+      "id": "t2",
+      "family": [
+        "terrestrial"
+      ],
+      "kind": "ask",
+      "short": "Range",
+      "title": "Within model range?",
+      "lines": [
+        "Up to 1,000 km from Finland,",
+        "30 to 4,000 MHz"
+      ],
+      "cites": [
+        "M-5"
+      ],
+      "reads": [
+        "fxm_terra",
+        "fxm_geo"
+      ],
+      "exit": "Clear",
+      "built": false
+    },
+    {
+      "id": "t3",
+      "family": [
+        "terrestrial"
+      ],
+      "kind": "ask",
+      "short": "Data",
+      "title": "Is the data complete?",
+      "lines": [
+        "Power and antenna height"
+      ],
+      "cites": [],
+      "reads": [
+        "fxm_terra",
+        "fxm_ant"
+      ],
+      "exit": "Cannot calculate",
+      "built": false
+    },
+    {
+      "id": "t4",
+      "family": [
+        "terrestrial"
+      ],
+      "kind": "step",
+      "short": "Field strength",
+      "title": "Field strength at the border",
+      "lines": [
+        "P.1546-6 at five border points,",
+        "keep the highest"
+      ],
+      "cites": [
+        "M-5",
+        "M-8",
+        "L-1"
+      ],
+      "reads": [
+        "fxm_ant",
+        "fxm_geo"
+      ],
+      "exit": null,
+      "built": false
+    },
+    {
+      "id": "t5",
+      "family": [
+        "terrestrial"
+      ],
+      "kind": "step",
+      "short": "Threshold",
+      "title": "Compare with the threshold",
+      "lines": [
+        "T/R 25-08 value for the band,",
+        "with bandwidth correction"
+      ],
+      "cites": [
+        "M-6",
+        "M-7"
+      ],
+      "reads": [
+        "fxm_terra"
+      ],
+      "exit": null,
+      "built": false
+    },
+    {
+      "id": "t6",
+      "family": [
+        "terrestrial"
+      ],
+      "kind": "step",
+      "short": "Stations",
+      "title": "Check listed stations",
+      "lines": [
+        "Field strength at each station"
+      ],
+      "cites": [
+        "M-8",
+        "C-4"
+      ],
+      "reads": [],
+      "exit": null,
+      "built": false
+    },
+    {
+      "id": "t7",
+      "family": [
+        "terrestrial"
+      ],
+      "kind": "ask",
+      "short": "Coordinated",
+      "title": "Already coordinated?",
+      "lines": [
+        "ITU records coordination",
+        "with Finland as completed"
+      ],
+      "cites": [],
+      "reads": [
+        "fxm_coord"
+      ],
+      "exit": "Marked coordinated",
+      "built": false
+    },
+    {
+      "id": "lad",
+      "family": [
+        "space",
+        "terrestrial"
+      ],
+      "kind": "step",
+      "short": "Ladder",
+      "title": "Place on the concern ladder",
+      "lines": [
+        "Exceedance, margin and listed stations decide the rung.",
+        "A notice where ITU names Finland is always kept"
+      ],
+      "cites": [
+        "C-1",
+        "C-2"
+      ],
+      "reads": [
+        "notice",
+        "provn",
+        "tr_aff_ntw",
+        "srv_area"
+      ],
+      "exit": null,
+      "built": false
+    },
+    {
+      "id": "out",
+      "family": [
+        "space",
+        "terrestrial"
+      ],
+      "kind": "step",
+      "short": "Outputs",
+      "title": "Write the outputs",
+      "lines": [
+        "Notification, review page, draft letters, spreadsheets"
+      ],
+      "cites": [],
+      "reads": [],
+      "exit": null,
+      "built": false
+    },
+    {
+      "id": "end",
+      "family": [
+        "space",
+        "terrestrial"
+      ],
+      "kind": "end",
+      "short": "Expert",
+      "title": "An expert decides",
+      "lines": [
+        "Nothing is sent automatically"
+      ],
+      "cites": [
+        "P-3"
+      ],
+      "reads": [],
+      "exit": null,
+      "built": false
+    }
+  ]
+}

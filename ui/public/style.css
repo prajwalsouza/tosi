@@ -253,7 +253,7 @@ body.busy #busy { display: flex }
 .ol-row:hover .chev { color: var(--ink) }
 .chev { width: 16px; display: grid; place-items: center; color: var(--ink3); transition: transform var(--dur) }
 .chev svg { width: 9px; height: 9px } .chev.open { transform: rotate(90deg) }
-.ol-kids { margin-left: 22px; border-left: 1px solid var(--line); padding-left: 12px }
+.ol-kids { margin-left: 24px }
 .ol.leaf { display: flex; align-items: center; gap: var(--sp-2); min-height: 32px; padding-left: 18px }
 .kl { display: inline-flex; align-items: center; gap: var(--sp-2); font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-lg) }
 .kl svg { color: var(--accent) }
@@ -276,3 +276,29 @@ body.busy #busy { display: flex }
 .col:hover { color: var(--ink) } .col.on { color: var(--accent); font-weight: 600 } .col.miss { color: var(--bad) }
 .hist .v { font: var(--fs-xs) var(--font-mono); color: var(--accent); width: 34px }
 .stale { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); font-size: var(--fs-sm) } .stale svg { width: 12px; height: 12px }
+
+/* guidebook and algorithm */
+.ol .flash > .ol-row, .ol.flash > .ol-row { color: var(--accent) }
+.en { display: inline-flex; align-items: baseline; gap: var(--sp-3) } .en b { font-weight: var(--fw-medium) }
+.eid { font: var(--fs-xs) var(--font-mono); color: var(--accent); min-width: 30px }
+.fam { display: inline-flex; gap: 6px; color: var(--ink3) } .fam svg { width: 12px; height: 12px }
+.rule { margin: 4px 0 8px 18px; color: var(--ink); max-width: 72ch; line-height: 1.55 }
+.kv { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 4px 0 4px 18px; color: var(--ink2); font-size: var(--fs-sm); max-width: 80ch }
+.kv > span:first-child { flex: none; width: 76px; color: var(--ink3); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .04em }
+.eref, .sref { color: #6f93bf } .eref:hover, .sref:hover { color: var(--ink) }
+.eref { font-family: var(--font-mono); font-size: var(--fs-xs) }
+.sref.planned { color: var(--ink3) }
+.rref { font-size: var(--fs-xs) } .rref.crit { color: var(--bad) } .rref.warn { color: #d9b36a }
+.rung { gap: var(--sp-3) } .rung .rn { width: 18px; color: var(--ink3); font-size: var(--fs-xs); text-align: right } .rung b { font-weight: var(--fw-medium) }
+.lv { width: 8px; height: 8px; border-radius: 50%; background: var(--ink3); flex: none } .lv.crit { background: var(--bad) } .lv.warn { background: #d9b36a }
+.st-l { display: inline-flex; align-items: center; gap: var(--sp-3) } .st-l b { font-weight: var(--fw-medium); min-width: 92px } .st-t { color: var(--ink3) }
+.st-l .pip { width: 7px; height: 7px; border-radius: 50%; border: 1.3px solid var(--ink3) } .st-l .pip.built { background: var(--accent); border-color: var(--accent) }
+.tref { font: var(--fs-xs) var(--font-mono); color: var(--ink2) } .tref.missing { color: #d9b36a }
+.reads { margin: 6px 0 0 0 }
+.row-end { display: inline-flex; align-items: center; gap: var(--sp-4); margin-left: auto; padding-left: var(--sp-4) }
+.ol-row .row-end .meta { margin-left: 0 }
+.need .sref:first-child { margin-left: 4px } .need.none { color: var(--ink3); font-style: italic }
+.act { font-size: var(--fs-sm); color: var(--ink3); white-space: nowrap; transition: color var(--dur) } .act:hover { color: var(--bad) } .act.on:hover { color: var(--accent) }
+.rd { display: inline-flex; align-items: center; gap: 6px; color: var(--ink3); font-size: var(--fs-sm) } .rd svg { width: 11px; height: 11px }
+.sl.warn { color: #d9b36a }
+.tl.new code { color: var(--ink2) }

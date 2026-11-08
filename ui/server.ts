@@ -83,6 +83,7 @@ createServer(async (req, res) => {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
     return send(res, 200, JSON.stringify({ tosi: pkg.version, spec: readFileSync(join(root, "spec", "VERSION"), "utf8").trim(), server: `Node ${process.versions.node}`, engines: engines.map((e) => ({ id: e.id, name: e.name })) }));
   }
+  if (url.pathname === "/api/guidebook") return send(res, 200, readFileSync(join(root, "spec", "guidebook", "guidebook.json"), "utf8"));
   if (url.pathname === "/api/rulebook/intake/changes") return send(res, 200, JSON.stringify(rulebook.changes()));
   if (url.pathname === "/api/rulebook/intake" && req.method === "POST") {
     let body = "";

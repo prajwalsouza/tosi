@@ -35,9 +35,11 @@ The shape every part of Tosi follows. These rules grow as each part is built.
 - **Every page starts level with the sidebar's first row.** `main` begins at the same height as the sidebar's top row, and a page's first heading is one row tall (`--row`) with trimmed text, so the Tosi mark, its name, the collapse chevron and the page heading share one centre line, open or collapsed.
 - **Collapsing the sidebar only hides the sidebar's own labels** (`body.shut #side .label`). Page labels never depend on the sidebar's state.
 
-## The guidebook
+## The guidebook and the algorithm
 
-- **The rulebook is the source; the guidebook is its editor.** It never keeps its own copy of the rules.
-- **An outliner:** kinds of filing, then the tables the rules know, then each table's description and columns. Tables in the latest file that the rulebook does not know are listed separately and can be added with a tick.
-- **Every change goes through the server's rulebook endpoint,** which writes the file, bumps the version and appends to `changes.jsonl`. History is shown as the last line of the outline.
-- **A reason box** above the outline is attached to each change made while it is filled in.
+- **Two sources in the spec.** `spec/guidebook/guidebook.json` is the constitution: principles (P), concerns (C), methods (M), data rules (D), known limits (L), the concern ladder, and the steps of the algorithm with the entries each applies and the tables each needs. `spec/rulebook/intake.json` is what intake reads. Both are the rules modules follow; neither holds conversation, names or quotes.
+- **Guidebook page:** the constitution as an outliner. Each entry opens to its rule, why, effect and basis, and links to the steps that apply it and the ladder rungs it decides.
+- **Algorithm page:** the steps in order for each kind of filing. Each step shows the entries it applies and the tables it needs. Under "Relevant tables", each table says which steps need it; tables later steps need but intake does not read yet are listed first among the rest.
+- **No bare switches.** Starting or stopping reading a table is a deliberate action that requires a reason, kept with the change. Marker tables are always read.
+- **Every change goes through the server's rulebook endpoint,** which writes the file, bumps the version and appends to `changes.jsonl`.
+- **Outliners have no vertical guide lines.** Nesting shows by indentation and chevrons.

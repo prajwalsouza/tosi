@@ -55,6 +55,7 @@ const dotClass = (a) => (!a ? "sk dot" : "dot " + (a.ok ? "ok" : "bad"));
 const NAV = [
   { route: "/", label: "Home", icon: "house" },
   { route: "/flow", label: "Flow", icon: "route" },
+  { route: "/algorithm", label: "Algorithm", icon: "sitemap" },
   { route: "/guidebook", label: "Guidebook", icon: "book" },
 ];
 
@@ -195,11 +196,11 @@ function render() {
   // The Flow manages its own live updates; only rebuild it when the route changes.
   if (parts[0] === "flow" && page?.route === r) return;
   page?.cleanup?.();
-  page = parts[0] === "settings" ? settings(parts[1]) : parts[0] === "flow" ? flow.flowPage(parts[1]) : parts[0] === "guidebook" ? guidebook.guidebookPage() : home();
+  page = parts[0] === "settings" ? settings(parts[1]) : parts[0] === "flow" ? flow.flowPage(parts[1]) : parts[0] === "guidebook" ? guidebook.guidebookPage(parts[1]) : parts[0] === "algorithm" ? guidebook.algorithmPage(parts[1]) : home();
   page.route = r;
   $("main").replaceChildren(...[].concat(page));
   if (parts[0] === "flow") scrollTo(0, 0);
-  document.title = { settings: "Settings · Tosi", flow: "Flow · Tosi", guidebook: "Guidebook · Tosi" }[parts[0]] ?? "Tosi";
+  document.title = { settings: "Settings · Tosi", flow: "Flow · Tosi", guidebook: "Guidebook · Tosi", algorithm: "Algorithm · Tosi" }[parts[0]] ?? "Tosi";
 }
 
 /* ---------- drop a file anywhere ---------- */
