@@ -1,0 +1,128 @@
+// Tosi local server. Serves the interface and starts engines as separate processes.
+// It holds no stage logic: it asks an engine and passes on what the engine printed.
+import { createServer } from "node:http";
+import { readFileSync, existsSync, statSync, mkdirSync, createWriteStream } from "node:fs";
+import { randomBytes } from "node:crypto";
+import { makeRuns, view } from "./runs.ts";
+import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { dirname, join, extname } from "node:path";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const PORT = Number(process.env.PORT ?? 5170);
+
+type Engine = { id: string; name: string; cwd: string; cmd: string; args: string[]; build?: string };
+const engines: Engine[] = JSON.parse(readFileSync(join(root, "engines", "engines.json"), "utf8")).engines;
+
+// This machine's settings (dev/local.json, never committed): sample files and where runs go.
+const local = existsSync(join(root, "dev", "local.json")) ? JSON.parse(readFileSync(join(root, "dev", "local.json"), "utf8")) : {};
+const samples: string[] = (local.samples ?? []).filter((p: string) => existsSync(p));
+const runsDir = join(root, local.runs ?? "runs");
+const runs = makeRuns(root, engines, runsDir);
+runs.clear();
+const MAX_UPLOAD = 2_000_000_000;
+
+type Answer = { id: string; name: string; ok: boolean; ms: number; info?: unknown; error?: string; hint?: string };
+
+// Fields every engine-info document must have (spec/schemas/engine-info.schema.json).
+const required = JSON.parse(readFileSync(join(root, "spec", "schemas", "engine-info.schema.json"), "utf8")).required as string[];
+
+function ask(e: Engine, command: string): Promise<Answer> {
+  const base = { id: e.id, name: e.name };
+  const cwd = join(root, e.cwd);
+  const local = e.cmd.includes("/");
+  if (local && !existsSync(join(cwd, e.cmd))) {
+    return Promise.resolve({ ...base, ok: false, ms: 0, error: "Not built yet", hint: e.build ? `cd ${e.cwd} && ${e.build}` : undefined });
+  }
+  return new Promise((resolve) => {
+    const t0 = performance.now();
+    const p = spawn(local ? join(cwd, e.cmd) : e.cmd, [...e.args, command], { cwd });
+    let out = "", err = "";
+    const timer = setTimeout(() => p.kill(), 10_000);
+    p.stdout.on("data", (d) => (out += d));
+    p.stderr.on("data", (d) => (err += d));
+    p.on("error", (x) => { clearTimeout(timer); resolve({ ...base, ok: false, ms: 0, error: `Could not start: ${x.message}` }); });
+    p.on("close", (code) => {
+      clearTimeout(timer);
+      const ms = Math.round(performance.now() - t0);
+      if (code !== 0) return resolve({ ...base, ok: false, ms, error: err.trim() || `Exited with code ${code}` });
+      try {
+        const info = JSON.parse(out);
+        const missing = required.filter((k) => !(k in info));
+        if (missing.length) return resolve({ ...base, ok: false, ms, info, error: `Missing fields: ${missing.join(", ")}` });
+        if (info.engine !== e.id) return resolve({ ...base, ok: false, ms, info, error: `Says it is "${info.engine}", expected "${e.id}"` });
+        resolve({ ...base, ok: true, ms, info });
+      } catch {
+        resolve({ ...base, ok: false, ms, error: "Did not print valid JSON" });
+      }
+    });
+  });
+}
+
+const types: Record<string, string> = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json" };
+
+function send(res: import("node:http").ServerResponse, code: number, body: string, type = "application/json") {
+  res.writeHead(code, { "content-type": type, "cache-control": "no-store" });
+  res.end(body);
+}
+
+if (process.argv.includes("--check")) {
+  const all = await Promise.all(engines.map((e) => ask(e, "info")));
+  for (const a of all) console.log(`${a.ok ? "ok  " : "FAIL"} ${a.name.padEnd(10)} ${String(a.ms).padStart(4)} ms  ${a.ok ? JSON.stringify(a.info) : a.error}`);
+  process.exit(all.every((a) => a.ok) ? 0 : 1);
+}
+
+createServer(async (req, res) => {
+  const url = new URL(req.url ?? "/", "http://localhost");
+  if (url.pathname === "/api/engines") {
+    return send(res, 200, JSON.stringify(await Promise.all(engines.map((e) => ask(e, "info")))));
+  }
+  if (url.pathname === "/api/about") {
+    const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+    return send(res, 200, JSON.stringify({ tosi: pkg.version, spec: readFileSync(join(root, "spec", "VERSION"), "utf8").trim(), server: `Node ${process.versions.node}`, engines: engines.map((e) => ({ id: e.id, name: e.name })) }));
+  }
+  const rb = url.pathname.match(/^\/api\/rulebook\/([a-z-]+)$/);
+  if (rb) {
+    const f = join(root, "spec", "rulebook", `${rb[1]}.json`);
+    return existsSync(f) ? send(res, 200, readFileSync(f, "utf8")) : send(res, 404, JSON.stringify({ error: "No such rulebook" }));
+  }
+  if (url.pathname === "/api/samples") {
+    return send(res, 200, JSON.stringify(samples.map((p) => ({ name: p.split("/").pop(), bytes: statSync(p).size }))));
+  }
+  if (url.pathname === "/api/runs" && req.method === "GET") return send(res, 200, JSON.stringify(runs.list()));
+  if (url.pathname === "/api/runs" && req.method === "POST") {
+    const engine = url.searchParams.get("engine") ?? engines[0].id;
+    if (!engines.some((e) => e.id === engine)) return send(res, 400, JSON.stringify({ error: "No such engine" }));
+    const sample = url.searchParams.get("sample");
+    if (sample) {
+      const p = samples.find((x) => x.split("/").pop() === sample);
+      req.resume();
+      return p ? send(res, 200, JSON.stringify(view(runs.start(p, sample, "sample", engine)))) : send(res, 404, JSON.stringify({ error: "No such sample" }));
+    }
+    // A dropped file: stream it to disk as it arrives, then start the run.
+    const name = decodeURIComponent(String(req.headers["x-file-name"] ?? "upload")).replace(/[\\/]/g, "_").slice(0, 200) || "upload";
+    const dir = join(runsDir, "uploads", randomBytes(5).toString("hex"));
+    mkdirSync(dir, { recursive: true });
+    const path = join(dir, name);
+    let size = 0, tooBig = false;
+    const out = createWriteStream(path);
+    req.on("data", (d) => { size += d.length; if (size > MAX_UPLOAD && !tooBig) { tooBig = true; req.destroy(); } });
+    req.pipe(out);
+    out.on("finish", () => tooBig ? send(res, 413, JSON.stringify({ error: "The file is larger than 2 GB." })) : send(res, 200, JSON.stringify(view(runs.start(path, name, "dropped", engine)))));
+    req.on("error", () => send(res, 400, JSON.stringify({ error: "The upload did not finish." })));
+    return;
+  }
+  const rm = url.pathname.match(/^\/api\/runs\/([0-9a-f]+)$/);
+  if (rm) {
+    const r = runs.get(rm[1]);
+    return r ? send(res, 200, JSON.stringify(view(r, Number(url.searchParams.get("since") ?? 0)))) : send(res, 404, JSON.stringify({ error: "No such run" }));
+  }
+  const m = url.pathname.match(/^\/api\/engines\/([a-z]+)\/info$/);
+  if (m) {
+    const e = engines.find((x) => x.id === m[1]);
+    return e ? send(res, 200, JSON.stringify(await ask(e, "info"))) : send(res, 404, JSON.stringify({ error: "No such engine" }));
+  }
+  const file = join(root, "ui", "public", url.pathname === "/" ? "index.html" : url.pathname);
+  if (!file.startsWith(join(root, "ui", "public")) || !existsSync(file)) return send(res, 404, "Not found", "text/plain");
+  send(res, 200, readFileSync(file, "utf8"), types[extname(file)] ?? "application/octet-stream");
+}).listen(PORT, "127.0.0.1", () => console.log(`Tosi on http://127.0.0.1:${PORT}`));

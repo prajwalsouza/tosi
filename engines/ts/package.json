@@ -1,0 +1,16 @@
+{
+  "name": "@tosi/engine-ts",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Tosi engine in TypeScript. Runs on Node directly, without a build step.",
+  "bin": {
+    "tosi": "src/main.ts"
+  },
+  "engines": {
+    "node": ">=23.6"
+  },
+  "dependencies": {
+    "mdb-reader": "^3.2.0"
+  }
+}

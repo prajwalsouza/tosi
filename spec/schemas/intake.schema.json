@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tosi/intake/1",
+  "title": "Intake result",
+  "description": "What intake found in one file. See spec/stages/intake/README.md.",
+  "type": "object",
+  "required": ["schema", "file", "archive", "database", "kind", "check"],
+  "additionalProperties": false,
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "count": { "type": "integer", "minimum": 0 }
+  },
+  "properties": {
+    "schema": { "const": "intake/1" },
+    "file": {
+      "type": "object", "required": ["name", "bytes", "sha256"], "additionalProperties": false,
+      "properties": { "name": { "type": "string" }, "bytes": { "$ref": "#/$defs/count" }, "sha256": { "$ref": "#/$defs/sha256" } }
+    },
+    "archive": {
+      "description": "The zip's entries, in stored order. Null if the file is not a zip.",
+      "type": ["object", "null"], "required": ["entries"], "additionalProperties": false,
+      "properties": {
+        "entries": { "type": "array", "items": {
+          "type": "object", "required": ["name", "bytes", "packed"], "additionalProperties": false,
+          "properties": { "name": { "type": "string" }, "bytes": { "$ref": "#/$defs/count" }, "packed": { "$ref": "#/$defs/count" } } } }
+      }
+    },
+    "database": {
+      "description": "The database's catalogue. Null if no database was found.",
+      "type": ["object", "null"], "required": ["name", "bytes", "sha256", "rows", "tables"], "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "bytes": { "$ref": "#/$defs/count" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "rows": { "$ref": "#/$defs/count", "description": "Total rows across all user tables" },
+        "tables": { "type": "array", "description": "User tables in byte order of their names", "items": {
+          "type": "object", "required": ["name", "rows", "columns"], "additionalProperties": false,
+          "properties": { "name": { "type": "string" }, "rows": { "$ref": "#/$defs/count" }, "columns": { "type": "array", "items": { "type": "string" } } } } }
+      }
+    },
+    "kind": { "enum": ["space", "terrestrial", "unknown"] },
+    "check": {
+      "type": "object", "required": ["status", "missing", "reason"], "additionalProperties": false,
+      "properties": {
+        "status": { "enum": ["accepted", "refused"] },
+        "missing": { "type": "array", "items": { "type": "string" }, "description": "table or table.column, in rulebook order" },
+        "reason": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

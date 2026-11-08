@@ -1,0 +1,9 @@
+[project]
+name = "tosi"
+version = "0.0.1"
+description = "Tosi engine in Python"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+tosi = "tosi.__main__:main"

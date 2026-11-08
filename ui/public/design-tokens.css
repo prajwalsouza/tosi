@@ -1,0 +1,46 @@
+/* Design tokens: what stays the same in every theme. Type, spacing, radii, sizes, motion.
+   Colours, surfaces, shadows and borders live in theme-tokens.css. */
+:root {
+  /* type. A theme may replace --font (body) and --font-display (headings, names, key figures). */
+  --font: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: var(--font);
+  --font-mono: 'SF Mono', ui-monospace, Menlo, monospace;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 14.5px;
+  --fs-lg: 17px;
+  --fs-xl: 22px;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-bold: 600;
+  --lh-body: 1.5;
+
+  /* spacing, on a 4px grid */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+
+  /* radii */
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-round: 999px;
+
+  /* sizes */
+  --icon: 15px;
+  --icon-sm: 11px;
+  --icon-col: 20px;     /* every sidebar row shares this icon column */
+  --row: 38px;          /* sidebar and menu row height */
+  --side: 224px;
+  --side-shut: 60px;
+  --gap: 12px;          /* distance of floating panels from the window edge */
+  --dot: 7px;
+
+  /* motion */
+  --dur: .2s;
+  --ease: cubic-bezier(.2, .7, .1, 1);
+}

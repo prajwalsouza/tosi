@@ -1,0 +1,10 @@
+*.pyc
+.DS_Store
+.venv/
+__pycache__/
+dev/local.json
+dist/
+node_modules/
+out/
+runs/
+target/

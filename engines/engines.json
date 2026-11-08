@@ -1,0 +1,33 @@
+{
+  "about": "How to start each engine. The server and the comparison tools read this; no engine is named anywhere else.",
+  "engines": [
+    {
+      "id": "ts",
+      "name": "TypeScript",
+      "cwd": "engines/ts",
+      "cmd": "node",
+      "args": [
+        "src/main.ts"
+      ]
+    },
+    {
+      "id": "rust",
+      "name": "Rust",
+      "cwd": "engines/rust",
+      "cmd": "target/release/tosi",
+      "args": [],
+      "build": "cargo build --release"
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "cwd": "engines/python",
+      "cmd": ".venv/bin/python",
+      "args": [
+        "-m",
+        "tosi"
+      ],
+      "build": "python3 -m venv .venv && .venv/bin/pip install -r requirements.txt"
+    }
+  ]
+}

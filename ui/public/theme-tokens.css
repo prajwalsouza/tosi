@@ -1,0 +1,171 @@
+/* Theme tokens: what each theme decides. Colours, surfaces, shadows, borders, skeleton colours.
+   A theme is chosen with data-theme on <html> (or on any element, for previews).
+   Matte Black is the default. */
+
+:root, [data-theme="matte"] {
+  color-scheme: dark;
+  --bg: #141414;
+  --panel: #1c1c1c;
+  --surface: #232323;
+  --ink: #ecebe8;
+  --ink2: #a7a6a1;
+  --ink3: #6c6b67;
+  --line: #2b2b2b;
+  --accent: #ff7a50;
+  --ok: #8fbfa6;
+  --bad: #ff7a50;
+  --sk-a: #212121;
+  --sk-b: #2c2c2c;
+  --panel-border: none;
+  --panel-shadow: none;
+  --raised-shadow: none;
+  --pressed-shadow: none;
+  --control-border: 1px solid #333;
+  --radius-panel: var(--r-lg);
+  --page-texture: none;
+}
+
+[data-theme="pitch"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --panel: #0c0c0c;
+  --surface: #121212;
+  --ink: #f5f5f4;
+  --ink2: #9f9f9c;
+  --ink3: #5a5a58;
+  --line: #1c1c1c;
+  --accent: #ff6a3d;
+  --ok: #7fb89a;
+  --bad: #ff6a3d;
+  --sk-a: #0f0f0f;
+  --sk-b: #1b1b1b;
+  --panel-border: none;
+  --panel-shadow: none;
+  --raised-shadow: none;
+  --pressed-shadow: none;
+  --control-border: 1px solid #262626;
+  --radius-panel: var(--r-lg);
+  --page-texture: none;
+}
+
+[data-theme="minimal"] {
+  color-scheme: light;
+  --bg: #fbfaf7;
+  --panel: #f1efe9;
+  --surface: #ffffff;
+  --ink: #17181c;
+  --ink2: #5d5f66;
+  --ink3: #9a9ca3;
+  --line: #e7e4dc;
+  --accent: #ff5b2e;
+  --ok: #7fae98;
+  --bad: #ff5b2e;
+  --sk-a: #ebe8e1;
+  --sk-b: #f6f4ef;
+  --panel-border: none;
+  --panel-shadow: none;
+  --raised-shadow: none;
+  --pressed-shadow: none;
+  --control-border: 1px solid #e7e4dc;
+  --radius-panel: var(--r-lg);
+  --page-texture: none;
+}
+
+/* Blackboard: light, playful, hand-drawn. Ink outlines with a sketched radius and a hard offset shadow, on dotted paper. */
+[data-theme="blackboard"] {
+  color-scheme: light;
+  --bg: #fbf7ee;
+  --panel: #fffdf6;
+  --surface: #fffdf6;
+  --ink: #1d1b18;
+  --ink2: #4a463f;
+  --ink3: #8b857a;
+  --line: #1d1b18;
+  --accent: #ff5a36;
+  --ok: #3f9d6e;
+  --bad: #ff5a36;
+  --sk-a: #efe9db;
+  --sk-b: #faf6ec;
+  --panel-border: 2px solid #1d1b18;
+  --panel-shadow: 4px 4px 0 #1d1b18;
+  --raised-shadow: 2px 2px 0 #1d1b18;
+  --pressed-shadow: none;
+  --control-border: 2px solid #1d1b18;
+  --radius-panel: 18px 6px 16px 8px / 8px 16px 6px 18px;
+  --page-texture: radial-gradient(circle, rgba(29, 27, 24, .12) 1px, transparent 1.3px) 0 0 / 18px 18px;
+}
+
+/* Neumorphism: light, soft. One colour for everything; depth comes from paired light and dark shadows. */
+[data-theme="neumorphism"] {
+  color-scheme: light;
+  --bg: #e7eaef;
+  --panel: #e7eaef;
+  --surface: #e7eaef;
+  --ink: #2c313b;
+  --ink2: #636a76;
+  --ink3: #9aa1ac;
+  --line: rgba(44, 49, 59, .08);
+  --accent: #f26a3d;
+  --ok: #4f9f7d;
+  --bad: #f26a3d;
+  --sk-a: #dde1e7;
+  --sk-b: #eff1f5;
+  --panel-border: none;
+  --panel-shadow: 9px 9px 18px #c8ccd4, -9px -9px 18px #ffffff;
+  --raised-shadow: 4px 4px 9px #c8ccd4, -4px -4px 9px #ffffff;
+  --pressed-shadow: inset 3px 3px 7px #c8ccd4, inset -3px -3px 7px #ffffff;
+  --control-border: none;
+  --radius-panel: 22px;
+  --page-texture: none;
+}
+
+/* Textbook: apricot pastels on cream, like a well-made textbook. Literata for headings, Nunito for text. Clean: no texture. */
+[data-theme="textbook-light"] {
+  color-scheme: light;
+  --font: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Literata', Georgia, 'Times New Roman', serif;
+  --bg: #fdf6ee;
+  --panel: #f8e8d8;
+  --surface: #fffaf4;
+  --ink: #3b2f29;
+  --ink2: #6f5e53;
+  --ink3: #a99788;
+  --line: #ecdbc9;
+  --accent: #ee8556;
+  --ok: #86b38f;
+  --bad: #e07766;
+  --sk-a: #f2e4d5;
+  --sk-b: #fbf3e9;
+  --panel-border: none;
+  --panel-shadow: none;
+  --raised-shadow: none;
+  --pressed-shadow: none;
+  --control-border: 1px solid #e7d3bf;
+  --radius-panel: var(--r-lg);
+  --page-texture: none;
+}
+
+[data-theme="textbook-dark"] {
+  color-scheme: dark;
+  --font: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Literata', Georgia, 'Times New Roman', serif;
+  --bg: #221c19;
+  --panel: #2b231f;
+  --surface: #322924;
+  --ink: #f4e7da;
+  --ink2: #c8b4a2;
+  --ink3: #8c7a6c;
+  --line: #3c322c;
+  --accent: #f4a27a;
+  --ok: #9cc6a2;
+  --bad: #ef9a88;
+  --sk-a: #2d2521;
+  --sk-b: #3a302a;
+  --panel-border: none;
+  --panel-shadow: none;
+  --raised-shadow: none;
+  --pressed-shadow: none;
+  --control-border: 1px solid #44382f;
+  --radius-panel: var(--r-lg);
+  --page-texture: none;
+}

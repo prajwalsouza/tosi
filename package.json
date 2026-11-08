@@ -1,0 +1,13 @@
+{
+  "name": "tosi",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Tosi: deterministic, inspectable screening of ITU filings against national spectrum use",
+  "scripts": {
+    "dev": "node ui/server.ts",
+    "build:rust": "cd engines/rust && cargo build --release",
+    "info": "node ui/server.ts --check"
+  },
+  "engines": { "node": ">=23.6" }
+}

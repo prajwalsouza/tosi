@@ -1,0 +1,242 @@
+/* Tosi interface. Uses only design tokens and theme tokens; no colour or size is written here directly
+   except where a value is structural (a 1px rule, a percentage). */
+* { box-sizing: border-box }
+html, body { height: 100%; margin: 0 }
+body {
+  background: var(--page-texture), var(--bg); color: var(--ink);
+  font: var(--fw-regular) var(--fs-md)/var(--lh-body) var(--font); -webkit-font-smoothing: antialiased;
+  transition: background-color var(--dur), color var(--dur);
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer }
+a { color: inherit; text-decoration: none }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-sm) }
+svg { width: var(--icon); height: var(--icon); fill: currentColor; display: block; flex: none }
+
+/* Text next to an icon: trim Poppins' tall built-in spacing so the letters centre on the icon. */
+.label, .t { line-height: 1; text-box: trim-both cap alphabetic }
+
+/* ---------- the floating sidebar ---------- */
+#side {
+  position: fixed; left: var(--gap); top: var(--gap); bottom: var(--gap); width: var(--side); z-index: 10;
+  display: flex; flex-direction: column; padding: var(--sp-3) var(--sp-2);
+  background: var(--panel); border: var(--panel-border); box-shadow: var(--panel-shadow); border-radius: var(--radius-panel);
+  transition: width var(--dur) var(--ease);
+}
+.top, .nav a, .foot a, .using {
+  display: flex; align-items: center; gap: var(--sp-3); height: var(--row); padding: 0 var(--sp-3);
+  white-space: nowrap; overflow: hidden;
+}
+.ic { width: var(--icon-col); height: var(--icon-col); display: grid; place-items: center; flex: none }
+.top { margin-bottom: var(--sp-2); padding-right: var(--sp-1) }
+.brand { display: flex; align-items: center; gap: var(--sp-3); font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-lg); letter-spacing: -.01em }
+.brand .ic svg { width: var(--icon-col); height: var(--icon-col) }
+.nav, .foot { display: flex; flex-direction: column; gap: 2px }
+.foot { margin-top: auto }
+
+/* hover and selection are shown by colour only: no backgrounds */
+.nav a, .foot a { color: var(--ink3); transition: color var(--dur) }
+.nav a:hover, .foot a:hover { color: var(--ink) }
+.nav a.on, .foot a.on { color: var(--ink); font-weight: var(--fw-medium) }
+.nav a.on .ic, .foot a.on .ic { color: var(--accent) }
+
+.using { height: 30px; font-size: var(--fs-xs); color: var(--ink3) }
+.using b { color: var(--ink2); font-weight: var(--fw-medium) }
+.tog { margin-left: auto; width: 26px; height: 26px; display: grid; place-items: center; color: var(--ink3); opacity: .55; flex: none; transition: opacity var(--dur), color var(--dur) }
+.tog svg { width: var(--icon-sm); height: var(--icon-sm) }
+.tog:hover { opacity: 1; color: var(--ink) }
+.dot { width: var(--dot); height: var(--dot); border-radius: 50%; background: var(--ink3); flex: none }
+.dot.ok { background: var(--ok) } .dot.bad { background: var(--bad) }
+
+body.shut #side { width: var(--side-shut) }
+body.shut #side .label { display: none }   /* only the sidebar's own labels; never the page's */
+body.shut .top { flex-direction: column; height: auto; gap: 0; padding: 0; overflow: visible }
+body.shut .brand { height: var(--row); justify-content: center }
+body.shut .tog { margin: 0 }
+body.shut .nav a, body.shut .foot a, body.shut .using { justify-content: center; padding: 0 }
+
+/* ---------- loading: skeletons that shimmer, never "Loading…" text ---------- */
+.sk {
+  display: inline-block; height: .8em; min-width: 3em; border-radius: 6px; vertical-align: middle;
+  background: linear-gradient(90deg, var(--sk-a) 0%, var(--sk-b) 40%, var(--sk-a) 80%); background-size: 300% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+.sk.dot { width: var(--dot); height: var(--dot); min-width: 0; border-radius: 50% }
+.sk.line { display: block; height: 10px }
+.sk.title { display: block; height: 14px; width: 120px }
+@keyframes shimmer { from { background-position: 100% 0 } to { background-position: -100% 0 } }
+
+/* ---------- the page ---------- */
+/* the page starts level with the sidebar's first row, so headings share its centre line */
+main { margin-left: calc(var(--side) + var(--gap) * 2); min-height: 100vh; padding: calc(var(--gap) + var(--sp-3)) var(--sp-8) 48px; transition: margin-left var(--dur) var(--ease) }
+body.shut main { margin-left: calc(var(--side-shut) + var(--gap) * 2) }
+.empty { min-height: calc(100vh - 76px); display: grid; place-items: center; color: var(--ink3); font-size: var(--fs-sm) }
+
+/* ---------- settings ---------- */
+.set { display: grid; grid-template-columns: 190px minmax(0, 780px); column-gap: var(--sp-8); row-gap: var(--sp-6) }
+.set h1 { grid-column: 1 / -1; margin: 0; height: var(--row); display: flex; align-items: center; font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-xl); letter-spacing: -.02em }
+.sub { display: flex; flex-direction: column; gap: 2px }
+.sub a { display: flex; align-items: center; gap: var(--sp-3); height: var(--row); padding: 0 var(--sp-2); color: var(--ink3); transition: color var(--dur) }
+.sub a .ic { width: var(--icon-col) }
+.sub a:hover { color: var(--ink) }
+.sub a.on { color: var(--ink); font-weight: var(--fw-medium) }
+.sub a.on .ic { color: var(--accent) }
+
+.page h2 { margin: 0; font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-lg); display: flex; align-items: center; gap: var(--sp-2); min-height: var(--row) }
+.page .lede { margin: 0 0 var(--sp-5); color: var(--ink2); max-width: 62ch }
+.bar { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4) }
+.icob { display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--row); padding: 0 var(--sp-2); color: var(--ink3); font-size: var(--fs-sm); white-space: nowrap; transition: color var(--dur) }
+.icob:hover { color: var(--ink) }
+
+.eng { border-top: 1px solid var(--line) }
+.row { display: grid; grid-template-columns: 1fr auto; gap: var(--sp-2) var(--sp-4); padding: var(--sp-4) var(--sp-1); border-bottom: 1px solid var(--line) }
+.row .name { display: flex; align-items: center; gap: var(--sp-3); font-family: var(--font-display); font-weight: var(--fw-medium); font-size: 15px }
+.row .state { color: var(--ink3); font-size: var(--fs-sm); margin-left: 19px }
+.row dl { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-1) 18px; margin: 2px 0 0 19px; font-size: var(--fs-sm) }
+.row dt { color: var(--ink3); font-size: var(--fs-xs) }
+.row dd { margin: 0; font-variant-numeric: tabular-nums }
+.row .err { grid-column: 1 / -1; margin-left: 19px; color: var(--bad); font-size: var(--fs-sm) }
+.row .err code { display: block; margin-top: var(--sp-1); color: var(--ink2); font: var(--fs-xs) var(--font-mono) }
+.use { align-self: center; display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 var(--sp-3); border-radius: var(--r-sm);
+  font-size: var(--fs-sm); color: var(--ink2); border: var(--control-border); box-shadow: var(--raised-shadow); transition: color var(--dur) }
+.use:hover:not(:disabled) { color: var(--ink) }
+.use:disabled { cursor: default; border-color: transparent; box-shadow: none; color: var(--accent); font-weight: var(--fw-medium) }
+.use svg { width: var(--icon-sm); height: var(--icon-sm) }
+.warn { color: var(--bad) }
+
+.about { display: grid; grid-template-columns: 160px 1fr; gap: var(--sp-2) 18px; font-size: var(--fs-md); margin: 0 }
+.about dt { color: var(--ink3) } .about dd { margin: 0 }
+
+/* ---------- appearance: a live preview of each theme ---------- */
+.themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-5) }
+.th { display: flex; flex-direction: column; gap: var(--sp-3); text-align: left; color: var(--ink2) }
+.th .prev {
+  height: 118px; display: flex; gap: 8px; padding: 10px; background: var(--page-texture), var(--bg);
+  border-radius: 14px; border: var(--panel-border);
+  outline: 1px solid var(--line); outline-offset: -1px;
+}
+.th .prev .ps { width: 34%; background: var(--panel); border-radius: 9px; border: var(--panel-border); box-shadow: var(--raised-shadow); padding: 8px 7px; display: flex; flex-direction: column; gap: 6px }
+.th .prev .pm { flex: 1; display: flex; flex-direction: column; gap: 7px; padding: 6px 4px }
+.th .prev i { display: block; height: 6px; border-radius: 3px; background: var(--ink3); opacity: .55 }
+.th .prev i.a { background: var(--accent); opacity: 1; width: 40% }
+.th .prev i.h { background: var(--ink); opacity: .9; height: 8px; width: 60% }
+.th .meta { display: flex; align-items: center; gap: var(--sp-2) }
+.th .meta b { font-family: var(--font-display); font-weight: var(--fw-medium); color: var(--ink) }
+.th .meta svg { width: var(--icon-sm); height: var(--icon-sm); color: var(--ink3) }
+.th .meta .chk { margin-left: auto; color: var(--accent) }
+.th small { color: var(--ink3); font-size: var(--fs-xs); line-height: 1.4 }
+.th:hover .meta b { color: var(--ink) }
+.th.on .meta b { color: var(--accent) }
+
+@media (max-width: 760px) {
+  .set { grid-template-columns: 1fr }
+  .sub { flex-direction: row; flex-wrap: wrap }
+  .row dl { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+}
+@media (prefers-reduced-motion: reduce) { #side, main, body { transition: none } .sk { animation: none } }
+
+/* ---------- home: drop anywhere, or start with a sample ---------- */
+.home { min-height: calc(100vh - 76px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-8); text-align: center }
+.drop-hint .dh-ic { width: 54px; height: 54px; margin: 0 auto var(--sp-4); display: grid; place-items: center; border-radius: 50%; color: var(--accent); background: var(--surface); box-shadow: var(--raised-shadow); border: var(--control-border) }
+.drop-hint .dh-ic svg { width: 20px; height: 20px }
+.drop-hint h1 { margin: 0; font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-xl); letter-spacing: -.02em }
+.drop-hint p { margin: var(--sp-2) 0 0; color: var(--ink2) }
+.samples { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-3) }
+.samples .s-h { width: 100%; color: var(--ink3); font-size: var(--fs-sm) }
+.sample { display: flex; align-items: center; gap: var(--sp-3); min-width: 220px; padding: var(--sp-3) var(--sp-4); text-align: left; border-radius: var(--r-md); background: var(--surface); border: var(--control-border); box-shadow: var(--raised-shadow); color: var(--ink2); transition: color var(--dur) }
+.sample:hover { color: var(--ink) }
+.sample .ic { color: var(--ink3) } .sample:hover .ic { color: var(--accent) }
+.sample b { display: block; font-weight: var(--fw-medium); color: var(--ink) } .sample small { color: var(--ink3); font-size: var(--fs-xs) }
+
+/* ---------- drop overlay and processing ---------- */
+#drop { position: fixed; inset: var(--gap); z-index: 40; display: none; place-items: center; border-radius: var(--r-lg); border: 2px dashed var(--accent); background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: blur(3px); pointer-events: none; overflow: hidden }
+body.over #drop { display: grid }
+#drop::before, body.busy::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, color-mix(in srgb, var(--accent) 14%, transparent) 50%, transparent 65%); background-size: 260% 100%; animation: sweep 1.5s linear infinite; pointer-events: none }
+body.busy::after { position: fixed; z-index: 30 }
+@keyframes sweep { from { background-position: 130% 0 } to { background-position: -30% 0 } }
+.drop-in { display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); text-align: center; position: relative }
+.drop-in .ic { color: var(--accent) } .drop-in .ic svg { width: 26px; height: 26px }
+.drop-in b { font-family: var(--font-display); font-size: var(--fs-xl); font-weight: var(--fw-bold) }
+.drop-in small { color: var(--ink2) }
+#busy { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 35; display: none; flex-direction: column; align-items: center; padding: var(--sp-3) var(--sp-5); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--raised-shadow); border: var(--control-border) }
+body.busy #busy { display: flex }
+#busy small { color: var(--ink3); font-size: var(--fs-xs) }
+#toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 36; max-width: min(520px, 90vw); padding: var(--sp-3) var(--sp-5); border-radius: var(--r-lg); background: var(--surface); color: var(--ink); border: var(--control-border); box-shadow: var(--raised-shadow) }
+
+/* ---------- the flow: modules on the left, the picture on the right, driven by scrolling ---------- */
+.empty-state { min-height: calc(100vh - 76px); display: grid; place-items: center; color: var(--ink3); font-size: var(--fs-sm) }
+.flow { --flowhead: calc(var(--gap) + var(--sp-3) + var(--row) + var(--sp-5)) }
+/* the header stays: title, files, agreement */
+.flow-h { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: var(--sp-6); flex-wrap: wrap;
+  margin-top: calc(-1 * (var(--gap) + var(--sp-3))); padding: calc(var(--gap) + var(--sp-3)) 0 var(--sp-5); background: var(--bg) }
+.flow-h h1 { margin: 0; height: var(--row); display: flex; align-items: center; font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-xl); letter-spacing: -.02em }
+.runs { display: flex; flex-wrap: wrap; gap: var(--sp-5) }
+.runs a { display: flex; align-items: center; gap: var(--sp-2); height: var(--row); color: var(--ink3); transition: color var(--dur) }
+.runs a:hover { color: var(--ink) }
+.runs a.on { color: var(--ink); font-weight: var(--fw-medium) } .runs a.on .ic { color: var(--accent) }
+.agree { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); height: var(--row); color: var(--ink3); font-size: var(--fs-sm) }
+.agree .times { display: flex; gap: var(--sp-4) }
+.agree .et { display: inline-flex; align-items: center; gap: 6px; color: var(--ink3) }
+.agree .et b { color: var(--ink2); font-weight: var(--fw-medium); font-variant-numeric: tabular-nums }
+.agree .et.me { color: var(--ink2) } .agree .et.me b { color: var(--ink) }
+.agree .et b.bad { color: var(--bad) }
+.agree .verdict svg { color: var(--ok) } .agree .verdict.bad svg { color: var(--bad) }
+.flow-body { display: grid; grid-template-columns: 190px minmax(0, 1fr); column-gap: var(--sp-6) }
+
+/* the module diagram */
+.diagram-col { position: relative }
+.diagram { position: sticky; top: var(--flowhead); display: flex; flex-direction: column; padding-top: var(--sp-2) }
+.node { position: relative; display: flex; align-items: center; gap: var(--sp-3); height: var(--row); padding: 0 var(--sp-1); color: var(--ink3); text-align: left; transition: color var(--dur) }
+.node + .node::before { content: ""; position: absolute; left: calc(var(--sp-1) + var(--icon-col) / 2 - .5px); top: -10px; height: 18px; width: 1px; background: var(--line) }
+.node .ic { width: var(--icon-col) } .node svg { width: 14px; height: 14px }
+.node:hover { color: var(--ink) }
+.node.past { color: var(--ink2) }
+.node.on { color: var(--ink); font-weight: var(--fw-medium) } .node.on .ic { color: var(--accent) }
+.node.later { color: var(--ink3); opacity: .45; cursor: default; font-size: var(--fs-sm) }
+.node .pip { display: block; width: 6px; height: 6px; border-radius: 50%; border: 1.2px solid currentColor }
+.next-h { margin: var(--sp-4) 0 var(--sp-1); padding-left: var(--sp-1); color: var(--ink3); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .05em; opacity: .7 }
+
+/* the stage: one tall scroll, one sticky picture */
+.scrolly { position: relative; height: 340vh }
+.sticky { position: sticky; top: var(--flowhead); height: calc(100vh - var(--flowhead) - var(--gap)) }
+.stage { position: absolute; inset: 0 0 56px 0; overflow: hidden }
+.fcard { position: absolute; left: 0; top: 0; width: 220px; height: 220px; transform-origin: 0 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  border-radius: 22px; background: var(--surface); border: var(--control-border); box-shadow: var(--raised-shadow); text-align: center; will-change: transform; overflow: hidden }
+.fcard.working::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, color-mix(in srgb, var(--accent) 14%, transparent) 50%, transparent 65%); background-size: 260% 100%; animation: sweep 1.5s linear infinite }
+.fcard-ic { color: var(--accent); margin-bottom: 6px } .fcard-ic svg { width: 38px; height: 38px }
+.fcard-name { font-family: var(--font-display); font-weight: var(--fw-bold); font-size: 18px; padding: 0 12px; overflow-wrap: anywhere }
+.fcard-sub { color: var(--ink3); font-size: var(--fs-sm) }
+.fcard-sha { color: var(--ink3); font: 11px var(--font-mono) }
+.tile { position: absolute; left: 0; top: 0; width: 0; height: 0; border-radius: 4px; background: color-mix(in srgb, var(--ink3) 45%, transparent); opacity: 0; will-change: transform;
+  display: flex; align-items: center; padding: 0 7px; overflow: hidden; transition: background .3s, color .3s }
+.tile span { display: none; font-size: 10.5px; color: var(--bg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.tile.named span { display: flex }
+.tile.rel { z-index: 2 }
+.tile.lit { background: var(--accent); border-radius: 8px }
+.tile span { display: none; align-items: baseline; gap: 8px }
+.tile.lit span { color: #fff; font-size: 13px }
+.tile.lit .al { font-weight: var(--fw-bold) } .tile.lit .nm { font: 11px var(--font-mono); opacity: .8 }
+.tile.named:not(.lit) .al { display: none } .tile.named:not(.lit) .nm { font: inherit }
+.tile { cursor: pointer }
+.tile:hover { outline: 1.5px solid var(--ink2); outline-offset: 1px }
+.ttip, .tpin { position: absolute; z-index: 5; max-width: 340px; padding: 10px 12px; border-radius: 12px; background: var(--surface); border: var(--control-border); box-shadow: var(--raised-shadow), 0 12px 30px -18px rgba(0,0,0,.5); font-size: var(--fs-sm); color: var(--ink2); pointer-events: none }
+.tpin { pointer-events: auto; right: 0; top: 0; max-width: 380px; max-height: 70%; overflow: auto }
+.tt-h { display: flex; align-items: baseline; gap: 8px } .tt-h b { color: var(--ink); font-weight: var(--fw-bold) } .tt-h code { font: var(--fs-xs) var(--font-mono); color: var(--ink3) }
+.tt-s { color: var(--ink3); font-size: var(--fs-xs); margin-top: 2px }
+.tt-a { margin-top: 6px; color: var(--ink2) }
+.tt-r { margin-top: 6px; color: var(--accent); font-size: var(--fs-xs) }
+.tt-c { margin-top: 6px; font: var(--fs-xs)/1.5 var(--font-mono); color: var(--ink3) }
+.tp-x { position: absolute; right: 8px; top: 8px; color: var(--ink3) } .tp-x:hover { color: var(--ink) } .tp-x svg { width: 13px; height: 13px }
+.tile.miss { background: none; border: 1.5px dashed var(--bad) } .tile.miss span { color: var(--bad) }
+.relinfo { position: absolute; display: flex; align-items: center; gap: var(--sp-4); opacity: 0; font-size: var(--fs-sm); white-space: nowrap }
+.ri-rows { color: var(--ink2); width: 110px; font-variant-numeric: tabular-nums }
+.ri-cols { display: flex; gap: 4px 10px; flex-wrap: wrap; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--ink3) }
+.ri-cols i { font-style: normal } .ri-cols i.miss { color: var(--bad) }
+.msg { position: absolute; left: 0; right: 0; bottom: 0; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--ink3); font-size: 15px }
+.msg b { color: var(--ink); font-weight: var(--fw-medium) }
+.msg.in { animation: msgin .5s var(--ease) }
+@keyframes msgin { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+
+@media (max-width: 900px) {
+  .flow-body { grid-template-columns: 1fr }
+  .diagram-col { display: none }
+}

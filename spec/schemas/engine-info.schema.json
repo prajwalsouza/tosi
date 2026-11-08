@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tosi/engine-info/1",
+  "title": "Engine info",
+  "description": "What an engine prints for `info`: who it is and which stages it implements.",
+  "type": "object",
+  "required": ["schema", "engine", "language", "version", "runtime", "spec", "stages"],
+  "additionalProperties": false,
+  "properties": {
+    "schema":   { "const": "engine-info/1" },
+    "engine":   { "enum": ["ts", "rust", "python"] },
+    "language": { "type": "string" },
+    "version":  { "type": "string", "description": "The engine's own version" },
+    "runtime":  { "type": "string", "description": "The runtime it ran on, e.g. Node 26.0.0" },
+    "spec":     { "type": "string", "description": "The spec version it implements, from spec/VERSION" },
+    "stages":   { "type": "array", "items": { "type": "string" }, "description": "Stage ids implemented so far" }
+  }
+}
