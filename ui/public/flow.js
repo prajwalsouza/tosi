@@ -104,6 +104,19 @@ async function loadRules() {
 /* ---------- pages ---------- */
 // Where the ITU publishes each kind of issue (BR IFIC for space services and for terrestrial services).
 const ITU = { space: "https://www.itu.int/en/ITU-R/space/brific/Pages/default.aspx", terrestrial: "https://www.itu.int/en/ITU-R/terrestrial/brific/Pages/default.aspx" };
+function playRecording(el) {
+  const source = "/media/tosi-demo.mp4";
+  const video = el("video", { src: source, poster: "/media/tosi-demo-poster.jpg", controls: true, playsinline: true });
+  const dialog = el("dialog", { class: "recorded-demo", "aria-label": "Tosi demo recording" },
+    video, el("div", { class: "recorded-demo-actions" },
+      el("a", { href: source }, "Open MP4"),
+      el("button", { class: "btn", onclick: () => dialog.close() }, "Close")));
+  dialog.addEventListener("close", () => { video.pause(); dialog.remove(); }, { once: true });
+  document.body.append(dialog);
+  dialog.showModal();
+  video.play().catch(() => {}); // Native controls also let visitors start playback manually.
+}
+
 export function homePage(samples, demo = false) {
   const { el } = ctx;
   // The 3D scene just below the fold. It loads on its own; the page's cleanup stops it.
@@ -114,7 +127,8 @@ export function homePage(samples, demo = false) {
     demo ? el("div", { class: "drop-hint" },
       el("div", { class: "dh-ic", html: icon("satellite-dish") }),
       el("h1", {}, "Try Tosi with an official ITU sample"),
-      el("p", {}, "Choose a space or terrestrial filing to run the analysis and open its report."))
+      el("p", {}, "Choose a space or terrestrial filing to run the analysis and open its report."),
+      el("button", { class: "btn primary x-play", html: icon("circle-play"), onclick: () => playRecording(el) }, "Play demo"))
     : el("div", { class: "drop-hint" },
       el("div", { class: "dh-ic", html: icon("arrow-up-from-bracket") }),
       // the ITU pages where the issues are published, opened in the browser

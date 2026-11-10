@@ -12,7 +12,7 @@ Every result comes from a stated rule, can be reproduced exactly, and opens down
 
 **[Watch the demo (MP4, 1:59)](docs/media/tosi-demo.mp4)**
 
-The video is a recording of the **Play demo** button on Tosi's home page: a narrated film that plays over the live app, with every number taken from real runs of the two sample issues (space 3074 and terrestrial 3076). Press it in the app to watch it yourself, pause at any point, and look around.
+The video is a recording of the **Play demo** button on Tosi's home page: a narrated film that plays over the live app, with every number taken from real runs of the two sample issues (space 3074 and terrestrial 3076). On the hosted app, **Play demo** opens this recording with narration and music. The local app offers the interactive version.
 
 Narration: Kokoro (Apache-2.0), generated locally. Music: a short piano piece composed and synthesised for this video; no samples, free to reuse.
 

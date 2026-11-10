@@ -14,6 +14,7 @@ COPY package.json ./
 COPY engines/engines.json engines/chain.json ./engines/
 COPY spec ./spec
 COPY ui ./ui
+COPY docs/media/tosi-demo.mp4 docs/media/tosi-demo-poster.jpg ./docs/media/
 # Rust resolves its reference files relative to the compile-time manifest directory.
 COPY --from=rust-build /app/engines/rust/target/release/tosi ./engines/rust/target/release/tosi
 RUN mkdir -m 0755 /app/samples

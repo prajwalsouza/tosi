@@ -1,7 +1,7 @@
 // Tosi local server. Serves the interface and starts engines as separate processes.
 // It holds no stage logic: it asks an engine and passes on what the engine printed.
 import { createServer } from "node:http";
-import { readFileSync, existsSync, statSync, mkdirSync, createWriteStream, writeFileSync, rmSync } from "node:fs";
+import { readFileSync, existsSync, statSync, mkdirSync, createReadStream, createWriteStream, writeFileSync, rmSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { makeRuns, view } from "./runs.ts";
 import { makeRulebook } from "./rulebook.ts";
@@ -107,6 +107,49 @@ function send(res: import("node:http").ServerResponse, code: number, body: strin
   res.end(body);
 }
 
+const demoMedia = new Map([
+  ["/media/tosi-demo.mp4", { name: "tosi-demo.mp4", type: "video/mp4" }],
+  ["/media/tosi-demo-poster.jpg", { name: "tosi-demo-poster.jpg", type: "image/jpeg" }],
+]);
+
+function serveDemoMedia(req: import("node:http").IncomingMessage, res: import("node:http").ServerResponse,
+                        media: { name: string; type: string }) {
+  const path = join(root, "docs", "media", media.name);
+  const file = statSync(path, { throwIfNoEntry: false });
+  if (!file?.isFile()) return send(res, 404, "Demo media not found", "text/plain");
+  const size = file.size;
+  let start = 0, end = size - 1;
+  const range = req.method === "GET" ? req.headers.range : undefined;
+  const headers: Record<string, string | number> = {
+    "content-type": media.type,
+    "accept-ranges": "bytes",
+    "cache-control": "no-cache",
+  };
+  if (range) {
+    const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+    if (match?.[1]) {
+      start = Number(match[1]);
+      if (match[2]) end = Math.min(end, Number(match[2]));
+    } else if (match?.[2]) {
+      start = Math.max(0, size - Number(match[2]));
+    } else {
+      start = size;
+    }
+    if (start > end) {
+      res.writeHead(416, { ...headers, "content-range": `bytes */${size}` });
+      return res.end();
+    }
+    headers["content-range"] = `bytes ${start}-${end}/${size}`;
+  }
+  headers["content-length"] = end - start + 1;
+  res.writeHead(range ? 206 : 200, headers);
+  if (req.method === "HEAD") return res.end();
+  const stream = createReadStream(path, { start, end });
+  res.on("close", () => stream.destroy());
+  stream.on("error", () => res.destroy());
+  stream.pipe(res);
+}
+
 // A small spreadsheet writer for the report download: one sheet, the CSV's rows as they are, numbers kept as numbers,
 // the header row bold and frozen, with a filter. An .xlsx is a zip of a few XML files.
 function parseCsv(text: string): string[][] {
@@ -172,6 +215,8 @@ const engineInfo = () => hosted ? (hostedEngineInfo ??= getEngineInfo()) : getEn
 createServer(hosted ? { headersTimeout: 10_000, requestTimeout: 15_000, maxHeaderSize: 8192 } : {}, async (req, res) => {
   const url = new URL(req.url ?? "/", "http://localhost");
   if (url.pathname === "/healthz") return send(res, 200, "ok", "text/plain");
+  const media = demoMedia.get(url.pathname);
+  if (media && (req.method === "GET" || req.method === "HEAD")) return serveDemoMedia(req, res, media);
   if (hosted && req.method === "POST") {
     req.resume();
     const sampleRun = url.pathname === "/api/runs" && url.searchParams.has("sample") && !url.searchParams.has("path");
